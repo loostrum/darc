@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(name='darc',
@@ -10,5 +10,6 @@ setup(name='darc',
       author='Leon Oostrum',
       author_email='oostrum@astron.nl',
       license='GPLv3',
-      packages=['darc'],
-      zip_safe=False)
+      packages=find_packages(),
+      zip_safe=False,
+      scripts=['bin/darc'])
