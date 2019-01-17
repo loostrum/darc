@@ -1,0 +1,9 @@
+# General DARC config
+
+# AMBER trigger listener
+amber_listener:
+    host: "localhost"
+    port: 50000  # NOTE: also hardcoded as default in stream_files_to_port
+    poll_time: 0.1
+    log_file: "{home}/darc/log/amber_listener.log"
+

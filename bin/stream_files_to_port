@@ -50,11 +50,9 @@ echo "Using network port: $port"
 echo "Using files: $files"
 
 
-# PID will hold pid of tail command
-tail -f $files > >(nc localhost $port) &
-PID=$!
+(tail -n 1 -f $files | nc localhost $port ) &
 
 # kill the tail on sigterm/sigint
-trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' | ncat localhost $port; kill $PID" SIGTERM SIGINT
+trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' | ncat localhost $port; jobs -p | xargs -n1 kill" SIGTERM SIGINT
 
 wait
