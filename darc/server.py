@@ -13,7 +13,6 @@ import logging.handlers
 from darc.definitions import *
 
 
-
 class Server(object):
     """
     Sets up a server that listens on a socket.
@@ -32,8 +31,6 @@ class Server(object):
                 value = value.format(home=home)
             setattr(self, key, value)
 
-        self.received_data = []
-
         # setup logger
         handler = logging.handlers.WatchedFileHandler(self.log_file)
         formatter = logging.Formatter(logging.BASIC_FORMAT)
@@ -41,6 +38,8 @@ class Server(object):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
+
+        self.received_data = []
 
     def get_mode(self):
         return self.mode
@@ -59,13 +58,13 @@ class Server(object):
         
         s.listen(5)
         self.logger.info("Waiting for client to connect")
-        clientSocket, addr = s.accept()
+        client, _ = s.accept()
 
         while True:
-            output = clientSocket.recv(1024)
+            output = client.recv(1024)
             if output.strip() == 'EOF' or not output:
                 self.logger.info("Disconnecting")
-                clientSocket.close()
+                client.close()
                 return True
             else:
                 self.received_data.append(output.strip().split('\n'))
