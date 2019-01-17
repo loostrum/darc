@@ -55,5 +55,12 @@ if ! [[ $? -eq 0 ]]; then
     exit 1
 fi
 
-# Run tail -f: program will only exit on SIGKILL
-tail -f "$files" | ncat --send-only localhost $port
+
+tail -f $files > >(ncat --send-only localhost $port) &
+# save PID of tail
+PID=$!
+
+# kill the tail on sigterm
+trap "echo 'Received SIGTERM - exiting'; kill $PID" SIGTERM
+
+wait
