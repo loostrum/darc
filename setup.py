@@ -12,4 +12,5 @@ setup(name='darc',
       license='GPLv3',
       packages=find_packages(),
       zip_safe=False,
-      scripts=['bin/darc'])
+      scripts=['bin/darc',
+               'bin/stream_files_to_port'])
