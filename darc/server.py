@@ -42,8 +42,6 @@ class Server(object):
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
 
-        #logging.basicConfig(filename=self.log_file, format='%(asctime)s %(message)s', level=logging.DEBUG)
-
     def get_mode(self):
         return self.mode
 
