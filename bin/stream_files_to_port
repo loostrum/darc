@@ -34,6 +34,7 @@ while [[ $# -gt 0 ]]; do
             break
             ;;
     esac
+    shift
 done
 
 # Files cannot be empty
@@ -48,19 +49,12 @@ echo "Starting $(basename "$0")"
 echo "Using network port: $port"
 echo "Using files: $files"
 
-# test connection
-ncat -z localhost $port
-if ! [[ $? -eq 0 ]]; then
-    echo "Failed to connect to port $port"
-    exit 1
-fi
 
-
-tail -f $files > >(ncat --send-only localhost $port) &
-# save PID of tail
+# PID will hold pid of tail command
+tail -f $files > >(nc localhost $port) &
 PID=$!
 
-# kill the tail on sigterm
-trap "echo 'Received SIGTERM - exiting'; kill $PID" SIGTERM
+# kill the tail on sigterm/sigint
+trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' | ncat localhost $port; kill $PID" SIGTERM SIGINT
 
 wait
