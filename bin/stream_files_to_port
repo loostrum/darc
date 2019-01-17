@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# This script runs tail -f on the given input files and
+# sends the output to a given/ network port
+
+DEFAULT_PORT=50000
+
+usage () {
+echo "$(basename "$0") [-h] [-p PORT] <files> -- Continuously send file content to network port
+
+Options:
+    -h  show this help text
+    -p  network port (default: $DEFAULT_PORT)
+    <files> files to use"
+exit
+}
+
+# Call usage if too few arguments are supplied
+[[ $# -lt 1 ]] && usage
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    opt="$1"
+    case $opt in
+        -h)
+            usage
+            ;;
+        -p)
+            port="$2"
+            shift
+            ;;
+        *)
+            files="$@"
+            break
+            ;;
+    esac
+done
+
+# Files cannot be empty
+if [ "$files" == "" ]; then
+    echo "No files given"
+    usage
+fi
+# Set port
+port=${port:-$DEFAULT_PORT}
+
+echo "Starting $(basename "$0")"
+echo "Using network port: $port"
+echo "Using files: $files"
+
+# test connection
+ncat -z localhost $port
+if ! [[ $? -eq 0 ]]; then
+    echo "Failed to connect to port $port"
+    exit 1
+fi
+
+# Run tail -f: program will only exit on SIGKILL
+tail -f "$files" | ncat --send-only localhost $port
