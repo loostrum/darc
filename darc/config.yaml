@@ -1,4 +1,6 @@
-# General DARC config
+# DARC Master config
+darc_master:
+
 
 # AMBER trigger listener
 amber_listener:
@@ -6,4 +8,6 @@ amber_listener:
     port: 50000  # NOTE: also hardcoded as default in stream_files_to_port
     poll_time: 0.1
     log_file: "{home}/darc/log/amber_listener.log"
+
+
 
