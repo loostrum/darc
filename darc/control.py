@@ -6,16 +6,17 @@ import yaml
 import logging
 
 from darc.definitions import *
-from darc.server import Server
-
+from darc.amber_listener import AMBERListener
 
 
 def start_service(service):
     """
         Start the supplied service
     """
-    server = Server(mode=service)
-    server.run()
+    if service == 'amber_listener':
+        amber_listener = AMBERListener()
+        amber_listener.start()
+
 
 
 def main():
@@ -33,7 +34,7 @@ def main():
     args = parser.parse_args()
 
     # Check if service is valid
-    if not args.service in services:
+    if args.service not in services:
         logging.error("Service not found: {}".format(service))
         sys.exit()
 

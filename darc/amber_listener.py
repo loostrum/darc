@@ -9,26 +9,31 @@ import socket
 import yaml
 import logging
 import logging.handlers
+from queue import Queue
 
 from darc.definitions import *
 
 
-class Server(object):
+class AMBERListenerException(Exception):
+    pass
+
+
+class AMBERListener(object):
     """
-    Sets up a server that listens on a socket.
+    Listens to AMBER triggers and puts them in a queue.
     """
 
-    def __init__(self, mode):
-        self.mode = mode
+    def __init__(self):
+        self.queue = None
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)[self.mode]
+            config = yaml.load(f)['amber_listener']
 
         # set config, expanding strings
-        home = os.path.expanduser('~')
+        kwargs = {'home': os.path.expanduser('~')}
         for key, value in config.items():
             if isinstance(value, str):
-                value = value.format(home=home)
+                value = value.format(**kwargs)
             setattr(self, key, value)
 
         # setup logger
@@ -39,16 +44,18 @@ class Server(object):
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
 
-        self.received_data = []
+    def set_queue(self, queue):
+        if not isinstance(queue, Queue):
+            self.logger.error('Given queue is not instance of Queue')
+            raise AMBERListenerException('Given queue is not instance of Queue')
+        self.queue = queue
 
-    def get_mode(self):
-        return self.mode
+    def start(self):
+        if not self.queue:
+            self.logger.error('Queue not set')
+            raise AMBERListenerException('Queue not set')
 
-    def clear_data(self):
-        self.received_data = []
-
-    def _start(self):
-        self.logger.info("Starting listener for mode: {}".format(self.mode))
+        self.logger.info("Starting AMBER listener")
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.SO_REUSEADDR)
             s.bind((self.host, self.port))
@@ -67,18 +74,16 @@ class Server(object):
                 client.close()
                 return True
             else:
-                self.received_data.append(output.strip().split('\n'))
+                for line in output.strip().split('\n'):
+                    self.queue.put(line)
 
-    def run_once(self):
-        self._start()
-
-    def run(self):
+    def run_forever(self):
         while True:
-            if not self._start():
+            if not self.start():
                 # failed to start - wait before retrying
                 sleep(1)
             
 
 if __name__ == '__main__':
-    server = Server(mode='amber_listener')
-    server.run_once()
+    listener = AMBERListener()
+    listener.start()
