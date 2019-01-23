@@ -2,7 +2,7 @@
 #
 # Logic for listening on a network port
 
-from time import sleep
+from time import sleep, time
 import socket
 import yaml
 import logging
@@ -59,30 +59,32 @@ class AMBERListener(threading.Thread):
             raise AMBERListenerException('Queue not set')
 
         self.logger.info("Starting AMBER listener")
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((self.host, self.port))
-        except socket.error as e:
-            self.logger.error("Failed to create socket: {}".format(e))
-            return False
+        s = None
+        start = time()
+        while not s and time() - start < self.timeout():
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.bind((self.host, self.port))
+            except socket.error as e:
+                self.logger.warning("Failed to create socket, will retry: {}".format(e))
+                sleep(1)
+
+        if not s:
+            self.logger.error("Failed to create socket")
+            raise AMBERListenerException("Failed to create socket")
 
         s.listen(5)
         self.logger.info("Waiting for client to connect")
         client, adr = s.accept()
         self.logger.info("Accepted connection from (host, port) = {}".format(adr))
 
-        while True:
+        # keep listening until we receive a stop
+        while not self.stop_event.is_set():
             output = client.recv(1024)
             if output.strip() == 'EOF' or not output:
                 self.logger.info("Disconnecting")
                 client.close()
-                return True
             else:
                 self.queue.put(output.strip().split('\n'))
 
-    def run(self):
-        while not self.stop_event.is_set():
-            if not self.run_once():
-                # failed to start - wait before retrying
-                self.stop_event.wait(timeout=5)
         self.logger.info("Stopping AMBER Listener")
