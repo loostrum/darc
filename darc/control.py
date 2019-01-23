@@ -4,39 +4,76 @@ import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 import yaml
 import logging
+import socket
 
 from darc.definitions import *
-from darc.amber_listener import AMBERListener
+
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
 
-def start_service(service):
+def send_command(timeout, service, command, payload=None):
     """
-        Start the supplied service
-    """
-    if service == 'amber_listener':
-        amber_listener = AMBERListener()
-        amber_listener.start()
 
+    :param service: Service to send command to
+    :param command: Which command to send
+    :param payload: Payload for command (optional)
+    :return:
+    """
+    # define message as literal python dict
+    if payload:
+        message = "{{'service':'{}', 'command':'{}', 'payload':'{}'}}".format(service, command, payload)
+    else:
+        message = "{{'service':'{}', 'command':'{}'}}".format(service, command)
+    # read port from config
+    with open(CONFIG_FILE, 'r') as f:
+        master_config = yaml.load(f)['darc_master']
+    port = master_config['port']
+    # connect to master
+    try:
+        master_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        master_socket.settimeout(timeout)
+        master_socket.connect(("localhost", port))
+    except socket.error as e:
+        logging.error("Failed to connect DARC master: {}".format(e))
+        sys.exit(1)
+    # send message
+    master_socket.sendall(message)
+    logging.info("Command send successfully")
+    # receive reply
+    try:
+        reply = master_socket.recv(1024)
+    except socket.timeout:
+        logging.error("Did not receive reply before timeout")
+    else:
+        logging.info("Status: {}".format(reply))
+    # close connection
+    master_socket.close()
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
-
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f)
     services = config.keys()
+    # remove master - that is not meant to be interacted with directly
+    try:
+        services.remove('darc_master')
+    except ValueError:
+        pass
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
-    parser.add_argument('--service', type=str, help="Which service to start, available services: {}".format(' '.join(services)), required=True)
+    parser.add_argument('--service', type=str, help="Which service to interact with,"
+                        " available services: {}".format(', '.join(services)), required=True)
+    parser.add_argument('--cmd', type=str, help="Command to send to service", required=True)
+    parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
+                        "(Default: %(default)ss)")
 
     args = parser.parse_args()
 
     # Check if service is valid
     if args.service not in services:
-        logging.error("Service not found: {}".format(service))
+        logging.error("Service not found: {}".format(args.service))
         sys.exit()
 
-    # Start the service
-    start_service(args.service)
+    send_command(args.timeout, args.service, args.cmd)

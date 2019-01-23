@@ -57,8 +57,7 @@ class TriggerGenerator(object):
 
 
 if __name__ == '__main__':
-    # run for 5 seconds
-    runtime = 5
+    runtime = 30
     tmpfile = "tmptriggers"
     if os.path.isfile(tmpfile):
         os.remove(tmpfile)
@@ -66,6 +65,5 @@ if __name__ == '__main__':
     generator.duration = runtime
     print "Running TriggerGenerator, duration: {}s".format(runtime)
     generator.run()
-    os.remove(tmpfile)
     print "TriggerGenerator ran without errors"
 

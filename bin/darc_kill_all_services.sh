@@ -8,5 +8,5 @@ else
     pkill="pkill"
 fi
 
-$pkill darc
+$pkill darc_service
 $pkill stream_to_port

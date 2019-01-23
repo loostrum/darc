@@ -60,6 +60,8 @@ db.sqlite3
 instance/
 .webassets-cache
 
+# nohup
+nohup.out
 # Scrapy stuff:
 .scrapy
 
