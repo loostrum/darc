@@ -164,20 +164,26 @@ class DARCMaster(object):
         """
 
         if service.lower() == "all":
-            status = "\n"
+            status = ""
             for service, thread in self.threads.items():
+                self.logger.info("Checking status of {}".format(service))
                 if thread.isAlive():
+                    self.logger.info("{} is running".format(service))
                     status += "{}: running\n".format(service)
                 else:
-                    status += "{}: not running\n"
+                    self.logger.info("{} is not running".format(service))
+                    status += "{}: not running\n".format(service)
             # Remove final newline
             status = status.strip()
 
         else:
             thread = self.threads[service]
+            self.logger.info("Checking status of {}".format(service))
             if thread.isAlive():
+                self.logger.info("{} is running".format(service))
                 status = "{}: running".format(service)
             else:
+                self.logger.info("{} is not running".format(service))
                 status = "{}: not running".format(service)
 
         return status
