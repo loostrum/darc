@@ -244,38 +244,35 @@ class DARCMaster(object):
         :return: status
         """
 
-        self.logger.info("Stopping service {}".format(service))
+        # settings for specific services
         if service == 'amber_listener':
-            if not self.amber_listener.isAlive():
-                status = "Service not running: {}".format(service)
-                self.logger.warning(status)
-            else:
-                self.amber_listener_stop.set()
-                sleep(1)
-                if self.amber_listener.isAlive():
-                    status = "Failed to stop: {}".format(service)
-                    self.logger.error(status)
-                else:
-                    status = "Service stopped: {}".format(service)
-                    self.logger.info(status)
-
+            event = self.amber_listener_stop
         elif service == 'amber_triggering':
-            if not self.amber_triggering_thread_running:
-                status = "Service not running: {}".format(service)
-                self.logger.warning(status)
-            else:
-                self.amber_triggering_thread_stop.set()
-                sleep(1)
-                if self.amber_triggering_thread.isAlive():
-                    status = "Failed to stop: {}".format(service)
-                    self.logger.error(status)
-                else:
-                    self.amber_triggering_thread_running = False
-                    status = "Service stopped: {}".format(service)
-                    self.logger.info(status)
+            event = self.amber_triggering_stop
         else:
             status = "Unknown service: {}".format(service)
             self.logger.error(status)
+            return status
+
+        # get thread
+        thread = self.threads[service]
+
+        # stop the specified service
+
+        self.logger.info("Stopping service {}".format(service))
+
+        if not thread.isAlive():
+            status = "Service not running: {}".format(service)
+            self.logger.warning(status)
+        else:
+            event.set()
+            sleep(2)
+            if thread.isAlive():
+                status = "Failed to stop: {}".format(service)
+                self.logger.error(status)
+            else:
+                status = "Service stopped: {}".format(service)
+                self.logger.info(status)
 
         return status
 
