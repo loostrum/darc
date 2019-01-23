@@ -6,3 +6,5 @@ echo "Stopping AMBER Listener"
 darc --service amber_listener --cmd stop
 echo "Stopping AMBER Triggering"
 darc --service amber_triggering --cmd stop
+echo "Stopping VOEvent Generator"
+darc --service voevent_generator --cmd stop

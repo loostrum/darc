@@ -4,6 +4,7 @@ darc_master:
     host: "localhost"
     port: 51000
     timeout: 30
+    services: ["amber_listener", "amber_triggering", "voevent_generator"]
 
 # AMBER trigger listener
 amber_listener:
@@ -22,5 +23,8 @@ amber_triggering:
     snr_min: 80
     age_max: 10
 
+# VOEvent generator
+voevent_generator:
+    log_file: "{home}/darc/log/voevent_generator.log"
 
 

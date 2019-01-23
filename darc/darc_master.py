@@ -16,7 +16,7 @@ from time import sleep, time
 from darc.definitions import *
 from darc.amber_listener import AMBERListener
 from darc.amber_triggering import AMBERTriggering
-#from darc.voevent_generator import VOEventGenerator
+from darc.voevent_generator import VOEventGenerator
 
 
 class DARCMasterException(Exception):
@@ -33,13 +33,12 @@ class DARCMaster(object):
         self.voevent_queue = Queue()
 
         # Initalize services
-        self.amber_listener_stop = threading.Event()
-        self.amber_listener = AMBERListener(self.amber_listener_stop)
-        self.amber_triggering_stop = threading.Event()
-        self.amber_triggering = AMBERTriggering(self.amber_triggering_stop)
-
-        self.threads = {'amber_listener': self.amber_listener,
-                         'amber_triggering': self.amber_triggering}
+        self.events = {'amber_listener': threading.Event(),
+                       'amber_triggering': threading.Event(),
+                       'voevent_generator': threading.Event()}
+        self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
+                        'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
+                        'voevent_generator': VOEventGenerator(self.events['voevent_generator'])}
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -62,7 +61,7 @@ class DARCMaster(object):
 
         self.logger.info('Initalized')
 
-    def start(self):
+    def run(self):
         """
         Initalize the socket and listen for message
         """
@@ -75,6 +74,7 @@ class DARCMaster(object):
                 command_socket.bind((self.host, self.port))
             except socket.error as e:
                 self.logger.warning("Failed to create socket, will retry: {}".format(e))
+                command_socket = None
                 sleep(1)
 
         if not command_socket:
@@ -196,22 +196,31 @@ class DARCMaster(object):
 
         # settings for specific services
         if service == 'amber_listener':
-            event = self.amber_listener_stop
             source_queue = None
             target_queue = self.amber_listener_queue
-
         elif service == 'amber_triggering':
-            event = self.amber_triggering_stop
             source_queue = self.amber_listener_queue
             target_queue = self.voevent_queue
-
+        elif service == 'voevent_generator':
+            source_queue = self.voevent_queue
+            target_queue = None
         else:
             status = "Unknown service: {}".format(service)
             self.logger.error(status)
             return status
 
-        # get thread
+        # get thread and event
         thread = self.threads[service]
+        event = self.events[service]
+
+        # set event to allow running
+        event.clear()
+
+        # check if a new thread has to be generated
+        if thread is None:
+            self.create_thread(service)
+            thread = self.threads[service]
+
         # start the specified service
         self.logger.info("Starting service: {}".format(service))
         # check if already running
@@ -219,8 +228,6 @@ class DARCMaster(object):
             status = "Service already running: {}".format(service)
             self.logger.warning(status)
         else:
-            # set event to allow running
-            event.clear()
             # set queues
             if source_queue:
                 thread.set_source_queue(source_queue)
@@ -245,33 +252,33 @@ class DARCMaster(object):
         """
 
         # settings for specific services
-        if service == 'amber_listener':
-            event = self.amber_listener_stop
-        elif service == 'amber_triggering':
-            event = self.amber_triggering_stop
-        else:
+        if service not in self.services:
             status = "Unknown service: {}".format(service)
             self.logger.error(status)
             return status
 
-        # get thread
+        # get thread and event
         thread = self.threads[service]
+        event = self.events[service]
 
         # stop the specified service
-
         self.logger.info("Stopping service {}".format(service))
 
         if not thread.isAlive():
             status = "Service not running: {}".format(service)
+            # this thread is done, create new thread
+            self.create_thread(service)
             self.logger.warning(status)
         else:
             event.set()
-            sleep(2)
+            sleep(5)
             if thread.isAlive():
                 status = "Failed to stop: {}".format(service)
                 self.logger.error(status)
             else:
                 status = "Service stopped: {}".format(service)
+                # this thread is done, create new thread
+                self.create_thread(service)
                 self.logger.info(status)
 
         return status
@@ -280,8 +287,16 @@ class DARCMaster(object):
         self.stop_service(service)
         self.start_service(service)
 
+    def create_thread(self, service):
+        if service == 'amber_listener':
+            self.threads['amber_listener'] = AMBERListener(self.events[service])
+        elif service == 'amber_triggering':
+            self.threads[service] = AMBERTriggering(self.events[service])
+        elif service == 'voevent_generator':
+            self.threads[service] = VOEventGenerator(self.events[service])
+
 
 def main():
     master = DARCMaster()
-    master.start()
+    master.run()
 

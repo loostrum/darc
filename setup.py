@@ -19,6 +19,6 @@ setup(name='darc',
         entry_points={'console_scripts': ['darc=darc.control:main',
                                           'darc_service=darc.darc_master:main']},
         scripts=['bin/stream_files_to_port',
-                 'bin/darc_start_all_services.sh',
-                 'bin/darc_stop_all_services.sh',
-                 'bin/darc_kill_all_services.sh'])
+                 'bin/darc_start_all_services',
+                 'bin/darc_stop_all_services',
+                 'bin/darc_kill_all_services'])

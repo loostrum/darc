@@ -53,7 +53,7 @@ class AMBERListener(threading.Thread):
             raise AMBERListenerException('Given target queue is not instance of Queue')
         self.queue = queue
 
-    def run_once(self):
+    def run(self):
         if not self.queue:
             self.logger.error('Queue not set')
             raise AMBERListenerException('Queue not set')
@@ -61,7 +61,7 @@ class AMBERListener(threading.Thread):
         self.logger.info("Starting AMBER listener")
         s = None
         start = time()
-        while not s and time() - start < self.timeout():
+        while not s and time() - start < self.timeout:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.bind((self.host, self.port))

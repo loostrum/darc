@@ -27,8 +27,8 @@ class AMBERTriggering(threading.Thread):
 
     def __init__(self, stop_event):
         threading.Thread.__init__(self)
-        self.stop_event = stop_event
         self.daemon = True
+        self.stop_event = stop_event
 
         self.amber_queue = None
         self.voevent_queue = None
@@ -77,25 +77,33 @@ class AMBERTriggering(threading.Thread):
             triggers = []
             tstart = time()
             curr_time = tstart
-            while curr_time < tstart + self.interval:
+            while curr_time < tstart + self.interval and not self.stop_event.is_set():
+                # update time
                 # Read from queue (non-blocking)
                 try:
                     data = self.amber_queue.get_nowait()
                 except Empty:
+                    curr_time = time()
+                    sleep(.1)
                     continue
+
                 if isinstance(data, str):
                     triggers.append(data)
                 elif isinstance(data, list):
                     triggers.extend(data)
+
                 curr_time = time()
                 sleep(.1)
+
             # start processing in thread
             if triggers:
+                self.logger.info("Starting processing of {} triggers".format(len(triggers)))
                 proc_thread = threading.Thread(target=self.process_triggers, args=[triggers])
                 proc_thread.daemon = True
                 proc_thread.start()
-            # Wait until next set of triggers is gathered
+            else:
+                self.logger.info("No triggers")
         self.logger.info("Stopping AMBER triggering")
 
     def process_triggers(self, triggers):
-        self.logger.info("Processing {} triggers".format(len(triggers)))
+        pass

@@ -53,25 +53,23 @@ def send_command(timeout, service, command, payload=None):
 def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
-        config = yaml.load(f)
-    services = config.keys()
-    # remove master - that is not meant to be interacted with directly
-    try:
-        services.remove('darc_master')
-    except ValueError:
-        pass
+        config = yaml.load(f)['darc_master']
+    services = config['services']
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument('--service', type=str, help="Which service to interact with, "
                         " available services: {}".format(', '.join(services)))
-    parser.add_argument('--cmd', type=str, help="Command to send to service", required=True)
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
+    parser.add_argument('--cmd', type=str, help="Command to send to service")
 
     args = parser.parse_args()
 
     # Check arguments
+    if not args.cmd:
+        logging.error("Add command to execute, e.g. \"darc --service amber_listener status\"")
+        sys.exit(1)
     if args.cmd.lower() == "status" and not args.service:
         args.service = "all"
     elif not args.service:

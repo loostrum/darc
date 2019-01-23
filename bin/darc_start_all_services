@@ -8,7 +8,7 @@ if ps ax | grep "[d]arc_service" > /dev/null; then
 else
     echo "DARC service offline, starting"
     darc_service 2>&1 &
-    sleep 1
+    sleep 2
 fi
 
 if ps ax | grep "[d]arc_service" > /dev/null; then
@@ -17,6 +17,8 @@ if ps ax | grep "[d]arc_service" > /dev/null; then
     darc --service amber_listener --cmd start
     echo "Starting AMBER Triggering"
     darc --service amber_triggering --cmd start
+    echo "Starting VOEvent Generator"
+    darc --service voevent_generator --cmd start
 else
     echo "Cannot start services - master service not running"   
     exit 1
