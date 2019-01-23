@@ -49,6 +49,14 @@ echo "Starting $(basename "$0")"
 echo "Using network port: $port"
 echo "Using files: $files"
 
+# Wait until all input files exist
+echo "Sleeping until all input files exist"
+for f in $files; do
+    while ! [ -f $f ]; do
+        sleep 1
+    done
+done
+echo "All files present - starting streaming"
 
 (tail -n 1 -f $files | nc localhost $port ) &
 
