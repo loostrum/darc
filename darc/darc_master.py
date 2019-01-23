@@ -11,7 +11,7 @@ import logging.handlers
 from queue import Queue
 import threading
 import socket
-from time import sleep
+from time import sleep, time
 
 from darc.definitions import *
 from darc.amber_listener import AMBERListener
@@ -37,6 +37,9 @@ class DARCMaster(object):
         self.amber_listener = AMBERListener(self.amber_listener_stop)
         self.amber_triggering_stop = threading.Event()
         self.amber_triggering = AMBERTriggering(self.amber_triggering_stop)
+
+        self.threads = {'amber_listener': self.amber_listener,
+                         'amber_triggering': self.amber_triggering}
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -64,11 +67,18 @@ class DARCMaster(object):
         Initalize the socket and listen for message
         """
         # setup listening socket
-        try:
-            command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            command_socket.bind((self.host, self.port))
-        except socket.error as e:
-            self.logger.error("Failed to create socket: {}".format(e))
+        command_socket = None
+        start = time()
+        while not command_socket and time()-start < self.timeout:
+            try:
+                command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                command_socket.bind((self.host, self.port))
+            except socket.error as e:
+                self.logger.warning("Failed to create socket, will retry: {}".format(e))
+                sleep(1)
+
+        if not command_socket:
+            self.logger.error("Failed to ceate socket")
             raise DARCMasterException("Failed to setup command socket")
 
         # wait for commands
@@ -139,9 +149,36 @@ class DARCMaster(object):
         elif command.lower() == 'restart':
             self.stop_service(service)
             self.start_service(service)
+        elif command.lower() == 'status':
+            status = self.check_status(service)
         else:
             self.logger.error('Received unknown command: {}'.format(command))
             status = 'Unknown command: {}'.format(command)
+
+        return status
+
+    def check_status(self, service):
+        """
+        :param service: Service to check status of (can also be "all")
+        :return: status
+        """
+
+        if service.lower() == "all":
+            status = "\n"
+            for service, thread in self.threads.items():
+                if thread.isAlive():
+                    status += "{}: running\n".format(service)
+                else:
+                    status += "{}: not running\n"
+            # Remove final newline
+            status = status.strip()
+
+        else:
+            thread = self.threads[service]
+            if thread.isAlive():
+                status = "{}: running".format(service)
+            else:
+                status = "{}: not running".format(service)
 
         return status
 
@@ -153,13 +190,11 @@ class DARCMaster(object):
 
         # settings for specific services
         if service == 'amber_listener':
-            thread = self.amber_listener
             event = self.amber_listener_stop
             source_queue = None
             target_queue = self.amber_listener_queue
 
         elif service == 'amber_triggering':
-            thread = self.amber_triggering
             event = self.amber_triggering_stop
             source_queue = self.amber_listener_queue
             target_queue = self.voevent_queue
@@ -169,8 +204,10 @@ class DARCMaster(object):
             self.logger.error(status)
             return status
 
+        # get thread
+        thread = self.threads[service]
         # start the specified service
-        self.logger.info("Starting service {}".format(service))
+        self.logger.info("Starting service: {}".format(service))
         # check if already running
         if thread.isAlive():
             status = "Service already running: {}".format(service)
@@ -194,14 +231,6 @@ class DARCMaster(object):
                 self.logger.info(status)
 
         return status
-
-        ## start VO Event generator
-        #voevent_generator = VOEventGenerator()
-        ## set source queue for events
-        #voevent_generator.set_source_queue(self.voevent_queue)
-        #voevent_generator_thread = threading.Thread(target=voevent_generator.start)
-        #voevent_generator_thread.daemon = True
-        #voevent_generator_thread.start()
 
     def stop_service(self, service):
         """

@@ -63,17 +63,22 @@ def main():
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
-    parser.add_argument('--service', type=str, help="Which service to interact with,"
-                        " available services: {}".format(', '.join(services)), required=True)
+    parser.add_argument('--service', type=str, help="Which service to interact with, "
+                        " available services: {}".format(', '.join(services)))
     parser.add_argument('--cmd', type=str, help="Command to send to service", required=True)
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
 
     args = parser.parse_args()
 
-    # Check if service is valid
-    if args.service not in services:
+    # Check arguments
+    if args.cmd.lower() == "status" and not args.service:
+        args.service = "all"
+    elif not args.service:
+        logging.error("Argument --service is required unless status command is given")
+        sys.exit(1)
+    elif args.service not in services:
         logging.error("Service not found: {}".format(args.service))
-        sys.exit()
+        sys.exit(1)
 
     send_command(args.timeout, args.service, args.cmd)

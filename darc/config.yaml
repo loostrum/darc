@@ -3,6 +3,7 @@ darc_master:
     log_file: "{home}/darc/log/darc_master.log"
     host: "localhost"
     port: 51000
+    timeout: 30
     valid_commands: ["start", "stop", "restart"]
 
 # AMBER trigger listener
