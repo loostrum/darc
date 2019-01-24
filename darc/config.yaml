@@ -27,5 +27,8 @@ amber_triggering:
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.log"
     voevent_dir: "{home}/darc/voevents"
+    send_events: False
+    broker_host: "arts041.apertif"
+    broker_port: 8098
 
 

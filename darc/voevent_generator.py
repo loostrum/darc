@@ -104,3 +104,17 @@ class VOEventGenerator(threading.Thread):
         self.logger.info("Creating VOEvent")
         NewVOEvent(**trigger)
         self.logger.info("Generated VOEvent")
+
+        if self.send_events:
+            self.logger.info("Sending VOEvent")
+            # Filename is {utc}.xml
+            filename = os.path.join(self.voevent_dir, "{}.xml".format(trigger['utc']))
+            if not os.path.isfile(filename):
+                self.logger.error("Cannot find XML file to send")
+                return
+            cmd = "comet-sendfo -f {xmlfile} --host={host} " \
+                  "--port={port}".format(xmlfile=filename, host=self.broker_host,
+                                         port=self.broker_port)
+            # to be replaced by subprocess
+            # and check if sent successfully
+            os.system(cmd)
