@@ -1,0 +1,41 @@
+diff --git a/scripts/VOEvent_create.py b/scripts/VOEvent_create.py
+index e1f872c..ddd712b 100644
+--- a/scripts/VOEvent_create.py
++++ b/scripts/VOEvent_create.py
+@@ -1,4 +1,17 @@
+ 
++import astropy.coordinates as coord
++import astropy.units as u
++from astropy.io import ascii
++from astropy.coordinates import SkyCoord
++from astropy.time import Time
++import voeventparse as vp
++import datetime
++import os
++import sys
++import pytz
++import numpy as np
++import argparse
++from xml.dom import minidom
+ 
+ def NewVOEvent(dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin, ymw16, name, importance, utc, gl, gb): 
+ 
+@@ -20,7 +33,8 @@ def NewVOEvent(dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin, ymw16, n
+    
+     ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd_now)]) 
+ 
+-    v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn, role=vp.definitions.roles.observation)
++    #v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn, role=vp.definitions.roles.observation)
++    v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn, role=vp.definitions.roles.test)
+     # Author origin information
+     vp.set_who(v, date=datetime.datetime.utcnow(), author_ivorn="nl.astron")
+     # Author contact information
+@@ -73,7 +87,7 @@ def NewVOEvent(dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin, ymw16, n
+ 
+     #Why
+     
+-    vp.add_why(v, importance=imp)
++    vp.add_why(v, importance=importance)
+     v.Why.Name = name
+ 
+     if vp.valid_as_v2_0(v):
