@@ -112,7 +112,6 @@ class AMBERTriggering(threading.Thread):
         :param triggers: list of triggers to process
         """
         self.logger.info("Starting processing of {} triggers".format(len(triggers)))
-        print triggers
         # check for header
         if triggers[0].startswith('#'):
             # TEMP: set observation start time to now
@@ -143,7 +142,6 @@ class AMBERTriggering(threading.Thread):
         dtype = zip(self.header, [np.float]*len(self.header))
         # split strings
         triggers = map(lambda val: val.split(), triggers)
-        print "type:", dtype
         triggers = np.array(triggers, dtype=dtype)
 
         self.logger.info("Applying thresholds")
