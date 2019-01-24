@@ -3,15 +3,15 @@
 import os
 from subprocess import check_call
 from setuptools import setup, find_packages
-from setuptools.command.build import build
+from setuptools.command.build_py import build_py
 
 
-class update_submodules(install):
+class update_submodules(build_py):
     def run(self):
         if os.path.exists('.git'):
             print "Updating submodules"
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
-        install.run(self)
+        build_py.run(self)
 
 
 setup(name='darc',
@@ -23,7 +23,7 @@ setup(name='darc',
         license='GPLv3',
         packages=find_packages(exclude=['external']),
         zip_safe=False,
-        cmdclass={"build": update_submodules},
+        cmdclass={"build_py": update_submodules},
         install_requires=['numpy',
                           'astropy',
                           'pyyaml'],
