@@ -26,5 +26,6 @@ amber_triggering:
 # VOEvent generator
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.log"
+    voevent_dir: "{home}/darc/voevents"
 
 
