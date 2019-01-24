@@ -7,7 +7,7 @@ import ast
 import yaml
 import logging
 import logging.handlers
-from queue import Queue
+import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
@@ -28,8 +28,8 @@ class DARCMaster(object):
         Setup queues, config, logging
         """
         # setup queues
-        self.amber_listener_queue = Queue()
-        self.voevent_queue = Queue()
+        self.amber_listener_queue = mp.Queue()
+        self.voevent_queue = mp.Queue()
 
         # Initalize services
         self.events = {'amber_listener': threading.Event(),

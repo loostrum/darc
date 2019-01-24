@@ -7,7 +7,7 @@ import socket
 import yaml
 import logging
 import logging.handlers
-from queue import Queue
+import multiprocessing as mp
 import threading
 
 from darc.definitions import *
@@ -48,7 +48,7 @@ class AMBERListener(threading.Thread):
         self.logger.addHandler(handler)
 
     def set_target_queue(self, queue):
-        if not isinstance(queue, Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given target queue is not instance of Queue')
             raise AMBERListenerException('Given target queue is not instance of Queue')
         self.queue = queue
@@ -87,6 +87,9 @@ class AMBERListener(threading.Thread):
                     continue
             self.logger.info("Accepted connection from (host, port) = {}".format(adr))
 
+            # client may still not exist if stop is called some loop
+            if not client:
+                continue
             # keep listening until we receive a stop
             client.settimeout(1)
             while not self.stop_event.is_set():

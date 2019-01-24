@@ -10,16 +10,18 @@ import Queue
 PORT_AMBER=50000
 AUTH_AMBER='amber'
 
+
 class BasicServer(BaseManager):
     def __init__(self, *args, **kwargs):
         self.queue = Queue.Queue()
-        super(Server, self).__init__(*args, **kwargs)
+        super(BasicServer, self).__init__(*args, **kwargs)
 
     def get_queue(self):
         return self.queue
 
+
 class AMBERServer():
     def __init__(self):
-        manager = Server(address=("", PORT_AMBER), authkey=AUTH_AMBER)
+        manager = BasicServer(address=("", PORT_AMBER), authkey=AUTH_AMBER)
         server = manager.get_server()
         server.serve_forever()

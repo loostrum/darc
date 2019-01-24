@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from queue import Queue
+import multiprocessing as mp
 import threading
 from time import sleep
 
@@ -10,7 +10,7 @@ from darc.voevent_generator import VOEventGenerator
 if __name__ == '__main__':
     print 'Initalizing'
     # create a queue
-    queue = Queue()
+    queue = mp.Queue()
     # create stop event for generator
     stop_event = threading.Event()
     # init VOEvent Generator

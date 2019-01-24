@@ -6,7 +6,8 @@ import yaml
 import logging
 import logging.handlers
 from time import sleep, time
-from queue import Queue, Empty
+import multiprocessing as mp
+from queue import Empty
 import threading
 
 from darc.definitions import *
@@ -48,13 +49,13 @@ class AMBERTriggering(threading.Thread):
         self.logger.addHandler(handler)
 
     def set_source_queue(self, queue):
-        if not isinstance(queue, Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise AMBERTriggeringException('Given source queue is not an instance of Queue')
         self.amber_queue = queue
 
     def set_target_queue(self, queue):
-        if not isinstance(queue, Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given target queue is not an instance of Queue')
             raise AMBERTriggeringException('Given target queue is not an instance of Queue')
         self.voevent_queue = queue

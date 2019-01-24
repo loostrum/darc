@@ -6,7 +6,8 @@ import errno
 import yaml
 import logging
 import logging.handlers
-from queue import Queue, Empty
+import multiprocessing as mp
+from queue import Empty
 import threading
 from astropy.coordinates import SkyCoord
 import astropy.units as u
@@ -59,7 +60,7 @@ class VOEventGenerator(threading.Thread):
         os.chdir(self.voevent_dir)
 
     def set_source_queue(self, queue):
-        if not isinstance(queue, Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise VOEventGeneratorException('Given source queue is not an instance of Queue')
         self.voevent_queue = queue
