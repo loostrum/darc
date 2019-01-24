@@ -7,7 +7,10 @@ import logging
 import logging.handlers
 from time import time
 import multiprocessing as mp
-from queue import Empty
+try:
+    from queue import Empty
+except ImportError:
+    from Queue import Empty
 import threading
 import numpy as np
 
