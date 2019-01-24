@@ -283,10 +283,16 @@ class DARCMaster(object):
         return status
 
     def restart_service(self, service):
+        """
+        :param service: service to restart
+        """
         self.stop_service(service)
         self.start_service(service)
 
     def create_thread(self, service):
+        """
+        :param service: service to create a new thread for
+        """
         if service == 'amber_listener':
             self.threads['amber_listener'] = AMBERListener(self.events[service])
         elif service == 'amber_triggering':

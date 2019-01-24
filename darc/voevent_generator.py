@@ -24,7 +24,6 @@ class VOEventGenerator(threading.Thread):
     """
     Generate VOEvent from incoming trigger
     """
-
     def __init__(self, stop_event):
         threading.Thread.__init__(self)
         self.stop_event = stop_event
@@ -60,12 +59,18 @@ class VOEventGenerator(threading.Thread):
         os.chdir(self.voevent_dir)
 
     def set_source_queue(self, queue):
+        """
+        :param queue: Source queue
+        """
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise VOEventGeneratorException('Given source queue is not an instance of Queue')
         self.voevent_queue = queue
 
     def run(self):
+        """
+        Read triggers from queue and call processing for each trigger
+        """
         if not self.voevent_queue:
             self.logger.error('Queue not set')
             raise VOEventGeneratorException('Queue not set')
@@ -82,6 +87,11 @@ class VOEventGenerator(threading.Thread):
         self.logger.info("Stopping VOEvent generator")
 
     def create_and_send(self, trigger):
+        """
+        Creates VOEvent
+        Sends if enabled in config
+        :param trigger: Trigger event
+        """
         if not isinstance(trigger, dict):
             self.logger.error("Trigger is not a dict")
             return

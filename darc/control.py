@@ -13,7 +13,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
 def send_command(timeout, service, command, payload=None):
     """
-
+    :param timeout: Timeout for reply in seconds
     :param service: Service to send command to
     :param command: Which command to send
     :param payload: Payload for command (optional)

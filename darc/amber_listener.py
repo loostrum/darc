@@ -48,12 +48,18 @@ class AMBERListener(threading.Thread):
         self.logger.addHandler(handler)
 
     def set_target_queue(self, queue):
+        """
+        :param queue: Output queue
+        """
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given target queue is not instance of Queue')
             raise AMBERListenerException('Given target queue is not instance of Queue')
         self.queue = queue
 
     def run(self):
+        """
+        Initalize socket and put incoming triggers on queue
+        """
         if not self.queue:
             self.logger.error('Queue not set')
             raise AMBERListenerException('Queue not set')
@@ -88,7 +94,7 @@ class AMBERListener(threading.Thread):
             self.logger.info("Accepted connection from (host, port) = {}".format(adr))
 
             # client may still not exist if stop is called some loop
-            if not client:
+            if not client or not adr:
                 continue
             # keep listening until we receive a stop
             client.settimeout(1)
