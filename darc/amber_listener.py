@@ -74,17 +74,31 @@ class AMBERListener(threading.Thread):
             raise AMBERListenerException("Failed to create socket")
 
         s.listen(5)
-        self.logger.info("Waiting for client to connect")
-        client, adr = s.accept()
-        self.logger.info("Accepted connection from (host, port) = {}".format(adr))
+        s.settimeout(1)
 
-        # keep listening until we receive a stop
         while not self.stop_event.is_set():
-            output = client.recv(1024)
-            if output.strip() == 'EOF' or not output:
-                self.logger.info("Disconnecting")
-                client.close()
-            else:
-                self.queue.put(output.strip().split('\n'))
+            self.logger.info("Waiting for client to connect")
+            # Use timeout to avoid hanging when stop of service is requested
+            client = None
+            while not client and not self.stop_event.is_set():
+                try:
+                    client, adr = s.accept()
+                except socket.timeout:
+                    continue
+            self.logger.info("Accepted connection from (host, port) = {}".format(adr))
+
+            # keep listening until we receive a stop
+            client.settimeout(1)
+            while not self.stop_event.is_set():
+                try:
+                    output = client.recv(1024)
+                except socket.timeout:
+                    continue
+                if output.strip() == 'EOF' or not output:
+                    self.logger.info("Disconnecting")
+                    client.close()
+                    break
+                else:
+                    self.queue.put(output.strip().split('\n'))
 
         self.logger.info("Stopping AMBER Listener")
