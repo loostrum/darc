@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Logic for listening on a network port
+# AMBER Listener
 
 from time import sleep, time
 import socket

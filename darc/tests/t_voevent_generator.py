@@ -2,10 +2,8 @@
 
 from queue import Queue
 import threading
-import socket
-from time import sleep, time
+from time import sleep
 
-from darc.definitions import *
 from darc.voevent_generator import VOEventGenerator
 
 

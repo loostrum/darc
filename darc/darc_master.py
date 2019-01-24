@@ -3,7 +3,6 @@
 # DARC master process
 # Controls all services
 
-import sys
 import ast
 import yaml
 import logging

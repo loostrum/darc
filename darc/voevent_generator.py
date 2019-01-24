@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 #
-# Logic for listening on a network port
+# VOEvent Generator
 
-import ast
 import errno
-import os
-import sys
 import yaml
 import logging
 import logging.handlers
-from time import sleep, time
 from queue import Queue, Empty
 import threading
 from astropy.coordinates import SkyCoord
@@ -75,9 +71,8 @@ class VOEventGenerator(threading.Thread):
 
         self.logger.info("Running VOEvent generator")
         while not self.stop_event.is_set():
-            self.stop_event.wait(timeout=1)
             try:
-                trigger = self.voevent_queue.get_nowait()
+                trigger = self.voevent_queue.get(timeout=1)
             except Empty:
                 continue
             self.logger.info("Received trigger: {}".format(trigger))

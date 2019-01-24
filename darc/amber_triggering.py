@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 #
-# Logic for listening on a network port
+# AMBER Triggering
 
-from time import sleep
-import os
-import sys
-import socket
 import yaml
 import logging
 import logging.handlers
@@ -78,22 +74,16 @@ class AMBERTriggering(threading.Thread):
             tstart = time()
             curr_time = tstart
             while curr_time < tstart + self.interval and not self.stop_event.is_set():
-                # update time
-                # Read from queue (non-blocking)
+                curr_time = time()
                 try:
-                    data = self.amber_queue.get_nowait()
+                    data = self.amber_queue.get(timeout=.1)
                 except Empty:
-                    curr_time = time()
-                    sleep(.1)
                     continue
 
                 if isinstance(data, str):
                     triggers.append(data)
                 elif isinstance(data, list):
                     triggers.extend(data)
-
-                curr_time = time()
-                sleep(.1)
 
             # start processing in thread
             if triggers:
