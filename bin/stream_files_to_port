@@ -61,6 +61,6 @@ echo "All files present - starting streaming"
 (tail -n 1 -f $files | nc localhost $port ) &
 
 # kill the tail on sigterm/sigint
-trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' | ncat localhost $port; jobs -p | xargs -n1 kill" SIGTERM SIGINT
+trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' | nc localhost $port; pkill -P $$" SIGTERM SIGINT
 
 wait
