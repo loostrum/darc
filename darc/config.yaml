@@ -3,7 +3,8 @@ darc_master:
     log_file: "{home}/darc/log/darc_master.log"
     host: "localhost"
     port: 51000
-    timeout: 30
+    socket_timeout: 30  # for creating socket
+    stop_timeout: 5  # for stopping services
     services: ["amber_listener", "amber_triggering", "voevent_generator"]
 
 # AMBER trigger listener
@@ -11,15 +12,17 @@ amber_listener:
     log_file: "{home}/darc/log/amber_listener.log"
     host: "localhost"
     port: 50000  # NOTE: also hardcoded as default in stream_files_to_port
-    timeout: 30
+    socket_timeout: 30
     poll_time: 0.1
 
 # Direct processing of AMBER triggers
 amber_triggering:
     log_file: "{home}/darc/log/amber_triggering.log"
     interval: 10
-    dm_min: 55
-    dm_max: 60
+    #dm_min: 55
+    #dm_max: 60
+    dm_min: 0
+    dm_max: 3000
     snr_min: 80
     age_max: 10
 

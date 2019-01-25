@@ -34,7 +34,7 @@ class AMBERTriggering(threading.Thread):
         self.amber_queue = None
         self.voevent_queue = None
 
-        self.header = None
+        self.hdr_mapping = {}
         self.start_time = None
 
         with open(CONFIG_FILE, 'r') as f:
@@ -116,52 +116,63 @@ class AMBERTriggering(threading.Thread):
         """
         self.logger.info("Starting processing of {} triggers".format(len(triggers)))
         # check for header
-        if triggers[0].startswith('#'):
-            # TEMP: set observation start time to now
-            self.start_time = time()
-            # read header
-            self.header = triggers[0].split()
-            self.logger.info("Received header: {}".format(self.header))
-            # Check if all required params are present
-            keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
-            for key in keys:
-                if key not in self.header:
-                    self.logger.error("Key missing from triggers header: {}".format(key))
-                    raise AMBERTriggeringException("Key missing from triggers header")
-            # remove header from triggers
-            # might have been only "trigger" so catch IndexError
-            try:
-                triggers = triggers[1:]
-            except IndexError:
-                self.logger.info("Only header received - Canceling processing")
-                return
+        if not self.hdr_mapping:
+            self.logger.info("Checking for header")
+            for trigger in triggers:
+                if trigger.startswith('#'):
+                    # TEMP: set observation start time to now
+                    self.start_time = time()
+                    # read header, remove comment symbol
+                    header = trigger.split()[1:]
+                    self.logger.info("Received header: {}".format(header))
+                    # Check if all required params are present and create mapping to col index
+                    keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
+                    for key in keys:
+                        try:
+                            self.hdr_mapping[key] = header.index(key)
+                        except ValueError:
+                            self.logger.error("Key missing from triggers header: {}".format(key))
+                            self.hdr_mapping = {}
+                            return
+                    # remove header from triggers
+                    triggers.remove(trigger)
+                    # triggers is now empty if only header was received
+                    if not triggers:
+                        self.logger.info("Only header received - Canceling processing")
+                        return
+                    else:
+                        break
 
-        if not self.header:
-            self.logger.error("Trigger received but header not set")
+        if not self.hdr_mapping:
+            self.logger.error("First triggers received but header not found")
             return
 
-        # set everything as float and make accessible by column name
-        # there is probably a better way to do this...
-        dtype = zip(self.header, [np.float]*len(self.header))
         # split strings
-        triggers = map(lambda val: val.split(), triggers)
-        triggers = np.array(triggers, dtype=dtype)
+        triggers = np.array(map(lambda val: val.split(), triggers), dtype=float)
 
         self.logger.info("Applying thresholds")
         # get age of triggers
-        age = time() - (triggers['time'] + self.start_time)
+        age = time() - (triggers[:, self.hdr_mapping['time']] + self.start_time)
         # do thresholding
-        dm_min = triggers['DM'] > self.dm_min
-        dm_max = triggers['DM'] < self.dm_max
-        snr_min = triggers['SNR'] > self.snr_min
+        dm_min = triggers[:, self.hdr_mapping['DM']] > self.dm_min
+        dm_max = triggers[:, self.hdr_mapping['DM']] < self.dm_max
+        snr_min = triggers[:, self.hdr_mapping['SNR']] > self.snr_min
         age_max = age < self.age_max
         good_triggers_mask = dm_min & dm_max & snr_min & age_max
         self.logger.info("Found {} good triggers".format(np.sum(good_triggers_mask)))
         if np.any(good_triggers_mask):
             good_triggers = triggers[good_triggers_mask]
             # find trigger with highest S/N
-            ind = np.argmax(good_triggers['SNR'])
+            ind = np.argmax(good_triggers[:, self.hdr_mapping['SNR']])
             trigger = good_triggers[ind]
-            # put trigger on queue
-            self.logger.info("Putting trigger on queue: {}".format(trigger))
-            self.voevent_queue.put(trigger)
+            # put trigger on queues
+            voevent_trigger = {'dm': trigger[self.hdr_mapping['DM']], 'dm_err': 0,
+                               'width': trigger[self.hdr_mapping['integration_step']]*81.92E-3,
+                               'snr': trigger[self.hdr_mapping['SNR']], 'flux': 0,
+                               'ra': 83.63322083333333, 'dec': 22.01446111111111,
+                               'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
+                               'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
+            self.logger.info("Putting trigger on voevent queue: {}".format(voevent_trigger))
+            self.voevent_queue.put(voevent_trigger)
+        else:
+            self.logger.info("No good triggers found")

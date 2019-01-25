@@ -5,6 +5,7 @@
 
 import ast
 import yaml
+import errno
 import logging
 import logging.handlers
 import multiprocessing as mp
@@ -50,6 +51,15 @@ class DARCMaster(object):
                 value = value.format(**kwargs)
             setattr(self, key, value)
 
+        # create main log dir
+        log_dir = os.path.dirname(self.log_file)
+        try:
+            os.makedirs(log_dir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                self.logger.error("Cannot create log directory: {}".format(e))
+                raise DARCMasterException("Cannot create log directory")
+
         # setup logger
         handler = logging.handlers.WatchedFileHandler(self.log_file)
         formatter = logging.Formatter(logging.BASIC_FORMAT)
@@ -67,7 +77,7 @@ class DARCMaster(object):
         # setup listening socket
         command_socket = None
         start = time()
-        while not command_socket and time()-start < self.timeout:
+        while not command_socket and time()-start < self.socket_timeout:
             try:
                 command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 command_socket.bind((self.host, self.port))
@@ -140,14 +150,13 @@ class DARCMaster(object):
         :param payload: payload for command
         :return: status
         """
-        status = "Success"
+        status = None
         if command.lower() == 'start':
-            self.start_service(service)
+            status = self.start_service(service)
         elif command.lower() == 'stop':
-            self.stop_service(service)
+            status = self.stop_service(service)
         elif command.lower() == 'restart':
-            self.stop_service(service)
-            self.start_service(service)
+            status = self.restart_service(service)
         elif command.lower() == 'status':
             status = self.check_status(service)
         else:
@@ -270,12 +279,14 @@ class DARCMaster(object):
             self.logger.warning(status)
         else:
             event.set()
-            sleep(5)
+            tstart = time()
+            while thread.isAlive() and time()-tstart < self.stop_timeout:
+                sleep(.1)
             if thread.isAlive():
-                status = "Failed to stop: {}".format(service)
+                status = "Failed to stop service before timeout: {}".format(service)
                 self.logger.error(status)
             else:
-                status = "Service stopped: {}".format(service)
+                status = "Stopped service: {}".format(service)
                 # this thread is done, create new thread
                 self.create_thread(service)
                 self.logger.info(status)
@@ -286,8 +297,9 @@ class DARCMaster(object):
         """
         :param service: service to restart
         """
-        self.stop_service(service)
-        self.start_service(service)
+        status_start = self.stop_service(service)
+        status_stop = self.start_service(service)
+        return '\n'.join([status_start, status_stop])
 
     def create_thread(self, service):
         """

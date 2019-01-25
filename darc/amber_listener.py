@@ -67,7 +67,7 @@ class AMBERListener(threading.Thread):
         self.logger.info("Starting AMBER listener")
         s = None
         start = time()
-        while not s and time() - start < self.timeout:
+        while not s and time() - start < self.socket_timeout:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.bind((self.host, self.port))
@@ -86,14 +86,18 @@ class AMBERListener(threading.Thread):
             self.logger.info("Waiting for client to connect")
             # Use timeout to avoid hanging when stop of service is requested
             client = None
+            adr = None
             while not client and not self.stop_event.is_set():
                 try:
                     client, adr = s.accept()
                 except socket.timeout:
                     continue
-            self.logger.info("Accepted connection from (host, port) = {}".format(adr))
+                # client may still not exist if stop is called some loop
+                if not client or not adr:
+                    continue
+                self.logger.info("Accepted connection from (host, port) = {}".format(adr))
 
-            # client may still not exist if stop is called some loop
+            # again client may still not exist if stop is called some loop
             if not client or not adr:
                 continue
             # keep listening until we receive a stop

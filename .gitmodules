@@ -1,3 +1,0 @@
-[submodule "darc/external/FRB_VOEvent"]
-	path = darc/external/FRB_VOEvent
-	url = https://github.com/ebpetroff/FRB_VOEvent.git
