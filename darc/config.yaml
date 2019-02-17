@@ -12,6 +12,7 @@ darc_master:
 status_website:
     log_file: "{home}/darc/log/status_website.log"
     web_dir: "{home}/public_html/darc/status"
+    interval: 30
 
 # AMBER trigger listener
 amber_listener:

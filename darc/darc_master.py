@@ -3,6 +3,7 @@
 # DARC master process
 # Controls all services
 
+import sys
 import ast
 import yaml
 import errno
@@ -29,19 +30,12 @@ class DARCMaster(object):
         """
         Setup queues, config, logging
         """
+        # setup stop event for master
+        self.stop_event = threading.Event()
+
         # setup queues
         self.amber_listener_queue = mp.Queue()
         self.voevent_queue = mp.Queue()
-
-        # Initalize services
-        self.events = {'amber_listener': threading.Event(),
-                       'amber_triggering': threading.Event(),
-                       'voevent_generator': threading.Event(),
-                       'status_website': threading.Event()}
-        self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
-                        'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
-                        'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
-                        'status_website': StatusWebsite(self.events['status_website'])}
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -74,16 +68,18 @@ class DARCMaster(object):
         # Initalize services. Log dir must exist at this point
         self.events = {'amber_listener': threading.Event(),
                        'amber_triggering': threading.Event(),
-                       'voevent_generator': threading.Event()}
+                       'voevent_generator': threading.Event(),
+                       'status_website': threading.Event()}
         self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
                         'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
-                        'voevent_generator': VOEventGenerator(self.events['voevent_generator'])}
+                        'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
+                        'status_website': StatusWebsite(self.events['status_website'])}
 
 
         self.logger.info('Initalized')
 
         if self.publish_status:
-            self.run_website()
+            self.start_service('status_website')
 
     def run(self):
         """
@@ -110,7 +106,7 @@ class DARCMaster(object):
         self.logger.info("Waiting for commands")
 
         # main loop
-        while True:
+        while not self.stop_event.is_set():
             try:
                 client, adr = command_socket.accept()
             except Exception as e:
@@ -128,6 +124,8 @@ class DARCMaster(object):
             except socket.error as e:
                 self.logger.error("Failed to send reply: {}".format(e))
             client.close()
+        self.logger.info("Received stop. Exiting")
+        sys.exit()
 
     def parse_message(self, raw_message):
         """
@@ -166,49 +164,44 @@ class DARCMaster(object):
         :param payload: payload for command
         :return: status
         """
-        status = None
-        if command.lower() == 'start':
-            status = self.start_service(service)
-        elif command.lower() == 'stop':
-            status = self.stop_service(service)
-        elif command.lower() == 'restart':
-            status = self.restart_service(service)
-        elif command.lower() == 'status':
-            status = self.check_status(service)
+        status = ''
+        if service == 'all':
+            services = self.services
         else:
-            self.logger.error('Received unknown command: {}'.format(command))
-            status = 'Unknown command: {}'.format(command)
+            services = [service]
 
-        return status
+        for service in services:
+            if command.lower() == 'start':
+                status += self.start_service(service)
+            elif command.lower() == 'stop':
+                status += self.stop_service(service)
+            elif command.lower() == 'restart':
+                status += self.restart_service(service)
+            elif command.lower() == 'status':
+                status += self.check_status(service)
+            elif command.lower() == 'stop_master':
+                status += self.stop()
+            else:
+                self.logger.error('Received unknown command: {}'.format(command))
+                status = 'Unknown command: {}'.format(command)
+            status += '\n'
+
+        return status.strip()
 
     def check_status(self, service):
         """
-        :param service: Service to check status of (can also be "all")
+        :param service: Service to check status of
         :return: status
         """
 
-        if service.lower() == "all":
-            status = ""
-            for service, thread in self.threads.items():
-                self.logger.info("Checking status of {}".format(service))
-                if thread.isAlive():
-                    self.logger.info("{} is running".format(service))
-                    status += "{}: running\n".format(service)
-                else:
-                    self.logger.info("{} is not running".format(service))
-                    status += "{}: not running\n".format(service)
-            # Remove final newline
-            status = status.strip()
-
+        thread = self.threads[service]
+        self.logger.info("Checking status of {}".format(service))
+        if thread.isAlive():
+            self.logger.info("{} is running".format(service))
+            status = "{}: running".format(service)
         else:
-            thread = self.threads[service]
-            self.logger.info("Checking status of {}".format(service))
-            if thread.isAlive():
-                self.logger.info("{} is running".format(service))
-                status = "{}: running".format(service)
-            else:
-                self.logger.info("{} is not running".format(service))
-                status = "{}: not running".format(service)
+            self.logger.info("{} is not running".format(service))
+            status = "{}: not running".format(service)
 
         return status
 
@@ -333,7 +326,17 @@ class DARCMaster(object):
         elif service == 'status_website':
             self.threads[service] = StatusWebsite(self.events[service])
         else:
-            self.logger.error("Cannot create thread for {}".format(service)
+            self.logger.error("Cannot create thread for {}".format(service))
+
+    def stop(self):
+        """
+        Stop all services and exit
+        """
+        self.logger.info("Stopping all services")
+        for service in self.services:
+            self.stop_service(service)
+        self.stop_event.set()
+        return "Master stop event successfully set"
 
 
 def main():

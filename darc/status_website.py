@@ -2,11 +2,14 @@
 #
 # Website 
 
+import errno
 import yaml
 import logging
 import logging.handlers
 import multiprocessing as mp
 import threading
+
+from darc.definitions import *
 
 
 class StatusWebsiteException(Exception):
@@ -25,9 +28,9 @@ class StatusWebsite(threading.Thread):
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~')}
         for key, value in config.items():
-             if isinstance(value, str):
+            if isinstance(value, str):
                 value = value.format(**kwargs)
-                setattr(self, key, value)
+            setattr(self, key, value)
 
         # setup logger
         handler = logging.handlers.WatchedFileHandler(self.log_file)
@@ -47,3 +50,9 @@ class StatusWebsite(threading.Thread):
                 self.logger.error("Failed to create website directory: {}".format(e))
                 raise StatusWebsiteException("Failed to create website directory: {}".format(e))
 
+    def run(self):
+        """
+        """
+        while not self.stop_event.is_set():
+            self.logger.info("Publish status")
+            self.stop_event.wait(self.interval)

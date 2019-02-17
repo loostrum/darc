@@ -39,15 +39,16 @@ def send_command(timeout, service, command, payload=None):
     # send message
     master_socket.sendall(message)
     logging.info("Command send successfully")
-    # receive reply
-    try:
-        reply = master_socket.recv(1024)
-    except socket.timeout:
-        logging.error("Did not receive reply before timeout")
-    else:
-        logging.info("Status: {}".format(reply))
-    # close connection
-    master_socket.close()
+    # receive reply unless stop_all was sent
+    if not command == 'stop_all':
+        try:
+            reply = master_socket.recv(1024)
+        except socket.timeout:
+            logging.error("Did not receive reply before timeout")
+        else:
+            logging.info("Status: {}".format(reply))
+        # close connection
+        master_socket.close()
 
 
 def main():
@@ -59,7 +60,7 @@ def main():
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument('--service', type=str, help="Which service to interact with, "
-                        " available services: {}".format(', '.join(services)))
+                        " available services: {}, or all".format(', '.join(services)))
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
     parser.add_argument('--cmd', type=str, help="Command to send to service")
@@ -70,12 +71,10 @@ def main():
     if not args.cmd:
         logging.error("Add command to execute, e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    if args.cmd.lower() == "status" and not args.service:
-        args.service = "all"
-    elif not args.service:
-        logging.error("Argument --service is required unless status command is given")
+    elif not args.service and args.cmd != 'stop_master':
+        logging.error("Argument --service is required unless calling stop_all")
         sys.exit(1)
-    elif args.service not in services:
+    elif args.service not in services and args.service != 'all' and args.cmd != 'stop_master':
         logging.error("Service not found: {}".format(args.service))
         sys.exit(1)
 
