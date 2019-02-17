@@ -71,7 +71,17 @@ class DARCMaster(object):
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
 
+        # Initalize services. Log dir must exist at this point
+        self.events = {'amber_listener': threading.Event(),
+                       'amber_triggering': threading.Event(),
+                       'voevent_generator': threading.Event()}
+        self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
+                        'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
+                        'voevent_generator': VOEventGenerator(self.events['voevent_generator'])}
+
+
         self.logger.info('Initalized')
+
         if self.publish_status:
             self.run_website()
 

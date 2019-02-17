@@ -21,6 +21,9 @@ if __name__ == '__main__':
     thread_stream = threading.Thread(target=stream)
     thread_stream.daemon = True
 
-    thread_generator.run()
-    thread_stream.run()
+    thread_generator.start()
+    thread_stream.start()
+
+    thread_generator.join()
+    thread_stream.join()
 
