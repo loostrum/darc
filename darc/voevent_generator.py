@@ -235,3 +235,4 @@ class VOEventGenerator(threading.Thread):
                 self.logger.info(vp.prettystr(v.Why))
         else:
             self.logger.error("Unable to write file {}.xml".format(name))
+

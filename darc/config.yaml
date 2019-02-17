@@ -5,7 +5,13 @@ darc_master:
     port: 51000
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    services: ["amber_listener", "amber_triggering", "voevent_generator"]
+    services: ["amber_listener", "amber_triggering", "voevent_generator", "status_website"]
+    publish_status: True
+
+# Status website
+status_website:
+    log_file: "{home}/darc/log/status_website.log"
+    web_dir: "{home}/public_html/darc/status"
 
 # AMBER trigger listener
 amber_listener:
@@ -33,5 +39,4 @@ voevent_generator:
     send_events: False
     broker_host: "arts041.apertif"
     broker_port: 8098
-
 

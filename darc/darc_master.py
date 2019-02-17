@@ -17,6 +17,7 @@ from darc.definitions import *
 from darc.amber_listener import AMBERListener
 from darc.amber_triggering import AMBERTriggering
 from darc.voevent_generator import VOEventGenerator
+from darc.status_website import StatusWebsite
 
 
 class DARCMasterException(Exception):
@@ -35,10 +36,12 @@ class DARCMaster(object):
         # Initalize services
         self.events = {'amber_listener': threading.Event(),
                        'amber_triggering': threading.Event(),
-                       'voevent_generator': threading.Event()}
+                       'voevent_generator': threading.Event(),
+                       'status_website': threading.Event()}
         self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
                         'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
-                        'voevent_generator': VOEventGenerator(self.events['voevent_generator'])}
+                        'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
+                        'status_website': StatusWebsite(self.events['status_website'])}
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -69,6 +72,8 @@ class DARCMaster(object):
         self.logger.addHandler(handler)
 
         self.logger.info('Initalized')
+        if self.publish_status:
+            self.run_website()
 
     def run(self):
         """
@@ -94,6 +99,7 @@ class DARCMaster(object):
         command_socket.listen(5)
         self.logger.info("Waiting for commands")
 
+        # main loop
         while True:
             try:
                 client, adr = command_socket.accept()
@@ -119,7 +125,7 @@ class DARCMaster(object):
         :param raw_message: message as single string
         :return: status
         """
-        #
+
         try:
             message = ast.literal_eval(raw_message)
         except Exception as e:
@@ -211,6 +217,9 @@ class DARCMaster(object):
             target_queue = self.voevent_queue
         elif service == 'voevent_generator':
             source_queue = self.voevent_queue
+            target_queue = None
+        elif service == 'status_website':
+            source_queue = None
             target_queue = None
         else:
             status = "Unknown service: {}".format(service)
@@ -311,6 +320,10 @@ class DARCMaster(object):
             self.threads[service] = AMBERTriggering(self.events[service])
         elif service == 'voevent_generator':
             self.threads[service] = VOEventGenerator(self.events[service])
+        elif service == 'status_website':
+            self.threads[service] = StatusWebsite(self.events[service])
+        else:
+            self.logger.error("Cannot create thread for {}".format(service)
 
 
 def main():
