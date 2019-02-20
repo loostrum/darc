@@ -6,12 +6,13 @@ darc_master:
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
     services: ["amber_listener", "amber_triggering", "voevent_generator", "status_website"]
-    publish_status: True
 
 # Status website
 status_website:
     log_file: "{home}/darc/log/status_website.log"
     web_dir: "{home}/public_html/darc/status"
+    check_services_master: ["voevent_generator"]
+    check_services_worker: ["amber_listener", "amber_triggering",]
     interval: 30
 
 # AMBER trigger listener

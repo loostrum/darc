@@ -11,7 +11,7 @@ from darc.definitions import *
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
 
-def send_command(timeout, service, command, payload=None):
+def send_command(timeout, service, command, payload=None, host='localhost'):
     """
     :param timeout: Timeout for reply in seconds
     :param service: Service to send command to
@@ -32,7 +32,7 @@ def send_command(timeout, service, command, payload=None):
     try:
         master_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         master_socket.settimeout(timeout)
-        master_socket.connect(("localhost", port))
+        master_socket.connect((host, port))
     except socket.error as e:
         logging.error("Failed to connect DARC master: {}".format(e))
         sys.exit(1)

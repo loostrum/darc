@@ -76,10 +76,7 @@ class DARCMaster(object):
                         'status_website': StatusWebsite(self.events['status_website'])}
 
 
-        self.logger.info('Initalized')
-
-        if self.publish_status:
-            self.start_service('status_website')
+        self.logger.info('Initialized')
 
     def run(self):
         """
