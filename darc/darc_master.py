@@ -7,14 +7,13 @@ import sys
 import ast
 import yaml
 import errno
-import logging
-import logging.handlers
 import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
 
 from darc.definitions import *
+from darc.logger import get_logger
 from darc.amber_listener import AMBERListener
 from darc.amber_triggering import AMBERTriggering
 from darc.voevent_generator import VOEventGenerator
@@ -58,12 +57,7 @@ class DARCMaster(object):
                 raise DARCMasterException("Cannot create log directory")
 
         # setup logger
-        handler = logging.handlers.WatchedFileHandler(self.log_file)
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler.setFormatter(formatter)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+        self.logger = get_logger(__name__, self.log_file)
 
         # Initalize services. Log dir must exist at this point
         self.events = {'amber_listener': threading.Event(),
@@ -75,8 +69,7 @@ class DARCMaster(object):
                         'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
                         'status_website': StatusWebsite(self.events['status_website'])}
 
-
-        self.logger.info('Initialized')
+        self.logger.info('DARC Master initialized')
 
     def run(self):
         """

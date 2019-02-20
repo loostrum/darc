@@ -5,12 +5,11 @@
 from time import sleep, time
 import socket
 import yaml
-import logging
-import logging.handlers
 import multiprocessing as mp
 import threading
 
 from darc.definitions import *
+from darc.logger import get_logger
 
 
 class AMBERListenerException(Exception):
@@ -40,12 +39,8 @@ class AMBERListener(threading.Thread):
             setattr(self, key, value)
 
         # setup logger
-        handler = logging.handlers.WatchedFileHandler(self.log_file)
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler.setFormatter(formatter)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+        self.logger = get_logger(__name__, self.log_file)
+        self.logger.info("AMBER Listener initialized")
 
     def set_target_queue(self, queue):
         """

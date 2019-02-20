@@ -4,8 +4,6 @@
 
 import errno
 import yaml
-import logging
-import logging.handlers
 import multiprocessing as mp
 try:
     from queue import Empty
@@ -21,6 +19,7 @@ import pytz
 from xml.dom import minidom
 
 from darc.definitions import *
+from darc.logger import get_logger
 
 
 class VOEventGeneratorException(Exception):
@@ -49,12 +48,7 @@ class VOEventGenerator(threading.Thread):
             setattr(self, key, value)
 
         # setup logger
-        handler = logging.handlers.WatchedFileHandler(self.log_file)
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler.setFormatter(formatter)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+        self.logger = get_logger(__name__, self.log_file)
 
         # create and cd to voevent directory
         try:
@@ -64,6 +58,8 @@ class VOEventGenerator(threading.Thread):
                 self.logger.error("Cannot create voevent directory:, {}".format(e))
                 raise VOEventGeneratorException("Cannot create voevent directory")
         os.chdir(self.voevent_dir)
+
+        self.logger.info("VOEvent Generator initialized")
 
     def set_source_queue(self, queue):
         """
@@ -82,7 +78,6 @@ class VOEventGenerator(threading.Thread):
             self.logger.error('Queue not set')
             raise VOEventGeneratorException('Queue not set')
 
-        self.logger.info("Running VOEvent generator")
         while not self.stop_event.is_set():
             try:
                 trigger = self.voevent_queue.get(timeout=1)

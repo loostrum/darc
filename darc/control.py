@@ -38,7 +38,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         sys.exit(1)
     # send message
     master_socket.sendall(message)
-    logging.info("Command send successfully")
+    logging.info("Command sent successfully")
     # receive reply unless stop_all was sent
     if not command == 'stop_all':
         try:
@@ -69,7 +69,7 @@ def main():
 
     # Check arguments
     if not args.cmd:
-        logging.error("Add command to execute, e.g. \"darc --service amber_listener status\"")
+        logging.error("Add command to execute, e.g. \"darc --service amber_listener --cmd status\"")
         sys.exit(1)
     elif not args.service and args.cmd != 'stop_master':
         logging.error("Argument --service is required unless calling stop_all")

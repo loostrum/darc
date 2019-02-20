@@ -4,12 +4,10 @@
 
 import errno
 import yaml
-import logging
-import logging.handlers
-import multiprocessing as mp
 import threading
 
 from darc.definitions import *
+from darc.logger import get_logger
 from darc.control import send_command
 
 
@@ -34,14 +32,9 @@ class StatusWebsite(threading.Thread):
             setattr(self, key, value)
 
         # setup logger
-        handler = logging.handlers.WatchedFileHandler(self.log_file)
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler.setFormatter(formatter)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+        self.logger = get_logger(__name__, self.log_file)
 
-        self.logger.info('Initialized')
+        self.logger.info('Status website initialized')
 
         # create website directory
         try:

@@ -3,8 +3,6 @@
 # AMBER Triggering
 
 import yaml
-import logging
-import logging.handlers
 from time import time
 import multiprocessing as mp
 try:
@@ -15,6 +13,7 @@ import threading
 import numpy as np
 
 from darc.definitions import *
+from darc.logger import get_logger
 
 
 class AMBERTriggeringException(Exception):
@@ -48,12 +47,8 @@ class AMBERTriggering(threading.Thread):
             setattr(self, key, value)
 
         # setup logger
-        handler = logging.handlers.WatchedFileHandler(self.log_file)
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler.setFormatter(formatter)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+        self.logger = get_logger(__name__, self.log_file)
+        self.logger.info("AMBER Triggering initialized")
 
     def set_source_queue(self, queue):
         """
