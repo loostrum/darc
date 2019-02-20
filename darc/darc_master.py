@@ -131,17 +131,12 @@ class DARCMaster(object):
             return "Failed - cannot parse message"
 
         try:
-            service = message['service']
-        except KeyError as e:
-            self.logger.error("Service missing from command message: {}".format(e))
-            return "Failed - no service specified"
-
-        try:
             command = message['command']
         except KeyError as e:
             self.logger.error("Command missing from command message: {}".format(e))
             return "Failed - no command specified"
 
+        service = message.get('service', None)
         payload = message.get('payload', None)
         status = self.process_message(service, command, payload)
 
@@ -155,6 +150,13 @@ class DARCMaster(object):
         :return: status
         """
         status = ''
+
+        # Start observation
+        if command == 'start_observation':
+            status = self.start_observation(payload)
+            return status
+
+        # Service interaction
         if service == 'all':
             services = self.services
         else:
@@ -327,6 +329,14 @@ class DARCMaster(object):
             self.stop_service(service)
         self.stop_event.set()
         return "Master stop event successfully set"
+
+    def start_observation(self, config):
+        """
+        Start an observation
+        :param config: Path to observation config file
+        """
+        self.logger.info("Starting observation with config file {}".format(config))
+        return "Started observation"
 
 
 def main():

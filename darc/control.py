@@ -8,7 +8,7 @@ import socket
 
 from darc.definitions import *
 
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 
 def send_command(timeout, service, command, payload=None, host='localhost'):
@@ -17,6 +17,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
     :param service: Service to send command to
     :param command: Which command to send
     :param payload: Payload for command (optional)
+    :param host: Hostname (default: localhost)
     :return:
     """
     # define message as literal python dict
@@ -64,6 +65,10 @@ def main():
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
     parser.add_argument('--cmd', type=str, help="Command to send to service")
+    parser.add_argument('--host', type=str, default='localhost', help="Host to send command to "
+                       "(Default: %(default)s)")
+    parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --nodeconfig)")
+    parser.add_argument('--nodeconfig', type=str, default=None, help="Node observation config")
 
     args = parser.parse_args()
 
@@ -71,11 +76,16 @@ def main():
     if not args.cmd:
         logging.error("Add command to execute, e.g. \"darc --service amber_listener --cmd status\"")
         sys.exit(1)
-    elif not args.service and args.cmd != 'stop_master':
-        logging.error("Argument --service is required unless calling stop_all")
-        sys.exit(1)
-    elif args.service not in services and args.service != 'all' and args.cmd != 'stop_master':
-        logging.error("Service not found: {}".format(args.service))
+    elif not args.service and args.cmd not in ['stop_master', 'start_observation']:
+        logging.error("Argument --service is required unless calling stop_master or start_observation")
         sys.exit(1)
 
-    send_command(args.timeout, args.service, args.cmd)
+    # Get payload
+    if args.parset:
+        payload = args.parset
+    elif args.nodeconfig:
+        payload = args.nodeconfig
+    else:
+        payload = None
+
+    send_command(args.timeout, args.service, args.cmd, host=args.host, payload=payload)
