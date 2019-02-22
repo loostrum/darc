@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import logging
-import logging.handlers
 
 
 def get_logger(name, log_file, level=logging.DEBUG):
@@ -14,10 +13,8 @@ def get_logger(name, log_file, level=logging.DEBUG):
     """
     # setup logger
     logger = logging.getLogger(name)
-    handler = logging.handlers.WatchedFileHandler(log_file)
-    formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(module)s: %(message)s')
-    handler.setFormatter(formatter)
-    logger.setLevel(level)
-    logger.addHandler(handler)
+    logger.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
+                       level=level,
+                       filename=log_file)
 
     return logger
