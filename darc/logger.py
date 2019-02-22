@@ -19,5 +19,6 @@ def get_logger(name, log_file, level=logging.DEBUG):
     handler.setFormatter(formatter)
     logger.setLevel(level)
     logger.addHandler(handler)
+    logger.propagate = False
 
     return logger
