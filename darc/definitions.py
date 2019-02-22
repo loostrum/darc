@@ -5,5 +5,5 @@ import os
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(ROOT_DIR, 'config.yaml')
 
-MASTER = "arts041"
-WORKERS = ["arts001", "arts002", "arts003", "arts004", "arts005", "arts006", "arts007", "arts008", "arts009", "arts010", "arts011", "arts012", "arts013", "arts014", "arts015", "arts016", "arts017", "arts018", "arts019", "arts020", "arts021", "arts022", "arts023", "arts024", "arts025", "arts026", "arts027", "arts028", "arts029", "arts030", "arts031", "arts032", "arts033", "arts034", "arts035", "arts036", "arts037", "arts038", "arts039", "arts040"]
+MASTER = "arts041.apertif"
+WORKERS = ["arts001.apertif", "arts002.apertif", "arts003.apertif", "arts004.apertif", "arts005.apertif", "arts006.apertif", "arts007.apertif", "arts008.apertif", "arts009.apertif", "arts010.apertif", "arts011.apertif", "arts012.apertif", "arts013.apertif", "arts014.apertif", "arts015.apertif", "arts016.apertif", "arts017.apertif", "arts018.apertif", "arts019.apertif", "arts020.apertif", "arts021.apertif", "arts022.apertif", "arts023.apertif", "arts024.apertif", "arts025.apertif", "arts026.apertif", "arts027.apertif", "arts028.apertif", "arts029.apertif", "arts030.apertif", "arts031.apertif", "arts032.apertif", "arts033.apertif", "arts034.apertif", "arts035.apertif", "arts036.apertif", "arts037.apertif", "arts038.apertif", "arts039.apertif", "arts040"]
