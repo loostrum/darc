@@ -53,7 +53,7 @@ class StatusWebsite(threading.Thread):
             statuses = {'master': {}}
             for service in self.check_services_master:
                 try:
-                    service_status = send_command(10, service, 'status', host=MASTER)
+                    service_status = send_command(self.timeout, service, 'status', host=MASTER)
                 except Exception as e:
                     service_status = "UNKNOWN"
                     self.logger.error("Failed to get master status of {}: {}".format(service, e))

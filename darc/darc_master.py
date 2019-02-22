@@ -18,6 +18,7 @@ from darc.amber_listener import AMBERListener
 from darc.amber_triggering import AMBERTriggering
 from darc.voevent_generator import VOEventGenerator
 from darc.status_website import StatusWebsite
+from darc.observation_control import ObservationControl
 
 
 class DARCMasterException(Exception):
@@ -31,6 +32,9 @@ class DARCMaster(object):
         """
         # setup stop event for master
         self.stop_event = threading.Event()
+
+        # save host name
+        self.hostname = socket.gethostname()
 
         # setup queues
         self.amber_listener_queue = mp.Queue()
@@ -153,7 +157,11 @@ class DARCMaster(object):
 
         # Start observation
         if command == 'start_observation':
-            status = self.start_observation(payload)
+            if not payload:
+                self.logger.error('Payload is required when starting observation')
+                status = 'Failed: payload missing'
+            else:
+                status = self.start_observation(payload)
             return status
 
         # Service interaction
@@ -330,13 +338,50 @@ class DARCMaster(object):
         self.stop_event.set()
         return "Master stop event successfully set"
 
-    def start_observation(self, config):
+    def start_observation(self, config_file):
         """
         Start an observation
         :param config: Path to observation config file
         """
-        self.logger.info("Starting observation with config file {}".format(config))
-        return "Started observation"
+        self.logger.info("Starting observation with config file {}".format(config_file))
+        # load config
+        if config_file.endswith('.yaml'):
+            config = self._load_yaml(config_file)
+        elif config_file.endswith('.parset'):
+            config = self._load_parset(config_file)
+        else:
+            self.logger.error("Failed to determine config file type from {}".format(config_file))
+            return "Failed: unknown config file type"
+        # start the observation
+        if self.hostname == MASTER:
+            thread = ObservationControl(config, 'master')
+        elif self.hostname in WORKERS:
+            thread = ObservationControl(config, 'worker')
+        else:
+            self.logger.error("Running on unknown host: {}".format(self.hostname))
+            return "Failed: running on unknown host"
+        thread.run()
+        return "Observation started"
+
+    def _load_yaml(self, config_file):
+        """
+        Load yaml file and convert to observation config
+        :param config_file: Path to yaml file
+        :return: observation config dict
+        """
+        self.logger.info("Loading yaml config")
+        with open(config_file) as f:
+            config = yaml.load(f)
+        return config
+
+    def _load_parset(self, config_file):
+        """
+        Load yaml file and convert to observation config
+        :param config_file: Path to parset file
+        :return: observation config dict
+        """
+        self.logger.error("Loading parset config not implemented yet!")
+        return None
 
 
 def main():

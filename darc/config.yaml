@@ -12,8 +12,9 @@ status_website:
     log_file: "{home}/darc/log/status_website.log"
     web_dir: "{home}/public_html/darc/status"
     check_services_master: ["voevent_generator"]
-    check_services_worker: ["amber_listener", "amber_triggering",]
+    check_services_worker: ["amber_listener", "amber_triggering"]
     interval: 30
+    timeout: 10
 
 # AMBER trigger listener
 amber_listener:
@@ -42,3 +43,7 @@ voevent_generator:
     broker_host: "arts041.apertif"
     broker_port: 8098
 
+# Observation Control
+observation_control:
+    log_file: "{home}/darc/log/observation_control.log"
+    timeout: 10
