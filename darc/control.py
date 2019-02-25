@@ -64,12 +64,12 @@ def main():
                         " available services: {}, or all".format(', '.join(services)))
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
-    parser.add_argument('--cmd', type=str, help="Command to send to service")
     parser.add_argument('--host', type=str, default='localhost', help="Host to send command to "
                        "(Default: %(default)s)")
     parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --nodeconfig)")
     parser.add_argument('--nodeconfig', type=str, default=None, help="Node observation config")
 
+    parser.add_argument('cmd', type=str, help="Command to execute")
     args = parser.parse_args()
 
     # Check arguments
