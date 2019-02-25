@@ -67,5 +67,5 @@ class ObservationControl(threading.Thread):
         """
         self.logger.info("Starting observation on worker node")
         # make sure all service are started
-        for service in ['amber_listener']; do:
+        for service in ['amber_listener']:
             send_command(self.timeout, service, 'start')
