@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# This script runs tail -f on the given input files and
-# sends the output to a given/ network port
+# This script runs tail -F on the given input files and
+# sends the output to a network port through a named pipe
 
 DEFAULT_PIPE=stream.pipe
 DEFAULT_PORT=50000
@@ -65,18 +65,11 @@ fi
 echo "Creating pipe"
 mkfifo $pipe
 
-# Wait until all input files exist
-echo "Sleeping until all input files exist"
-for f in $files; do
-    while ! [ -f $f ]; do
-        sleep 1
-    done
-done
-echo "All files present - starting streaming"
-
-#(tail -n 1 -f $files | nc localhost $port ) &
+echo "Starting streaming"
+tail -F $files >> $pipe &
+echo "Opening network connection"
 nc localhost $port < $pipe &
-tail -f $files >> $pipe &
+echo "Running"
 
 # stop pipeline on sigterm/sigint
 trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' >> $pipe; rm -f $pipe; pkill -P $$" SIGTERM SIGINT
