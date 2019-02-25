@@ -51,6 +51,9 @@ class DARCMaster(object):
                 value = value.format(**kwargs)
             setattr(self, key, value)
 
+        # store hostname
+        self.hostname = socket.gethostname()
+
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
         try:

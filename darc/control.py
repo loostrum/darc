@@ -35,7 +35,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         master_socket.settimeout(timeout)
         master_socket.connect((host, port))
     except socket.error as e:
-        logging.error("Failed to connect DARC master: {}".format(e))
+        logging.error("Failed to connect to DARC master: {}".format(e))
         sys.exit(1)
     # send message
     master_socket.sendall(message)
