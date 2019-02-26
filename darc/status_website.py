@@ -52,6 +52,7 @@ class StatusWebsite(threading.Thread):
             # get status for master node
             statuses = {'master': {}}
             for service in self.check_services_master:
+                self.logger.info("Getting master status of {}".format(service))
                 try:
                     service_status = send_command(self.timeout, service, 'status', host=MASTER)
                 except Exception as e:
@@ -62,6 +63,7 @@ class StatusWebsite(threading.Thread):
             for node in WORKERS:
                 statuses[node] = {}
                 for service in self.check_services_worker:
+                    self.logger.info("Getting {} status of {}".format(node, service))
                     try:
                         service_status = send_command(10, service, 'status', host=node)
                     except Exception as e:
