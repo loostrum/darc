@@ -49,7 +49,7 @@ class ObservationControl(threading.Thread):
         if self.host_type == 'master':
             self._start_observation_master()
         elif self.host_type == 'worker':
-            self._start_observatoin_worker()
+            self._start_observation_worker()
         else:
             self.logger.error("Unknown host type: {}".format(self.host_type))
 
@@ -58,8 +58,9 @@ class ObservationControl(threading.Thread):
         Start observation on master node
         """
         self.logger.info("Starting observation on master node")
-        pass
-        #send_command(self.timeout, service, 'status')
+        # make sure all service are started
+        for service in ['voevent_generator']:
+            send_command(self.timeout, service, 'start')
 
     def _start_observation_worker(self):
         """
