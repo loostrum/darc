@@ -1,7 +1,6 @@
 # DARC Master config
 darc_master:
     log_file: "{home}/darc/log/darc_master.log"
-    host: "localhost"
     port: 51000
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
