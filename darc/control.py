@@ -50,6 +50,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
             logging.info("Status: {}".format(reply))
         # close connection
         master_socket.close()
+        return reply
 
 
 def main():

@@ -5,6 +5,7 @@
 import errno
 import yaml
 import threading
+from textwrap import dedent
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -79,8 +80,9 @@ class StatusWebsite(threading.Thread):
         Publish status as simple html webpage
         """ 
 
-        webpage = template.format(statuses['master'])
-        web_file = os.path.join(self.web_dir, index.html)
+        template = self.get_template()
+        webpage = template.format(**statuses['master'])
+        web_file = os.path.join(self.web_dir, 'index.html')
         with open(web_file, 'w') as f:
             f.write(webpage)
 
@@ -92,7 +94,10 @@ class StatusWebsite(threading.Thread):
         template=dedent("""<html>
         <head><title>DARC status</title></head>
         <body>
-        TEST
+        <p>
+        <h4>Master</h4>
+        VOEvent generator: {voevent_generator}<br />
+        </p>
         </body>
         </html>
         """)
