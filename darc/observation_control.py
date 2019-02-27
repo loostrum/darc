@@ -59,8 +59,13 @@ class ObservationControl(threading.Thread):
         """
         self.logger.info("Starting observation on master node")
         # make sure all service are started
-        for service in ['voevent_generator']:
-            send_command(self.timeout, service, 'start')
+        #for service in ['voevent_generator']:
+        #    send_command(self.timeout, service, 'start')
+        # start old-type processing: emailer
+        email_script = '{home}/ARTS-obs/emailer.py'.format(home=os.path.expanduser('~'))
+        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}') &".format(**self.obs_config)
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)
 
     def _start_observation_worker(self):
         """
@@ -68,5 +73,15 @@ class ObservationControl(threading.Thread):
         """
         self.logger.info("Starting observation on worker node")
         # make sure all service are started
-        for service in ['amber_listener']:
-            send_command(self.timeout, service, 'start')
+        #for service in ['amber_listener']:
+        #    send_command(self.timeout, service, 'start')
+        # start old-type processing: process_triggers.sh
+        process_trigger_script = '{home}/ARTS-obs/process_triggers.sh'.format(home=os.path.expanduser('~'))
+        cmd = "(sleepuntil_utc {endtime}; sleep 10; " \
+              "{process_trigger_script}/process_triggers.sh {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}.fil " \
+              "{amber_dir}/CB{beam:02d} {master_dir} " \
+              "{snrmin_processing} {snrmin_processing_local} {dmmin} {dmmax} {beam:02d} {duration}) &".format(process_trigger_script=process_trigger_sciprt,
+                                                          **self.obs_config)
+
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)

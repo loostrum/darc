@@ -355,6 +355,10 @@ class DARCMaster(object):
         else:
             self.logger.error("Failed to determine config file type from {}".format(config_file))
             return "Failed: unknown config file type"
+        # check if process_triggers is enabled
+        if not config['proctrigger']:
+            self.logger.info("Process triggers is disabled; not starting observation")
+            return "Process triggers disabled - not starting"
         # start the observation
         if self.hostname == MASTER:
             thread = ObservationControl(config, 'master')
