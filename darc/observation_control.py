@@ -63,7 +63,7 @@ class ObservationControl(threading.Thread):
         #    send_command(self.timeout, service, 'start')
         # start old-type processing: emailer
         email_script = '{home}/ARTS-obs/emailer.py'.format(home=os.path.expanduser('~'))
-        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}') &".format(**self.obs_config)
+        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}') &".format(email_script=email_script, **self.obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
