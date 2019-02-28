@@ -80,8 +80,18 @@ class StatusWebsite(threading.Thread):
         Publish status as simple html webpage
         """ 
 
-        template = self.get_template()
-        webpage = template.format(**statuses['master'])
+        header, footer = self.get_template()
+        webpage = header
+        # add master info
+        for service, status in statuses['master'].items():
+            webpage += "<b>Master</b> {} : {}<br />\n".format(service, status)
+
+        # add node info
+        for node in WORKERS:
+            for service, status in statuses[node].items():
+                webpage += "<b>{}</b> {} : {}<br />\n".format(node, service, status)
+        webpage += footer
+
         web_file = os.path.join(self.web_dir, 'index.html')
         with open(web_file, 'w') as f:
             f.write(webpage)
@@ -91,14 +101,12 @@ class StatusWebsite(threading.Thread):
         Return the HTML template
         """
 
-        template=dedent("""<html>
-        <head><title>DARC status</title></head>
-        <body>
-        <p>
-        <h4>Master</h4>
-        VOEvent generator: {voevent_generator}<br />
-        </p>
-        </body>
-        </html>
-        """)
-        return template
+        header = dedent("""<html>
+                        <head><title>DARC status</title></head>
+                        <body>""")
+
+        footer = dedent("""</body>
+                        </html>
+                        """)
+        
+        return header, footer
