@@ -53,6 +53,13 @@ class DARCMaster(object):
 
         # store hostname
         self.hostname = socket.gethostname()
+        # store services
+        if self.hostname == MASTER:
+            self.services = self.services_master
+        elif self.hostname in WORKERS:
+            self.services = self.services_worker
+        else:
+            self.services = []
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -67,21 +74,18 @@ class DARCMaster(object):
         self.logger = get_logger(__name__, self.log_file)
 
         # Initalize services. Log dir must exist at this point
-        self.events = {'amber_listener': threading.Event(),
-                       'amber_triggering': threading.Event(),
-                       'voevent_generator': threading.Event(),
-                       'status_website': threading.Event()}
-        self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
-                        'amber_triggering': AMBERTriggering(self.events['amber_triggering']),
-                        'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
-                        'status_website': StatusWebsite(self.events['status_website'])}
+        if self.hostname == MASTER:
+            self.events = {'voevent_generator': threading.Event(),
+                           'status_website': threading.Event()}
+            self.threads = {'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
+                            'status_website': StatusWebsite(self.events['status_website'])}
 
-        self.logger.info('DARC Master initialized')
-
-    def run(self):
-        """
-        Initalize the socket and listen for message
-        """
+        elif self.hostname in WORKERS:
+            self.events = {'amber_listener': threading.Event(),
+                           'amber_triggering': threading.Event()}
+            self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
+                            'amber_triggering': AMBERTriggering(self.events['amber_triggering'])}
+                        
         # setup listening socket
         command_socket = None
         start = time()
@@ -98,14 +102,23 @@ class DARCMaster(object):
             self.logger.error("Failed to ceate socket")
             raise DARCMasterException("Failed to setup command socket")
 
+        self.command_socket = command_socket
+
+        self.logger.info('DARC Master initialized')
+
+    def run(self):
+        """
+        Initalize the socket and listen for message
+        """
+
         # wait for commands
-        command_socket.listen(5)
+        self.command_socket.listen(5)
         self.logger.info("Waiting for commands")
 
         # main loop
         while not self.stop_event.is_set():
             try:
-                client, adr = command_socket.accept()
+                client, adr = self.command_socket.accept()
             except Exception as e:
                 self.logger.error('Caught exception while waiting for command: {}', e)
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
@@ -171,6 +184,9 @@ class DARCMaster(object):
         if service == 'all':
             services = self.services
         else:
+            if not service in self.services:
+                self.logger.info("Invalid service for {}: {}".format(hostname, service))
+                return "Invalid service: {}".format(service)
             services = [service]
 
         for service in services:

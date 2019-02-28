@@ -4,7 +4,8 @@ darc_master:
     port: 51000
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    services: ["amber_listener", "amber_triggering", "voevent_generator", "status_website"]
+    services_master: ["voevent_generator", "status_website"]
+    services_worker: ["amber_listener", "amber_triggering"]
 
 # Status website
 status_website:

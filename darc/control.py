@@ -57,7 +57,7 @@ def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f)['darc_master']
-    services = config['services']
+    services = config['services_master'] + config['services_worker']
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
