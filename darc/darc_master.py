@@ -60,6 +60,11 @@ class DARCMaster(object):
             self.services = self.services_worker
         else:
             self.services = []
+        # service to class mapper
+        self.service_mapping = {'voevent_generator': VOEventGenerator,
+                                'status_website': StatusWebsite,
+                                'amber_listener': AMBERListener,
+                                'amber_triggering': AMBERTriggering}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -74,18 +79,14 @@ class DARCMaster(object):
         self.logger = get_logger(__name__, self.log_file)
 
         # Initalize services. Log dir must exist at this point
-        if self.hostname == MASTER:
-            self.events = {'voevent_generator': threading.Event(),
-                           'status_website': threading.Event()}
-            self.threads = {'voevent_generator': VOEventGenerator(self.events['voevent_generator']),
-                            'status_website': StatusWebsite(self.events['status_website'])}
+        self.events = {}
+        self.threads = {}
+        for service in self.services:
+            _event = threading.Event()
+            _service_class = self.service_mapping[service]
+            self.events[service] = _event
+            self.threads[service] = _service_class(_event)
 
-        elif self.hostname in WORKERS:
-            self.events = {'amber_listener': threading.Event(),
-                           'amber_triggering': threading.Event()}
-            self.threads = {'amber_listener': AMBERListener(self.events['amber_listener']),
-                            'amber_triggering': AMBERTriggering(self.events['amber_triggering'])}
-                        
         # setup listening socket
         command_socket = None
         start = time()
@@ -108,7 +109,7 @@ class DARCMaster(object):
 
     def run(self):
         """
-        Initalize the socket and listen for message
+        Listen for message on the command socket
         """
 
         # wait for commands
@@ -126,11 +127,19 @@ class DARCMaster(object):
             raw_message = client.recv(1024)
             self.logger.info("Received message: {}".format(raw_message))
             try:
-                status = self.parse_message(raw_message)
+                status, reply = self.parse_message(raw_message)
             except Exception as e:
-                status = "Caught exception: {}".format(e)
+                status = "Error"
+                reply = "Caught exception: {}".format(e)
+
+            # construct reply as dict
+            if isinstance(reply, str):
+                full_reply = "{{'status': \"{}\", 'message': \"{}\"}}".format(status, reply)
+            else:
+                full_reply = "{{'status': \"{}\", 'message': {}}}".format(status, reply)
+            print reply
             try:
-                client.sendall(status)
+                client.sendall(full_reply)
             except socket.error as e:
                 self.logger.error("Failed to send reply: {}".format(e))
             client.close()
@@ -141,88 +150,103 @@ class DARCMaster(object):
         """
         Parse raw received message
         :param raw_message: message as single string
-        :return: status
+        :return: status (str), reply (dict)
         """
 
         try:
             message = ast.literal_eval(raw_message)
         except Exception as e:
             self.logger.error("Failed to parse command message: {}".format(e))
-            return "Failed - cannot parse message"
+            return "Error", {'error': "Cannot parse message"}
 
         try:
             command = message['command']
         except KeyError as e:
             self.logger.error("Command missing from command message: {}".format(e))
-            return "Failed - no command specified"
+            return "Error", {'error': "No command specified"}
 
         service = message.get('service', None)
         payload = message.get('payload', None)
-        status = self.process_message(service, command, payload)
+        status, reply = self.process_message(service, command, payload)
 
-        return status
+        return status, reply
 
     def process_message(self, service, command, payload):
         """
         :param service: service to interact with
         :param command: command to run
         :param payload: payload for command
-        :return: status
+        :return: status (str), reply (dict)
         """
-        status = ''
 
         # Start observation
         if command == 'start_observation':
             if not payload:
                 self.logger.error('Payload is required when starting observation')
-                status = 'Failed: payload missing'
+                status = 'Error'
+                reply = {'error': 'Payload missing'}
             else:
-                status = self.start_observation(payload)
-            return status
+                status, reply = self.start_observation(payload)
+            return status, reply
 
         # Service interaction
         if service == 'all':
             services = self.services
         else:
             if not service in self.services:
-                self.logger.info("Invalid service for {}: {}".format(hostname, service))
-                return "Invalid service: {}".format(service)
+                self.logger.info("Invalid service for {}: {}".format(self.hostname, service))
+                status = 'Error'
+                reply =  {'error': 'Invalid service: {}'.format(service)}
+                return status, reply
             services = [service]
 
+        status = 'Success'
+        reply = {}
         for service in services:
             if command.lower() == 'start':
-                status += self.start_service(service)
+                _status, _reply = self.start_service(service)
             elif command.lower() == 'stop':
-                status += self.stop_service(service)
+                _status, _reply = self.stop_service(service)
             elif command.lower() == 'restart':
-                status += self.restart_service(service)
+                _status, _reply = self.restart_service(service)
             elif command.lower() == 'status':
-                status += self.check_status(service)
+                _status, _reply =  self.check_status(service)
             elif command.lower() == 'stop_master':
-                status += self.stop()
+                _status, _reply =  self.stop()
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
-                status = 'Unknown command: {}'.format(command)
-            status += '\n'
+                status  = 'Error'
+                reply = {'error': 'Unknown command: {}'.format(command)}
+                return status, reply
+            if _status != 'Success':
+                status = 'Error'
+            reply[service] = _reply
 
-        return status.strip()
+        return status, reply
 
     def check_status(self, service):
         """
         :param service: Service to check status of
-        :return: status
+        :return: status, reply
         """
+
+        status = 'Success'
 
         thread = self.threads[service]
         self.logger.info("Checking status of {}".format(service))
+        if thread is None:
+            status = 'Error'
+            reply = 'No thread found'
+            return status, reply
+
         if thread.isAlive():
             self.logger.info("{} is running".format(service))
-            status = "{}: running".format(service)
+            reply = 'running'
         else:
-            self.logger.info("{} is not running".format(service))
-            status = "{}: not running".format(service)
+            self.logger.info("{} is stopped".format(service))
+            reply = 'stopped'
 
-        return status
+        return status, reply
 
     def start_service(self, service):
         """
@@ -244,9 +268,10 @@ class DARCMaster(object):
             source_queue = None
             target_queue = None
         else:
-            status = "Unknown service: {}".format(service)
-            self.logger.error(status)
-            return status
+            self.logger.error('Unknown service: {}'.format(service))
+            status = 'Error'
+            reply = "Unknown service"
+            return status, reply
 
         # get thread and event
         thread = self.threads[service]
@@ -257,6 +282,7 @@ class DARCMaster(object):
 
         # check if a new thread has to be generated
         if thread is None:
+            self.logger.info("Creating new thread for service {}".format(service))
             self.create_thread(service)
             thread = self.threads[service]
 
@@ -264,7 +290,7 @@ class DARCMaster(object):
         self.logger.info("Starting service: {}".format(service))
         # check if already running
         if thread.isAlive():
-            status = "Service already running: {}".format(service)
+            reply['warning'] = "Service already running: {}".format(service)
             self.logger.warning(status)
         else:
             # set queues
@@ -276,61 +302,74 @@ class DARCMaster(object):
             thread.start()
             # check status
             if not thread.isAlive():
-                status = "Failed to start service: {}".format(service)
-                self.logger.error(status)
+                status = 'Error'
+                reply = "Failed to start service"
+                self.logger.error("Failed to start service: {}".format(service))
             else:
-                status = "Started service: {}".format(service)
-                self.logger.info(status)
+                status = 'Success'
+                reply = "Started service"
+                self.logger.info("Started service: {}".format(service))
 
-        return status
+        return status, reply
 
     def stop_service(self, service):
         """
         :param service: service to stop
-        :return: status
+        :return: status, reply
         """
 
         # settings for specific services
         if service not in self.services:
-            status = "Unknown service: {}".format(service)
-            self.logger.error(status)
-            return status
+            status = 'Error'
+            reply = "Unknown service"
+            self.logger.error("Unknown service: {}".format(service))
+            return status, reply
 
         # get thread and event
         thread = self.threads[service]
         event = self.events[service]
 
         # stop the specified service
-        self.logger.info("Stopping service {}".format(service))
+        self.logger.info("Stopping service: {}".format(service))
 
         if not thread.isAlive():
-            status = "Service not running: {}".format(service)
-            # this thread is done, create new thread
+            status = 'Success'
+            reply = "Stopped service"
+            # this thread is done, create a new thread
             self.create_thread(service)
-            self.logger.warning(status)
+            self.logger.warning("Already stopped service: {}".format(service))
         else:
             event.set()
             tstart = time()
             while thread.isAlive() and time()-tstart < self.stop_timeout:
                 sleep(.1)
             if thread.isAlive():
-                status = "Failed to stop service before timeout: {}".format(service)
-                self.logger.error(status)
+                status = 'error'
+                reply = "Failed to stop service before timeout"
+                self.logger.error("Failed to stop service before timeout: {}".format(service))
             else:
-                status = "Stopped service: {}".format(service)
-                # this thread is done, create new thread
+                status = 'Success'
+                reply = 'Stopped service'
+                # this thread is done, create a new thread
                 self.create_thread(service)
-                self.logger.info(status)
+                print self.threads[service]
+                self.logger.info("Stopped service: {}".format(service))
 
-        return status
+        return status, reply
 
     def restart_service(self, service):
         """
         :param service: service to restart
         """
-        status_start = self.stop_service(service)
-        status_stop = self.start_service(service)
-        return '\n'.join([status_start, status_stop])
+        status = 'Success'
+        _status, reply_stop = self.stop_service(service)
+        if _status != 'Success':
+            status = _status
+        _status, reply_start = self.start_service(service)
+        if _status != 'Success':
+            status = _status
+        reply = {'stop': reply_stop, 'start': reply_start}
+        return status, reply
 
     def create_thread(self, service):
         """
@@ -355,7 +394,9 @@ class DARCMaster(object):
         for service in self.services:
             self.stop_service(service)
         self.stop_event.set()
-        return "Master stop event successfully set"
+        status = 'Success'
+        reply = "Master stop event set"
+        return status, reply
 
     def start_observation(self, config_file):
         """
@@ -384,7 +425,7 @@ class DARCMaster(object):
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Failed: running on unknown host"
         thread.run()
-        return "Observation started"
+        return "Success", "Observation started"
 
     def _load_yaml(self, config_file):
         """

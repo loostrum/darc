@@ -3,6 +3,7 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 import yaml
+import ast
 import logging
 import socket
 
@@ -46,11 +47,21 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
             reply = master_socket.recv(1024)
         except socket.timeout:
             logging.error("Did not receive reply before timeout")
+            reply = None
         else:
-            logging.info("Status: {}".format(reply))
+            try:
+                reply = ast.literal_eval(reply)
+            except:
+                logging.error("Failed to parse message: {}".format(reply))
+            else:
+                if isinstance(reply, dict):
+                    for key, value in reply.items():
+                        logging.info("{}: {}".format(key, value))
+                else:
+                    logging.info(reply)
         # close connection
         master_socket.close()
-        return reply
+    return reply
 
 
 def main():
