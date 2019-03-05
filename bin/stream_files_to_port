@@ -72,6 +72,6 @@ nc localhost $port < $pipe &
 echo "Running"
 
 # stop pipeline on sigterm/sigint
-trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' >> $pipe; rm -f $pipe; pkill -P $$" SIGTERM SIGINT
+trap "echo 'Received SIGTERM/SIGINT - exiting'; echo 'EOF' >> $pipe; pkill -P $$; rm -f $pipe" SIGTERM SIGINT
 
 wait

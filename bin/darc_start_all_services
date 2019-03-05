@@ -2,26 +2,20 @@
 # 
 # Start all DARC services
 
+port=51000
 # Master service
 if ps ax | grep "[d]arc_service" > /dev/null; then
-    echo "DARC service online"
+    echo "DARC master service online"
 else
-    echo "DARC service offline, starting"
+    echo "DARC master service offline, starting"
     nohup darc_service 2>&1 >/dev/null &
-    sleep 2
+    # Wait until online
+    echo "Waiting for DARC master to be online"
+    while [ -z "`netstat -tln | grep $port`" ]; do
+          sleep 0.001
+    done
 fi
 
-if ps ax | grep "[d]arc_service" > /dev/null; then
-    # start services
-    echo "Starting AMBER Listener"
-    darc --service amber_listener --cmd start
-    echo "Starting AMBER Triggering"
-    darc --service amber_triggering --cmd start
-    echo "Starting VOEvent Generator"
-    darc --service voevent_generator --cmd start
-    echo "Starting Status website"
-    darc --service status_website --cmd start
-else
-    echo "Cannot start services - master service not running"   
-    exit 1
-fi
+# start services
+echo "Starting services"
+darc --service all start
