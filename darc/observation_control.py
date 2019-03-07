@@ -77,9 +77,15 @@ class ObservationControl(threading.Thread):
         #for service in ['amber_listener']:
         #    send_command(self.timeout, service, 'start')
         # start old-type processing: process_triggers.sh
+        if self.obs_config['ntabs'] == 1:
+            fil_suffix = ".fil"
+        else:
+            fil_suffix = "_01.fil"
+        self.obs_config['fil_suffix'] = fil_suffix
+
         process_trigger_script = '{home}/ARTS-obs/process_triggers.sh'.format(home=os.path.expanduser('~'))
         cmd = "(sleepuntil_utc {endtime}; sleep 10; " \
-              "{process_trigger_script} {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}.fil " \
+              "{process_trigger_script} {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}{fil_suffix} " \
               "{amber_dir}/CB{beam:02d} {master_dir} " \
               "{snrmin_processing} {snrmin_processing_local} {dmmin} {dmmax} {beam:02d} {duration}) &".format(process_trigger_script=process_trigger_script,
                                                           **self.obs_config)
