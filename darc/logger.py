@@ -2,7 +2,6 @@
 
 import logging
 import logging.handlers
-import socket
 
 
 def get_logger(name, log_file, level=logging.DEBUG):
@@ -15,8 +14,7 @@ def get_logger(name, log_file, level=logging.DEBUG):
     """
     # setup logger
     logger = logging.getLogger(name)
-    hostname = socket.gethostname()
-    handler = logging.handlers.WatchedFileHandler(log_file.format(hostname=hostname))
+    handler = logging.handlers.WatchedFileHandler(log_file)
     formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(module)s: %(message)s')
     handler.setFormatter(formatter)
     logger.setLevel(level)

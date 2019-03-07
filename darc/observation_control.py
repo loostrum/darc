@@ -9,6 +9,7 @@ import yaml
 import errno
 import multiprocessing as mp
 import threading
+import socket
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -27,7 +28,7 @@ class ObservationControl(threading.Thread):
             config = yaml.load(f)['observation_control']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~')}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)
