@@ -1,6 +1,6 @@
 # DARC Master config
 darc_master:
-    log_file: "{home}/darc/log/darc_master.log"
+    log_file: "{home}/darc/log/darc_master.{hostname}.log"
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
@@ -9,7 +9,7 @@ darc_master:
 
 # Status website
 status_website:
-    log_file: "{home}/darc/log/status_website.log"
+    log_file: "{home}/darc/log/status_website.{hostname}.log"
     web_dir: "{home}/public_html/darc/status"
     check_services_master: ["voevent_generator"]
     check_services_worker: ["amber_listener", "amber_triggering"]
@@ -18,7 +18,7 @@ status_website:
 
 # AMBER trigger listener
 amber_listener:
-    log_file: "{home}/darc/log/amber_listener.log"
+    log_file: "{home}/darc/log/amber_listener.{hostname}.log"
     host: "localhost"
     port: 50000  # NOTE: also hardcoded as default in stream_files_to_port
     socket_timeout: 30
@@ -26,7 +26,7 @@ amber_listener:
 
 # Direct processing of AMBER triggers
 amber_triggering:
-    log_file: "{home}/darc/log/amber_triggering.log"
+    log_file: "{home}/darc/log/amber_triggering.{hostname}.log"
     interval: 10
     #dm_min: 55
     #dm_max: 60
@@ -37,7 +37,7 @@ amber_triggering:
 
 # VOEvent generator
 voevent_generator:
-    log_file: "{home}/darc/log/voevent_generator.log"
+    log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
     send_events: False
     broker_host: "arts041.apertif"
@@ -45,5 +45,5 @@ voevent_generator:
 
 # Observation Control
 observation_control:
-    log_file: "{home}/darc/log/observation_control.log"
+    log_file: "{home}/darc/log/observation_control.{hostname}.log"
     timeout: 10
