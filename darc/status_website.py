@@ -5,6 +5,7 @@
 import errno
 import yaml
 import threading
+import socket
 from textwrap import dedent
 
 from darc.definitions import *
@@ -26,7 +27,7 @@ class StatusWebsite(threading.Thread):
             config = yaml.load(f)['status_website']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~')}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname':socket.gethostname()}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)

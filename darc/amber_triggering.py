@@ -10,6 +10,7 @@ try:
 except ImportError:
     from Queue import Empty
 import threading
+import socket
 import numpy as np
 
 from darc.definitions import *
@@ -40,7 +41,7 @@ class AMBERTriggering(threading.Thread):
             config = yaml.load(f)['amber_triggering']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~')}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)

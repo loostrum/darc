@@ -7,6 +7,7 @@ import socket
 import yaml
 import multiprocessing as mp
 import threading
+import socket
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -32,7 +33,7 @@ class AMBERListener(threading.Thread):
             config = yaml.load(f)['amber_listener']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~')}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)

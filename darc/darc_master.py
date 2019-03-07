@@ -45,7 +45,7 @@ class DARCMaster(object):
             config = yaml.load(f)['darc_master']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~')}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)
