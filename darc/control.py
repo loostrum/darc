@@ -78,8 +78,8 @@ def main():
                         "(Default: %(default)ss)")
     parser.add_argument('--host', type=str, default='localhost', help="Host to send command to "
                        "(Default: %(default)s)")
-    parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --nodeconfig)")
-    parser.add_argument('--nodeconfig', type=str, default=None, help="Node observation config")
+    parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
+    parser.add_argument('--config', type=str, default=None, help="Node observation config")
 
     parser.add_argument('cmd', type=str, help="Command to execute")
     args = parser.parse_args()
@@ -95,8 +95,8 @@ def main():
     # Get payload
     if args.parset:
         payload = args.parset
-    elif args.nodeconfig:
-        payload = args.nodeconfig
+    elif args.config:
+        payload = args.config
     else:
         payload = None
 
