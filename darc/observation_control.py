@@ -78,7 +78,7 @@ class ObservationControl(threading.Thread):
         # start old-type processing: process_triggers.sh
         process_trigger_script = '{home}/ARTS-obs/process_triggers.sh'.format(home=os.path.expanduser('~'))
         cmd = "(sleepuntil_utc {endtime}; sleep 10; " \
-              "{process_trigger_script}/process_triggers.sh {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}.fil " \
+              "{process_trigger_script} {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}.fil " \
               "{amber_dir}/CB{beam:02d} {master_dir} " \
               "{snrmin_processing} {snrmin_processing_local} {dmmin} {dmmax} {beam:02d} {duration}) &".format(process_trigger_script=process_trigger_script,
                                                           **self.obs_config)
