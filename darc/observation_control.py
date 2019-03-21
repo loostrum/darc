@@ -64,7 +64,7 @@ class ObservationControl(threading.Thread):
         #    send_command(self.timeout, service, 'start')
         # start old-type processing: emailer
         email_script = '{home}/ARTS-obs/emailer.py'.format(home=os.path.expanduser('~'))
-        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}') &".format(email_script=email_script, **self.obs_config)
+        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}' {ntabs}) &".format(email_script=email_script, **self.obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
@@ -76,19 +76,24 @@ class ObservationControl(threading.Thread):
         # make sure all service are started
         #for service in ['amber_listener']:
         #    send_command(self.timeout, service, 'start')
+
+
         # start old-type processing: process_triggers.sh
-        if self.obs_config['ntabs'] == 1:
-            fil_suffix = ".fil"
-        else:
-            fil_suffix = "_01.fil"
-        self.obs_config['fil_suffix'] = fil_suffix
-
         process_trigger_script = '{home}/ARTS-obs/process_triggers.sh'.format(home=os.path.expanduser('~'))
-        cmd = "(sleepuntil_utc {endtime}; sleep 10; " \
-              "{process_trigger_script} {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}{fil_suffix} " \
-              "{amber_dir}/CB{beam:02d} {master_dir} " \
-              "{snrmin_processing} {snrmin_processing_local} {dmmin} {dmmax} {beam:02d} {duration}) &".format(process_trigger_script=process_trigger_script,
-                                                          **self.obs_config)
+        # Loop over 12 TABs, or single IAB
+        #for tab in range(1, self.obs_config['ntabs']+1):
+        for tab in [1]:
+            if self.obs_config['ntabs'] == 1:
+                self.obs_config['fil_suffix'] = ".fil"
+                tab=0
+            else:
+                self.obs_config['fil_suffix'] = "_{:02d}.fil".format(tab)
 
-        self.logger.info("Running {}".format(cmd))
-        os.system(cmd)
+            cmd = "(sleepuntil_utc {endtime}; sleep 10; " \
+                  "{process_trigger_script} {output_dir}/triggers {output_dir}/filterbank/CB{beam:02d}{fil_suffix} " \
+                  "{amber_dir}/CB{beam:02d} {master_dir} " \
+                  "{snrmin_processing} {snrmin_processing_local} {dmmin} {dmmax} {beam:02d} {duration} {tab:02d}) 2>&1 > {output_dir}/triggers/process_triggers.log &".format(process_trigger_script=process_trigger_script, tab=tab,
+                                                              **self.obs_config)
+
+            self.logger.info("Running {}".format(cmd))
+            os.system(cmd)
