@@ -69,6 +69,7 @@ def main():
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f)['darc_master']
     services = config['services_master'] + config['services_worker']
+    commands = config['commands']
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -81,7 +82,7 @@ def main():
     parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
     parser.add_argument('--config', type=str, default=None, help="Node observation config")
 
-    parser.add_argument('cmd', type=str, help="Command to execute")
+    parser.add_argument('cmd', type=str, help="Command to execute, available commands: {}".format(', '.join(commands)))
     args = parser.parse_args()
 
     # Check arguments
