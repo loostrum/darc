@@ -40,6 +40,9 @@ class DARCMaster(object):
         self.amber_listener_queue = mp.Queue()
         self.voevent_queue = mp.Queue()
 
+        # Initialize empty observation dict
+        self.observations = {}
+
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f)['darc_master']
@@ -79,6 +82,7 @@ class DARCMaster(object):
         self.logger = get_logger(__name__, self.log_file)
 
         # Initalize services. Log dir must exist at this point
+        # Note: observation control is only initalized on start_observation
         self.events = {}
         self.threads = {}
         for service in self.services:
@@ -144,6 +148,12 @@ class DARCMaster(object):
                 self.logger.error("Failed to send reply: {}".format(e))
             client.close()
         self.logger.info("Received stop. Exiting")
+        # close any connection
+        try:
+            client.shutdown()
+            client.close()
+        except Exception:
+            pass
         sys.exit()
 
     def parse_message(self, raw_message):
@@ -179,6 +189,7 @@ class DARCMaster(object):
         :return: status (str), reply (dict)
         """
 
+        # First check for commands that do not require service argument
         # Start observation
         if command == 'start_observation':
             if not payload:
@@ -187,6 +198,10 @@ class DARCMaster(object):
                 reply = {'error': 'Payload missing'}
             else:
                 status, reply = self.start_observation(payload)
+            return status, reply
+        # Stop master
+        elif command == 'stop_master':
+            status, reply = self.stop()
             return status, reply
 
         # Service interaction
@@ -211,8 +226,6 @@ class DARCMaster(object):
                 _status, _reply = self.restart_service(service)
             elif command.lower() == 'status':
                 _status, _reply =  self.check_status(service)
-            elif command.lower() == 'stop_master':
-                _status, _reply =  self.stop()
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
                 status  = 'Error'
@@ -403,6 +416,7 @@ class DARCMaster(object):
         Start an observation
         :param config: Path to observation config file
         """
+
         self.logger.info("Starting observation with config file {}".format(config_file))
         # load config
         if config_file.endswith('.yaml'):
@@ -417,13 +431,20 @@ class DARCMaster(object):
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
         # start the observation
+        # save observation
+        event = threading.Event()
+        # for now use startpacket as unique ID. Should move to task ID when available
+        key = config['startpacket']
+        self.observations[key] = {'running': True, 'stop_event': event}
+        # initialize observation
         if self.hostname == MASTER:
-            thread = ObservationControl(config, 'master')
+            thread = ObservationControl(config, 'master', event)
         elif self.hostname in WORKERS:
-            thread = ObservationControl(config, 'worker')
+            thread = ObservationControl(config, 'worker', event)
         else:
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
+        # run
         thread.run()
         return "Success", "Observation started"
 
