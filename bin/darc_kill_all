@@ -8,5 +8,5 @@ else
     pkill="pkill"
 fi
 
+echo "Killing DARC services"
 $pkill darc_service
-$pkill stream_to_port
