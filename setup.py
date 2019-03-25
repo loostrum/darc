@@ -23,4 +23,7 @@ setup(name='darc',
       scripts=['bin/stream_files_to_port',
                'bin/darc_start_all_services',
                'bin/darc_stop_all_services',
-               'bin/darc_kill_all_services'])
+               'bin/darc_start_master',
+               'bin/darc_stop_master',
+               'bin/darc_kill_all'])
+
