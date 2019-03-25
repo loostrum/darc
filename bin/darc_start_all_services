@@ -2,21 +2,8 @@
 # 
 # Start all DARC services
 
-port=51000
-# Master service
-if ps ax | grep "[d]arc_service" > /dev/null; then
-    echo "DARC master service online"
-else
-    echo "DARC master service offline, starting"
-    log_dir=$HOME/darc/master_log
-    mkdir -p $log_dir 2>/dev/null
-    nohup darc_service 2>&1 > $log_dir/$(hostname).log &
-    # Wait until online
-    echo "Waiting for DARC master to be online"
-    while [ -z "`netstat -tln | grep $port`" ]; do
-          sleep 0.001
-    done
-fi
+# Make sure master is running
+darc_start_master
 
 # start services
 echo "Starting services"

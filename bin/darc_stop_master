@@ -1,0 +1,13 @@
+#!/bin/bash
+# 
+# Start all DARC services
+
+port=51000
+# Master service
+if ps ax | grep "[d]arc_service" > /dev/null; then
+    # Master online, send stop event
+    print "Stopping DARC master"
+    darc stop_master
+else
+    echo "DARC master service already offline"
+fi
