@@ -30,7 +30,7 @@ class AMBERListener(threading.Thread):
         self.queue = None
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['amber_listener']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['amber_listener']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

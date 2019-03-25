@@ -39,7 +39,7 @@ class VOEventGenerator(threading.Thread):
         self.voevent_queue = None
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['voevent_generator']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

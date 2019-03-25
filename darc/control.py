@@ -28,7 +28,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         message = "{{'service':'{}', 'command':'{}'}}".format(service, command)
     # read port from config
     with open(CONFIG_FILE, 'r') as f:
-        master_config = yaml.load(f)['darc_master']
+        master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
     port = master_config['port']
     # connect to master
     try:
@@ -67,7 +67,7 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
 def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
-        config = yaml.load(f)['darc_master']
+        config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
     services = config['services_master'] + config['services_worker']
     commands = config['commands']
 

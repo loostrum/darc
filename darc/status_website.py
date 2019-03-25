@@ -24,7 +24,7 @@ class StatusWebsite(threading.Thread):
         self.daemon = True
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['status_website']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['status_website']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname':socket.gethostname()}

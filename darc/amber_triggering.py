@@ -38,7 +38,7 @@ class AMBERTriggering(threading.Thread):
         self.start_time = None
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['amber_triggering']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['amber_triggering']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

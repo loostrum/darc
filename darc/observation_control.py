@@ -29,7 +29,7 @@ class ObservationControl(threading.Thread):
         self.stop_event = stop_event
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['observation_control']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['observation_control']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
