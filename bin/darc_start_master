@@ -3,16 +3,29 @@
 # Start all DARC services
 
 port=51000
+timeout=30
+
+wait () {
+    port=51000
+    while [ -z "$(netstat -tln | grep $port)" ]; do
+        sleep 1
+	echo "Waiting for DARC master to accept connections"
+    done
+}
+export -f wait
+
 # Master service
 if ps ax | grep "[d]arc_service" > /dev/null; then
     echo "DARC master service online"
 else
     echo "DARC master service offline, starting"
     nohup darc_service 2>&1 >/dev/null &
-    # Wait until online
+    # Wait until online 
     echo "Waiting for DARC master to be online"
-    while [ -z "`netstat -tln | grep $port`" ]; do
-          sleep 0.001
-    done
-    echo "DARC master service online"
+    timeout $timeout bash -c wait
+    if [ $? -ne 0 ]; then
+        echo "Failed to start DARC master - check logs"
+    else
+	echo "DARC master service online"
+    fi
 fi
