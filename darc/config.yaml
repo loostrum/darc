@@ -48,3 +48,14 @@ voevent_generator:
 observation_control:
     log_file: "{home}/darc/log/observation_control.{hostname}.log"
     timeout: 10
+    pthresh: 0.5
+    cmap: 'viridis'
+    ntime_plot: 64
+    nfreq_plot: 32
+    ndm: 1
+    model_dir: "{home}/keras_models"
+    ml_gpus: 0
+    triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
+    classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
+    trigger_to_master: "{home}/ARTS-obs/trigger_to_master.py"
+    venv_dir: "{home}/python34"
