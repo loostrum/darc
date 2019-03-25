@@ -115,7 +115,7 @@ class ObservationControl(threading.Thread):
 
         # Run classifier
         self.logger.info("Classifying candidates")
-        for tab in range(self.obs_config['ntabs'])[::-1]:
+        for tab in range(self.obs_config['ntabs']-1, -1, -1):
             output_prefix, data_file = self._classify(tab)
         
         # Gather results
@@ -187,15 +187,15 @@ class ObservationControl(threading.Thread):
         """
         if self.mode == 'IAB':
             output_prefix = "{output_dir}/triggers/ranked_CB{beam:02d}".format(**self.obs_config)
-            data_file = '{output_dir}/triggers/data/data_full.hdf5'.format(**self.obs_config)
+            data_file =  "{output_dir}/triggers/data/data_full.hdf5".format(**self.obs_config)
         else:
-            output_prefix = "{output_dir}/triggers/ranked_CB{beam:02d}_TAB{:02d}".format(tab=tab, **self.obs_config)
-            data_file =  '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab+1,**self.obs_config)
+            output_prefix = "{output_dir}/triggers/ranked_CB{beam:02d}_TAB{tab:02d}".format(tab=tab, **self.obs_config)
+            data_file =  '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab+1, **self.obs_config)
 
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
               " --fn_model_time {model_dir}/heimdall_b0329_mix_147411d_time.hdf5 " \
               " --pthresh {pthresh} --save_ranked --plot_ranked --fnout={output_prefix} {data_file} " \
-              " {model_dir}/20190125-17114-freqtimefreq_time_model.hdf5".format(output_prefix=output_prefix, **self.obs_config)
+              " {model_dir}/20190125-17114-freqtimefreq_time_model.hdf5".format(output_prefix=output_prefix, data_file=data_file, **self.obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         #ToDo: count number of output figures
@@ -209,7 +209,7 @@ class ObservationControl(threading.Thread):
 
         # Merge output figures
         output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**self.obs_config)
-        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(**self.obs_config)
+        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **self.obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
@@ -217,7 +217,7 @@ class ObservationControl(threading.Thread):
         # ToDo: properly get results of all TABs
         conf = self.obs_config.copy()
         conf.update(**kwargs)
-        cmd = "python {trigger_to_master} {data_file} {output_prefix}_freq_time.hdf5 {numcand_raw} {numcand_grouped} {master_dir}".formmat(**conf)
+        cmd = "python {trigger_to_master} {data_file} {output_prefix}_freq_time.hdf5 {numcand_raw} {numcand_grouped} {master_dir}".format(**conf)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
