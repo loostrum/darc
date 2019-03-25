@@ -18,6 +18,8 @@ def get_logger(name, log_file, level=logging.DEBUG):
     formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(module)s: %(message)s')
     handler.setFormatter(formatter)
     logger.setLevel(level)
+    # remove any old handlers
+    logger.handlers = []
     logger.addHandler(handler)
     logger.propagate = False
 
