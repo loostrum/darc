@@ -45,7 +45,7 @@ class DARCMaster(object):
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f)['darc_master']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
@@ -456,7 +456,7 @@ class DARCMaster(object):
         """
         self.logger.info("Loading yaml config")
         with open(config_file) as f:
-            config = yaml.load(f)
+            config = yaml.load(f, Loader=yaml.SafeLoader)
         return config
 
     def _load_parset(self, config_file):
