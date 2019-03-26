@@ -21,17 +21,17 @@ from darc.control import send_command
 from darc import util
 
 
-class ObservationControlException(Exception):
+class OfflineProcessingException(Exception):
     pass
 
-class ObservationControl(threading.Thread):
+class OfflineProcessing(threading.Thread):
     def __init__(self, obs_config, host_type, stop_event):
         threading.Thread.__init__(self)
         self.daemon = True
         self.stop_event = stop_event
 
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['observation_control']
+            config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
@@ -51,7 +51,7 @@ class ObservationControl(threading.Thread):
         # save whether we should run worker or master observations
         self.host_type = host_type
 
-        self.logger.info('ObservationControl initialized')
+        self.logger.info('OfflineProcessing initialized')
 
     def run(self):
         """

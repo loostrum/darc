@@ -18,7 +18,7 @@ from darc.amber_listener import AMBERListener
 from darc.amber_triggering import AMBERTriggering
 from darc.voevent_generator import VOEventGenerator
 from darc.status_website import StatusWebsite
-from darc.observation_control import ObservationControl
+from darc.offline_processing import OfflineProcessing
 
 
 class DARCMasterException(Exception):
@@ -439,15 +439,15 @@ class DARCMaster(object):
         self.observations[key] = {'running': True, 'stop_event': event}
         # initialize observation
         if self.hostname == MASTER:
-            thread = ObservationControl(config, 'master', event)
+            thread = OfflineProcessing(config, 'master', event)
         elif self.hostname in WORKERS:
-            thread = ObservationControl(config, 'worker', event)
+            thread = OfflineProcessing(config, 'worker', event)
         else:
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
         # run
         thread.run()
-        return "Success", "Observation started"
+        return "Success", "Observation started for offline processing"
 
     def _load_yaml(self, config_file):
         """
