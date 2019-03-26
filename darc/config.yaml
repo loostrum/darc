@@ -12,10 +12,16 @@ darc_master:
 status_website:
     log_file: "{home}/darc/log/status_website.{hostname}.log"
     web_dir: "{home}/public_html/darc/status"
-    check_services_master: ["voevent_generator"]
-    check_services_worker: ["amber_listener", "amber_triggering"]
     interval: 30
     timeout: 10
+    colour_good: "green"
+    colour_bad: "red"
+    colour_unknown: "grey"
+    service_to_name:
+        voevent_generator: "VOEvent generator"
+        status_website: "Status website"
+        amber_listener: "AMBER listener"
+        amber_triggering: "AMBER triggering"
 
 # AMBER trigger listener
 amber_listener:

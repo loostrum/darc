@@ -7,6 +7,7 @@ import yaml
 import threading
 import socket
 from textwrap import dedent
+from astropy.time import Time
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -27,11 +28,14 @@ class StatusWebsite(threading.Thread):
             config = yaml.load(f, Loader=yaml.SafeLoader)['status_website']
 
         # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname':socket.gethostname()}
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
         for key, value in config.items():
             if isinstance(value, str):
                 value = value.format(**kwargs)
             setattr(self, key, value)
+
+        # store all node names
+        self.all_nodes = [MASTER] + WORKERS
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
@@ -51,29 +55,22 @@ class StatusWebsite(threading.Thread):
         """
         while not self.stop_event.is_set():
             self.logger.info("Getting status of all services")
-            # get status for master node
-            statuses = {'master': {}}
-            for service in self.check_services_master:
-                self.logger.info("Getting master status of {}".format(service))
-                try:
-                    service_status = send_command(self.timeout, service, 'status', host=MASTER)
-                except Exception as e:
-                    service_status = "UNKNOWN"
-                    self.logger.error("Failed to get master status of {}: {}".format(service, e))
-                statuses['master'][service] = service_status
-            # get status for worker nodes
-            for node in WORKERS:
+            # get status all nodes
+            statuses = {}
+            for node in self.all_nodes:
                 statuses[node] = {}
-                for service in self.check_services_worker:
-                    self.logger.info("Getting {} status of {}".format(node, service))
-                    try:
-                        service_status = send_command(10, service, 'status', host=node)
-                    except Exception as e:
-                        service_status = "UNKNOWN"
-                        self.logger.error("Failed to get {} status of {}: {}".format(node, service, e))
-                    statuses[node][service] = service_status
+                self.logger.info("Getting {} status".format(node))
+                try:
+                    status = send_command(10, 'all', 'status', host=node)
+                except Exception as e:
+                    status = None
+                    self.logger.error("Failed to get {} status: {}".format(node, e))
+                statuses[node] = status
             self.logger.info("Publishing status")
-            self.publish_status(statuses)
+            try:
+                self.publish_status(statuses)
+            except Exception as e:
+                self.logger.error("Failed to publish status: {}".format(e))
             self.stop_event.wait(self.interval)
 
     def publish_status(self, statuses):
@@ -83,14 +80,39 @@ class StatusWebsite(threading.Thread):
 
         header, footer = self.get_template()
         webpage = header
-        # add master info
-        for service, status in statuses['master'].items():
-            webpage += "<b>Master</b> {} : {}<br />\n".format(service, status)
+        # add update time
+        webpage += "<tr><td>Last update:</td><td colspan=2>{}</td></tr>".format(Time.now())
 
-        # add node info
-        for node in WORKERS:
-            for service, status in statuses[node].items():
-                webpage += "<b>{}</b> {} : {}<br />\n".format(node, service, status)
+        # stopped running
+        # add status of each node
+        for node in self.all_nodes:
+            if statuses[node] is None:
+                webpage += "<tr><td style='background-color:{}'>{}</td></tr>".format(self.colour_unknown, node.upper())
+            else:
+                # first check if all ok
+                colour_node = self.colour_good
+                for service, status in statuses[node]['message'].items():
+                    if not status == 'running':
+                        colour_node = self.colour_bad
+                        break
+                # add node name
+                webpage += "<tr><td style='background-color:{}'>{}</td>".format(colour_node, node.upper())
+                for service, status in statuses[node]['message'].items():
+                    # get proper name of service
+                    try:
+                        name = self.service_to_name[service]
+                    except KeyError:
+                        name = "No name found for {}".format(service)
+                    # get color based on status
+                    if status == 'running':
+                        colour_service = self.colour_good
+                    elif status == 'stopped':
+                        colour_service = self.colour_bad
+                    else:
+                        colour_service = self.colour_unknown
+                    webpage += "<td style='background-color:{}'>{}</td>".format(colour_service, name)
+                webpage += "</tr>\n"
+
         webpage += footer
 
         web_file = os.path.join(self.web_dir, 'index.html')
@@ -104,9 +126,18 @@ class StatusWebsite(threading.Thread):
 
         header = dedent("""<html>
                         <head><title>DARC status</title></head>
-                        <body>""")
+                        <body style='font-size: 10pt; 
+                                     line-height: 1em; 
+                                     font-family: arial'>
 
-        footer = dedent("""</body>
+
+                        <p>
+                        <table style="width:50%;text-align:left">
+                        """)
+
+        footer = dedent("""</table>
+                        </p>
+                        </body>
                         </html>
                         """)
         
