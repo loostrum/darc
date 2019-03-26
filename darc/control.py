@@ -101,4 +101,5 @@ def main():
     else:
         payload = None
 
-    send_command(args.timeout, args.service, args.cmd, host=args.host, payload=payload)
+    if not send_command(args.timeout, args.service, args.cmd, host=args.host, payload=payload):
+        sys.exit(1)
