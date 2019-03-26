@@ -39,6 +39,7 @@ class DARCMaster(object):
         # setup queues
         self.amber_listener_queue = mp.Queue()
         self.voevent_queue = mp.Queue()
+        self.processing_queue = mp.Queue()
 
         # Initialize empty observation dict
         self.observations = {}
@@ -67,7 +68,8 @@ class DARCMaster(object):
         self.service_mapping = {'voevent_generator': VOEventGenerator,
                                 'status_website': StatusWebsite,
                                 'amber_listener': AMBERListener,
-                                'amber_triggering': AMBERTriggering}
+                                'amber_triggering': AMBERTriggering,
+                                'offline_processing': OfflineProcessing}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -82,7 +84,6 @@ class DARCMaster(object):
         self.logger = get_logger(__name__, self.log_file)
 
         # Initalize services. Log dir must exist at this point
-        # Note: observation control is only initalized on start_observation
         self.events = {}
         self.threads = {}
         for service in self.services:
@@ -280,6 +281,9 @@ class DARCMaster(object):
         elif service == 'status_website':
             source_queue = None
             target_queue = None
+        elif service == 'offline_processing':
+            source_queue = self.processing_queue
+            target_queue = None
         else:
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
@@ -389,14 +393,8 @@ class DARCMaster(object):
         """
         :param service: service to create a new thread for
         """
-        if service == 'amber_listener':
-            self.threads['amber_listener'] = AMBERListener(self.events[service])
-        elif service == 'amber_triggering':
-            self.threads[service] = AMBERTriggering(self.events[service])
-        elif service == 'voevent_generator':
-            self.threads[service] = VOEventGenerator(self.events[service])
-        elif service == 'status_website':
-            self.threads[service] = StatusWebsite(self.events[service])
+        if service in self.service_mapping.keys():
+            self.threads[service] = self.service_mapping[service](self.events[service])
         else:
             self.logger.error("Cannot create thread for {}".format(service))
 
@@ -432,21 +430,25 @@ class DARCMaster(object):
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
         # start the observation
-        # save observation
-        event = threading.Event()
         # for now use startpacket as unique ID. Should move to task ID when available
         key = config['startpacket']
         self.observations[key] = {'running': True, 'stop_event': event}
+
+        # check if offline processing is running. If not, start it
+        _, offline_processing_status = self.check_status('offline_processing')
+        if not offline_processing_status == 'running':
+            self.logger.info('offline_processing not running - starting')
+            self.start_service('offline_processing')
+        
         # initialize observation
+        thread = self.threads['offline_processing']
         if self.hostname == MASTER:
-            thread = OfflineProcessing(config, 'master', event)
+            thread.start(config, 'master')
         elif self.hostname in WORKERS:
-            thread = OfflineProcessing(config, 'worker', event)
+            thread.start(config, 'worker')
         else:
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
-        # run
-        thread.run()
         return "Success", "Observation started for offline processing"
 
     def _load_yaml(self, config_file):
