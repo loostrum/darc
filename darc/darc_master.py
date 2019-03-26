@@ -303,7 +303,8 @@ class DARCMaster(object):
         self.logger.info("Starting service: {}".format(service))
         # check if already running
         if thread.isAlive():
-            reply['warning'] = "Service already running: {}".format(service)
+            status = 'Success'
+            reply = "Service already running: {}".format(service)
             self.logger.warning(status)
         else:
             # set queues
