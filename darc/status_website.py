@@ -24,8 +24,10 @@ class StatusWebsite(threading.Thread):
         self.stop_event = stop_event
         self.daemon = True
 
+        # load config, including master for list of services
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['status_website']
+            config_master = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
@@ -33,6 +35,10 @@ class StatusWebsite(threading.Thread):
             if isinstance(value, str):
                 value = value.format(**kwargs)
             setattr(self, key, value)
+
+        # set services
+        self.services_master = config_master['services_master']
+        self.services_worker = config_master['services_worker']
 
         # store all node names
         self.all_nodes = [MASTER] + WORKERS
@@ -86,32 +92,58 @@ class StatusWebsite(threading.Thread):
         # stopped running
         # add status of each node
         for node in self.all_nodes:
+            # If node has no status, set to unknown
             if statuses[node] is None:
                 webpage += "<tr><td style='background-color:{}'>{}</td></tr>".format(self.colour_unknown, node.upper())
+                continue
+    
+            # check node type
+            if node == MASTER:
+                services = self.services_master
+            elif node in WORKERS:
+                services = self.services_worker
             else:
-                # first check if all ok
-                colour_node = self.colour_good
-                for service, status in statuses[node]['message'].items():
-                    if not status == 'running':
-                        colour_node = self.colour_bad
-                        break
-                # add node name
-                webpage += "<tr><td style='background-color:{}'>{}</td>".format(colour_node, node.upper())
-                for service, status in statuses[node]['message'].items():
-                    # get proper name of service
-                    try:
-                        name = self.service_to_name[service]
-                    except KeyError:
-                        name = "No name found for {}".format(service)
-                    # get color based on status
-                    if status == 'running':
-                        colour_service = self.colour_good
-                    elif status == 'stopped':
-                        colour_service = self.colour_bad
-                    else:
-                        colour_service = self.colour_unknown
-                    webpage += "<td style='background-color:{}'>{}</td>".format(colour_service, name)
-                webpage += "</tr>\n"
+                self.logger.error("Failed to determine whether node {} is worker or master:".format(node))
+                continue
+
+            # first check if all ok to determine host colour
+            colour_node = self.colour_good
+
+            for service in services:
+                try:
+                    status = statuses[node]['message'][service]
+                except KeyError:
+                    self.logger.error("Failed to get status of {} for {}".format(node, service))
+                    status = 'error'
+
+                if not status == 'running':
+                    colour_node = self.colour_bad
+                    break
+            # add node name
+            webpage += "<tr><td style='background-color:{}'>{}</td>".format(colour_node, node.upper())
+
+            # add status of each service
+            for service in services:
+                try:
+                    status = statuses[node]['message'][service]
+                except KeyError:
+                    self.logger.error("Failed to get status of {} for {}".format(node, service))
+                    status = 'error'
+
+                # get proper name of service
+                try:
+                    name = self.service_to_name[service]
+                except KeyError:
+                    name = "No name found for {}".format(service)
+                # get color based on status
+                if status == 'running':
+                    colour_service = self.colour_good
+                elif status == 'stopped':
+                    colour_service = self.colour_bad
+                else:
+                    colour_service = self.colour_unknown
+                webpage += "<td style='background-color:{}'>{}</td>".format(colour_service, name)
+            webpage += "</tr>\n"
 
         webpage += footer
 
