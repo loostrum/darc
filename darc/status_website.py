@@ -26,8 +26,10 @@ class StatusWebsite(threading.Thread):
 
         # load config, including master for list of services
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['status_website']
-            config_master = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
+            config_all = yaml.load(f, Loader=yaml.SafeLoader)
+
+        config = config_all['status_website']
+        config_master = config_all['darc_master']
 
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
