@@ -131,6 +131,13 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
+        # change to trigger directory
+        trigger_dir = "{output_dir}/triggers".format(**obs_config)
+        try:
+            os.chdir(trigger_dir)
+        except Exception as e:
+            self.logger.error("Failed to cd to trigger directory {}: {}".format(trigger_dir, e))
+
         # merge the trigger files
         self.logger.info("Merging raw trigger files")
         numcand_raw = self._merge_triggers(obs_config)
@@ -174,8 +181,9 @@ class OfflineProcessing(threading.Thread):
 
         # check number of triggers
         cmd = "grep -v \# {prefix}.trigger | wc -l".format(prefix=prefix)
+        self.logger.info("Running {}".format(cmd))
         try:
-            numcand_raw = int(subprocess.check_output(cmd)) - 1
+            numcand_raw = int(subprocess.check_output(cmd, shell=True)) - 1
         except Exception as e:
             self.logger.warning("Failed to get number of raw triggers, setting to -1: {}".format(e))
             numcand_raw = -1
@@ -204,8 +212,9 @@ class OfflineProcessing(threading.Thread):
             fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab+1, **obs_config)
 
         cmd = "wc -l {fname} | awk '{{print $1}}')".format(fname=fname)
+        self.logger.info("Running {}".format(cmd))
         try:
-            numcand_grouped = int(subprocess.check_output(cmd))
+            numcand_grouped = int(subprocess.check_output(cmd, shell=True))
         except Exception as e:
             self.logger.warning("Failed to get number of grouped triggers, setting to -1: {}".format(e))
             numcand_grouped = -1
