@@ -211,7 +211,7 @@ class OfflineProcessing(threading.Thread):
         else:
             fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab+1, **obs_config)
 
-        cmd = "wc -l {fname} | awk '{{print $1}}')".format(fname=fname)
+        cmd = "wc -l {fname} | awk '{{print $1}}'".format(fname=fname)
         self.logger.info("Running {}".format(cmd))
         try:
             numcand_grouped = int(subprocess.check_output(cmd, shell=True))
