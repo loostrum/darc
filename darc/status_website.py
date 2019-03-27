@@ -158,7 +158,8 @@ class StatusWebsite(threading.Thread):
         Return the HTML template
         """
 
-        header = dedent("""<html>
+        header = dedent("""
+                        <html>
                         <head>
                         <title>DARC status</title>
                         <meta http-equiv="refresh" content="10">
@@ -172,7 +173,8 @@ class StatusWebsite(threading.Thread):
                         <table style="width:50%;text-align:left">
                         """)
 
-        footer = dedent("""</table>
+        footer = dedent("""
+                        </table>
                         </p>
                         </body>
                         </html>
