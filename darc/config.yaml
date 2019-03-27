@@ -24,6 +24,7 @@ status_website:
         status_website: "Status website"
         amber_listener: "AMBER listener"
         amber_triggering: "AMBER triggering"
+        offline_processing: "Offline processing"
 
 # AMBER trigger listener
 amber_listener:
