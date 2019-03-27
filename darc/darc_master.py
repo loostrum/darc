@@ -41,9 +41,6 @@ class DARCMaster(object):
         self.voevent_queue = mp.Queue()
         self.processing_queue = mp.Queue()
 
-        # Initialize empty observation dict
-        self.observations = {}
-
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
@@ -431,8 +428,6 @@ class DARCMaster(object):
             return "Success", "Process triggers disabled - not starting"
         # start the observation
         # for now use startpacket as unique ID. Should move to task ID when available
-        key = config['startpacket']
-        self.observations[key] = {'running': True, 'stop_event': event}
 
         # check if offline processing is running. If not, start it
         _, offline_processing_status = self.check_status('offline_processing')
@@ -441,14 +436,17 @@ class DARCMaster(object):
             self.start_service('offline_processing')
         
         # initialize observation
-        thread = self.threads['offline_processing']
+        command = {}
         if self.hostname == MASTER:
-            thread.start(config, 'master')
+            command['host_type'] = 'master'
         elif self.hostname in WORKERS:
-            thread.start(config, 'worker')
+            command['host_type'] = 'worker'
         else:
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
+
+        command['obs_config'] = config
+        self.processing_queue.put(command)
         return "Success", "Observation started for offline processing"
 
     def _load_yaml(self, config_file):
