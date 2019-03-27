@@ -14,7 +14,7 @@ darc_master:
 status_website:
     log_file: "{home}/darc/log/status_website.{hostname}.log"
     web_dir: "{home}/public_html/darc/status"
-    interval: 30
+    interval: 10
     timeout: 10
     colour_good: "green"
     colour_bad: "red"
