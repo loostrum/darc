@@ -159,7 +159,10 @@ class StatusWebsite(threading.Thread):
         """
 
         header = dedent("""<html>
-                        <head><title>DARC status</title></head>
+                        <head>
+                        <title>DARC status</title>
+                        <meta http-equiv="refresh" content="10">
+                        </head>
                         <body style='font-size: 10pt; 
                                      line-height: 1em; 
                                      font-family: arial'>
