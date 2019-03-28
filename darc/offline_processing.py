@@ -150,12 +150,15 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Clustering candidates")
         numcand_grouped = 0
         # ToDo run in parallel
+        tstart = Time.now()
         for tab in range(obs_config['ntabs']):
             if obs_config['mode'] == 'IAB':
                 filterbank_file = "{output_dir}/filterbank/CB{beam:02d}.fil".format(**obs_config)
             else:
                 filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
             numcand_grouped += self._cluster(obs_config, tab, filterbank_file)
+        tend = Time.now()
+        self.logger.info("Trigger clustering took {}".format(tend-tstart))
 
         # Create one hdf5 file for entire CB
         if obs_config['mode'] == 'TAB':
