@@ -290,7 +290,7 @@ class OfflineProcessing(threading.Thread):
                 if num_add == 0:
                     # nothing to do, skip this file
                     break
-                elif num_add == 1 and num_dim == 1:
+                elif key == 'ntriggers_skipped':
                     # just one number, add if not -1 (=error)
                     val = h5[key][:]
                     if val != -1:
