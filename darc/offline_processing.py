@@ -109,10 +109,16 @@ class OfflineProcessing(threading.Thread):
         # Add general config to obs config
         obs_config.update(self.config)
 
+        # wait until end time + 10s
+        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        self.logger.info("Sleeping until {}".format(start_processing_time))
+        util.sleepuntil_utc(start_processing_time, event=self.stop_event)
+
         email_script = '{home}/ARTS-obs/emailer.py'.format(home=os.path.expanduser('~'))
-        cmd = "(sleepuntil_utc {endtime}; python {email_script} {master_dir} '{beams}' {ntabs}) &".format(email_script=email_script, **obs_config)
+        cmd = "python {email_script} {master_dir} '{beams}' {ntabs}".format(email_script=email_script, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
+        self.logger.info("Finished processing of observation of {source}".format(**obs_config))
 
     def _start_observation_worker(self, obs_config):
         """
