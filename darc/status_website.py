@@ -80,6 +80,8 @@ class StatusWebsite(threading.Thread):
             except Exception as e:
                 self.logger.error("Failed to publish status: {}".format(e))
             self.stop_event.wait(self.interval)
+        # Create website for non-running status website
+        self.make_offline_page()
 
     def publish_status(self, statuses):
         """
@@ -181,3 +183,23 @@ class StatusWebsite(threading.Thread):
                         """)
         
         return header, footer
+
+    def make_offline_page(self):
+        """
+        Create page for when status website is offline
+        """
+        web_file = os.path.join(self.web_dir, 'index.html')
+        webpage = dedent("""
+                         <html><head>
+                         <title>DARC status</title>
+                         </head><body>
+                         <p>
+                         <h1>Status website offline</h1>
+                         </p>
+                         </body>
+                         </html>
+                          """)
+
+        with open(web_file, 'w') as f:
+            f.write(webpage)
+        return
