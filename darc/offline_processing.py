@@ -114,8 +114,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        email_script = '{home}/ARTS-obs/emailer.py'.format(home=os.path.expanduser('~'))
-        cmd = "python {email_script} {master_dir} '{beams}' {ntabs}".format(email_script=email_script, **obs_config)
+        cmd = "python {emailer} {master_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
