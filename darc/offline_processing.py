@@ -269,37 +269,51 @@ class OfflineProcessing(threading.Thread):
         out = h5py.File(output_file, 'w')
         # create the datasets based on the first file
         data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=1, **obs_config)
-        h5 = h5py.File(data_file, 'r')
-        keys = h5.keys()
+        with h5py.File(data_file, 'r') as h5:
+            keys = h5.keys()
         # for each dataset, copy it to the output file and allow reshaping to infinite size
         for key in keys:
-            num_dim = len(h5[key].shape)
-            out.create_dataset(key, data=h5[key], maxshape=[None] * num_dim)
-        h5.close()
+            if key == 'ntriggers_skipped':
+                out.create_dataset(key, data=[0])
+                continue
+            elif key in ['data_dm_time', 'data_freq_time']:
+                num_dim = 3
+                shape = [0, obs_config['nfreq_plot'], obs_config['ntime_plot']]
+            elif key == 'params':
+                num_dim = 2
+                shape = [0, 5]
+            else:
+                num_dim = 1
+                shape = [0]
+            out.create_dataset(key, shape=shape, maxshape=[None] * num_dim)
 
         # extend the datasets by the other TABs
-        for tab in range(obs_config['ntabs'])[1:]:
+        for tab in range(obs_config['ntabs']):
             try:
-                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab + 1, **obs_config)
+                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab+1, **obs_config)
                 h5 = h5py.File(data_file, 'r')
                 # add each dataset, reshaping the outfile as needed
                 for key in keys:
+                    if key == 'ntriggers_skipped':
+                        # just one number, add if not -1 (=error)
+                        val = h5[key][:]
+                        if val != -1:
+                            out[key][:] = out[key][:] + val
+                        continue
                     curr_len = out[key].shape[0]
                     num_add = h5[key].shape[0]
                     num_dim = len(h5[key].shape)
                     if num_add == 0:
                         # nothing to do, skip this file
                         break
-                    elif key == 'ntriggers_skipped':
-                        # just one number, add if not -1 (=error)
-                        val = h5[key][:]
-                        if val != -1:
-                            out[key][:] = out[key][:] + val
                     else:
-                        # resize
-                        out[key].resize(curr_len + num_add, axis=0)
-                        # add dataset
-                        out[key][-num_add:] = h5[key]
+                        try:
+                            # resize
+                            out[key].resize(curr_len + num_add, axis=0)
+                            # add dataset
+                            out[key][-num_add:] = h5[key]
+                        except Exception as e:
+                            self.logger.error("Failed to add {} from {}: {}".format(key, data_file, e))
                 h5.close()
             except IOError as e:
                 self.logger.error("Failed to load hdf5 file {}: {}".format(data_file, e))
