@@ -166,7 +166,7 @@ class OfflineProcessing(threading.Thread):
             # start the threads
             for tab in range(obs_config['ntabs']):
                 filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
-                thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file], out=numcand_all)
+                thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file, out=numcand_all])
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
@@ -176,7 +176,7 @@ class OfflineProcessing(threading.Thread):
             # gather results
             numcand_grouped = numcand_all.sum()
         tend = Time.now()
-        self.logger.info("Trigger clustering took {}".format(tend-tstart))
+        self.logger.info("Trigger clustering took {}s".format((tend-tstart).sec))
 
         # Create one hdf5 file for entire CB
         if obs_config['mode'] == 'TAB':
