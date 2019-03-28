@@ -166,7 +166,8 @@ class OfflineProcessing(threading.Thread):
             # start the threads
             for tab in range(obs_config['ntabs']):
                 filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
-                thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file, out=numcand_all])
+                thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file],
+                                          kwargs={'out': numcand_all})
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
