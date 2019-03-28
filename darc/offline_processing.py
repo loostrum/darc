@@ -247,31 +247,35 @@ class OfflineProcessing(threading.Thread):
         keys = h5.keys()
         # remove TAB param for now
         try:
-            keys.pop('tab')
-        except KeyError:
+            keys.remove('tab')
+        except ValueError:
             pass
         # for each dataset, copy it to the output file and allow reshaping to infinite size
         for key in keys:
             num_dim = len(h5[key].shape)
-            out.create_dataset(key, data=h5[key], maxshape=[None]*num_dim)
+            out.create_dataset(key, data=h5[key], maxshape=[None] * num_dim)
         h5.close()
 
         # extend the datasets by the other TABs
-        for tab in range(obs_config['ntabs'][1:]):
-            data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab+1, **obs_config)
+        for tab in range(obs_config['ntabs'])[1:]:
+            data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab + 1, **obs_config)
             h5 = h5py.File(data_file, 'r')
             # add each dataset, reshaping the outfile as needed
             for key in keys:
                 curr_len = out[key].shape[0]
                 num_add = h5[key].shape[0]
-                if num_add == 1:
-                    # just one number, add if not -1
+                num_dim = len(h5[key].shape)
+                if num_add == 0:
+                    # nothing to do, skip this file
+                    break
+                elif num_add == 1 and num_dim == 1:
+                    # just one number, add if not -1 (=error)
                     val = h5[key][:]
                     if val != -1:
                         out[key][:] = out[key][:] + val
                 else:
                     # resize
-                    out[key].resize(curr_len+num_add, axis=0)
+                    out[key].resize(curr_len + num_add, axis=0)
                     # add dataset
                     out[key][-num_add:] = h5[key]
             h5.close()
