@@ -279,27 +279,31 @@ class OfflineProcessing(threading.Thread):
 
         # extend the datasets by the other TABs
         for tab in range(obs_config['ntabs'])[1:]:
-            data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab + 1, **obs_config)
-            h5 = h5py.File(data_file, 'r')
-            # add each dataset, reshaping the outfile as needed
-            for key in keys:
-                curr_len = out[key].shape[0]
-                num_add = h5[key].shape[0]
-                num_dim = len(h5[key].shape)
-                if num_add == 0:
-                    # nothing to do, skip this file
-                    break
-                elif key == 'ntriggers_skipped':
-                    # just one number, add if not -1 (=error)
-                    val = h5[key][:]
-                    if val != -1:
-                        out[key][:] = out[key][:] + val
-                else:
-                    # resize
-                    out[key].resize(curr_len + num_add, axis=0)
-                    # add dataset
-                    out[key][-num_add:] = h5[key]
-            h5.close()
+            try:
+                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab + 1, **obs_config)
+                h5 = h5py.File(data_file, 'r')
+                # add each dataset, reshaping the outfile as needed
+                for key in keys:
+                    curr_len = out[key].shape[0]
+                    num_add = h5[key].shape[0]
+                    num_dim = len(h5[key].shape)
+                    if num_add == 0:
+                        # nothing to do, skip this file
+                        break
+                    elif key == 'ntriggers_skipped':
+                        # just one number, add if not -1 (=error)
+                        val = h5[key][:]
+                        if val != -1:
+                            out[key][:] = out[key][:] + val
+                    else:
+                        # resize
+                        out[key].resize(curr_len + num_add, axis=0)
+                        # add dataset
+                        out[key][-num_add:] = h5[key]
+                h5.close()
+            except IOError as e:
+                self.logger.error("Failed to load hdf5 file {}: {}".format(data_file, e))
+                continue
         out.close()
         return
 
