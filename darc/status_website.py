@@ -192,6 +192,7 @@ class StatusWebsite(threading.Thread):
         webpage = dedent("""
                          <html><head>
                          <title>DARC status</title>
+                         <meta http-equiv="refresh" content="10">
                          </head><body>
                          <p>
                          <h1>Status website offline</h1>
