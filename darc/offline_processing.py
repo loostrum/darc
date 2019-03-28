@@ -211,7 +211,7 @@ class OfflineProcessing(threading.Thread):
         cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} --time_limit {duration} --descending_snr " \
               " --beamno {beam:02d} --mk_plot --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} --ndm {ndm} " \
               " --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} --cmap {cmap} --outdir={output_dir}/triggers " \
-              " --tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_file, prefix=prefix, **obs_config)
+              " --tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab+1, filterbank_file=filterbank_file, prefix=prefix, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
@@ -245,6 +245,11 @@ class OfflineProcessing(threading.Thread):
         data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=1, **obs_config)
         h5 = h5py.File(data_file, 'r')
         keys = h5.keys()
+        # remove TAB param for now
+        try:
+            keys.pop('tab')
+        except KeyError:
+            pass
         # for each dataset, copy it to the output file and allow reshaping to infinite size
         for key in keys:
             num_dim = len(h5[key].shape)
@@ -259,10 +264,16 @@ class OfflineProcessing(threading.Thread):
             for key in keys:
                 curr_len = out[key].shape[0]
                 num_add = h5[key].shape[0]
-                # resize
-                out[key].resize(curr_len+num_add, axis=0)
-                # add dataset
-                out[key][-num_add:] = h5[key]
+                if num_add == 1:
+                    # just one number, add if not -1
+                    val = h5[key][:]
+                    if val != -1:
+                        out[key][:] = out[key][:] + val
+                else:
+                    # resize
+                    out[key].resize(curr_len+num_add, axis=0)
+                    # add dataset
+                    out[key][-num_add:] = h5[key]
             h5.close()
         out.close()
         return
