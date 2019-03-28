@@ -171,6 +171,8 @@ class OfflineProcessing(threading.Thread):
         kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 'numcand_grouped': numcand_grouped}
         self._gather_results(obs_config, **kwargs)
 
+        self.logger.info("Finished processing of observation of {source}".format(**obs_config))
+
         return
 
     def _merge_triggers(self, obs_config):
