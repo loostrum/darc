@@ -18,6 +18,7 @@ import socket
 import subprocess
 
 import h5py
+import numpy as np
 from astropy.time import Time, TimeDelta
 
 from darc.definitions import *
@@ -148,15 +149,17 @@ class OfflineProcessing(threading.Thread):
 
         # Run clustering for IAB / each TAB
         self.logger.info("Clustering candidates")
-        numcand_grouped = 0
-        # ToDo run in parallel
         tstart = Time.now()
-        for tab in range(obs_config['ntabs']):
-            if obs_config['mode'] == 'IAB':
-                filterbank_file = "{output_dir}/filterbank/CB{beam:02d}.fil".format(**obs_config)
-            else:
-                filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
-            numcand_grouped += self._cluster(obs_config, tab, filterbank_file)
+        if obs_config['mode'] == 'IAB':
+            filterbank_file = "{output_dir}/filterbank/CB{beam:02d}.fil".format(**obs_config)
+            numcand_grouped = self._cluster(obs_config, 0, filterbank_file)
+        elif obs_config['mode'] == 'TAB':
+            self.logger.info("Starting parallel trigger clustering")
+            pool = mp.Pool(processes=obs_config['ntabs'])
+            filterbank_files = ["{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config) for
+                                tab in range(obs_config['ntabs'])]
+            numcand_grouped = np.sum([pool.apply(self._cluster, args=(obs_config, tab, filterbank_files[tab])) for
+                                      tab in range(obs_config['ntabs'])])
         tend = Time.now()
         self.logger.info("Trigger clustering took {}".format(tend-tstart))
 
