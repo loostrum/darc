@@ -160,12 +160,21 @@ class OfflineProcessing(threading.Thread):
             filterbank_file = "{output_dir}/filterbank/CB{beam:02d}.fil".format(**obs_config)
             numcand_grouped = self._cluster(obs_config, 0, filterbank_file)
         elif obs_config['mode'] == 'TAB':
+            numcand_all = np.zeros(obs_config['ntabs'])
+            threads = []
             self.logger.info("Starting parallel trigger clustering")
-            pool = mp.Pool(processes=obs_config['ntabs'])
-            filterbank_files = ["{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config) for
-                                tab in range(obs_config['ntabs'])]
-            numcand_grouped = np.sum([pool.apply(self._cluster, args=(obs_config, tab, filterbank_files[tab])) for
-                                      tab in range(obs_config['ntabs'])])
+            # start the threads
+            for tab in range(obs_config['ntabs']):
+                filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
+                thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file], out=numcand_all)
+                thread.daemon = True
+                threads.append(thread)
+                thread.start()
+            # wait until all are done
+            for thread in threads:
+                thread.join()
+            # gather results
+            numcand_grouped = numcand_all.sum()
         tend = Time.now()
         self.logger.info("Trigger clustering took {}".format(tend-tstart))
 
@@ -213,12 +222,13 @@ class OfflineProcessing(threading.Thread):
 
         return numcand_raw
 
-    def _cluster(self, obs_config, tab, filterbank_file):
+    def _cluster(self, obs_config, tab, filterbank_file, out=None):
         """
         Run triggers.py
         :param obs_config: Observation config
         :param tab: TAB number to process (0 for IAB)
         :param filterbank_file: Full path to filterbank file to use
+        :param out: array where return value is put a index <tab> (optional)
         """
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
@@ -243,7 +253,10 @@ class OfflineProcessing(threading.Thread):
             self.logger.warning("Failed to get number of grouped triggers, setting to -1: {}".format(e))
             numcand_grouped = -1
 
-        return numcand_grouped
+        if out is not None:
+            out[tab] = numcand_grouped
+        else:
+            return numcand_grouped
 
     @staticmethod
     def _merge_hdf5(obs_config, output_file):
