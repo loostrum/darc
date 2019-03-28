@@ -302,7 +302,6 @@ class OfflineProcessing(threading.Thread):
                         continue
                     curr_len = out[key].shape[0]
                     num_add = h5[key].shape[0]
-                    num_dim = len(h5[key].shape)
                     if num_add == 0:
                         # nothing to do, skip this file
                         break
