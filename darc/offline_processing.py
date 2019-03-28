@@ -174,7 +174,7 @@ class OfflineProcessing(threading.Thread):
             for thread in threads:
                 thread.join()
             # gather results
-            numcand_grouped = numcand_all.sum()
+            numcand_grouped = int(numcand_all.sum())
         tend = Time.now()
         self.logger.info("Trigger clustering took {}s".format((tend-tstart).sec))
 
@@ -272,11 +272,6 @@ class OfflineProcessing(threading.Thread):
         data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=1, **obs_config)
         h5 = h5py.File(data_file, 'r')
         keys = h5.keys()
-        # remove TAB param for now
-        try:
-            keys.remove('tab')
-        except ValueError:
-            pass
         # for each dataset, copy it to the output file and allow reshaping to infinite size
         for key in keys:
             num_dim = len(h5[key].shape)
