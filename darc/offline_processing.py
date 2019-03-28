@@ -118,7 +118,7 @@ class OfflineProcessing(threading.Thread):
         cmd = "python {email_script} {master_dir} '{beams}' {ntabs}".format(email_script=email_script, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
-        self.logger.info("Finished processing of observation of {source}".format(**obs_config))
+        self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
     def _start_observation_worker(self, obs_config):
         """
@@ -193,7 +193,7 @@ class OfflineProcessing(threading.Thread):
         kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 'numcand_grouped': numcand_grouped}
         self._gather_results(obs_config, **kwargs)
 
-        self.logger.info("Finished processing of observation of {source}".format(**obs_config))
+        self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
         return
 
