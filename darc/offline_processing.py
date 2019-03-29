@@ -131,7 +131,7 @@ class OfflineProcessing(threading.Thread):
         # TAB or IAB mode
         if obs_config['ntabs'] == 1:
             obs_config['mode'] = 'IAB'
-            trigger_output_file = "{output_dir}/triggers/data/data_01_full.hdf5".format(**obs_config)
+            trigger_output_file = "{output_dir}/triggers/data/data_00_full.hdf5".format(**obs_config)
         else:
             obs_config['mode'] = 'TAB'
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
@@ -164,7 +164,7 @@ class OfflineProcessing(threading.Thread):
             self.logger.info("Starting parallel trigger clustering")
             # start the threads
             for tab in range(obs_config['ntabs']):
-                filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab+1, **obs_config)
+                filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab, **obs_config)
                 thread = threading.Thread(target=self._cluster, args=[obs_config, tab, filterbank_file],
                                           kwargs={'out': numcand_all})
                 thread.daemon = True
@@ -235,7 +235,7 @@ class OfflineProcessing(threading.Thread):
         cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} --time_limit {duration} --descending_snr " \
               " --beamno {beam:02d} --mk_plot --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} --ndm {ndm} " \
               " --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} --cmap {cmap} --outdir={output_dir}/triggers " \
-              " --tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab+1, filterbank_file=filterbank_file, prefix=prefix, **obs_config)
+              " --tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_file, prefix=prefix, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
@@ -243,7 +243,7 @@ class OfflineProcessing(threading.Thread):
         if obs_config['mode'] == 'IAB':
             fname = '{output_dir}/triggers/grouped_pulses.singlepulse'.format(**obs_config)
         else:
-            fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab+1, **obs_config)
+            fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab, **obs_config)
 
         cmd = "wc -l {fname} | awk '{{print $1}}'".format(fname=fname)
         self.logger.info("Running {}".format(cmd))
@@ -268,7 +268,7 @@ class OfflineProcessing(threading.Thread):
         # define the output file
         out = h5py.File(output_file, 'w')
         # create the datasets based on the first file
-        data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=1, **obs_config)
+        data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=0, **obs_config)
         with h5py.File(data_file, 'r') as h5:
             keys = h5.keys()
         # for each dataset, copy it to the output file and allow reshaping to infinite size
@@ -290,7 +290,7 @@ class OfflineProcessing(threading.Thread):
         # extend the datasets by the other TABs
         for tab in range(obs_config['ntabs']):
             try:
-                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab+1, **obs_config)
+                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab, **obs_config)
                 h5 = h5py.File(data_file, 'r')
                 # add each dataset, reshaping the outfile as needed
                 for key in keys:
