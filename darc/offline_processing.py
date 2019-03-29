@@ -233,7 +233,7 @@ class OfflineProcessing(threading.Thread):
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} --time_limit {duration} --descending_snr " \
-              " --beamno {beam:02d} --mk_plot --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} --ndm {ndm} " \
+              " --beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} --ndm {ndm} " \
               " --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} --cmap {cmap} --outdir={output_dir}/triggers " \
               " --tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_file, prefix=prefix, **obs_config)
         self.logger.info("Running {}".format(cmd))
