@@ -332,7 +332,7 @@ class OfflineProcessing(threading.Thread):
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
               " --fn_model_time {model_dir}/heimdall_b0329_mix_147411d_time.hdf5 " \
               " --pthresh {pthresh} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
-              " {model_dir}/20190125-17114-freqtimefreq_time_model.hdf5".format(output_prefix=output_prefix, input_file=input_file, **obs_config)
+              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         # ToDo: count number of output figures
