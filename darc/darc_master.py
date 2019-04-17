@@ -12,6 +12,12 @@ import threading
 import socket
 from time import sleep, time
 
+# reload is built-in in python2
+try:
+    from importlib import reload
+except ImportError:
+    pass
+
 from darc.definitions import *
 from darc.logger import get_logger
 from darc.amber_listener import AMBERListener
@@ -391,7 +397,11 @@ class DARCMaster(object):
         :param service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
-            self.threads[service] = self.service_mapping[service](self.events[service])
+            module = self.service_mapping[service]
+            # Force reimport
+            reload(module)
+            # Instantiate a new instance of the class
+            self.threads[service] = module(self.events[service])
         else:
             self.logger.error("Cannot create thread for {}".format(service))
 
