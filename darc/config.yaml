@@ -63,8 +63,10 @@ offline_processing:
     ntime_plot: 64
     nfreq_plot: 32
     ndm: 1
-    model_dir: "{home}/keras_models"
     ml_gpus: 0
+    key_ntriggers_skipped: "ntriggers_skipped"
+    keys_data: ["data_freq_time", "data_dm_time", "params", "tab"]
+    model_dir: "{home}/keras_models"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"

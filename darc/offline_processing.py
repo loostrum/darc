@@ -181,11 +181,18 @@ class OfflineProcessing(threading.Thread):
         # Create one hdf5 file for entire CB
         if obs_config['mode'] == 'TAB':
             self.logger.info("Merging TAB HDF5 files")
-            self._merge_hdf5(obs_config, trigger_output_file)
+            numcand_merged = self._merge_hdf5(obs_config, trigger_output_file)
+        # TEMP so that IAB still works
+        else:
+            numcand_merged = 9999
 
         # Run classifier
-        self.logger.info("Classifying candidates")
-        output_prefix = self._classify(obs_config, trigger_output_file)
+        if numcand_merged != 0:
+            self.logger.info("Classifying candidates")
+            output_prefix = self._classify(obs_config, trigger_output_file)
+        else:
+            self.logger.info("No candidates post-merge. Not running classifier")
+            output_prefix = ''
         
         # Gather results
         self.logger.info("Gathering results")
@@ -265,60 +272,65 @@ class OfflineProcessing(threading.Thread):
         :param output_file: Filename of merged HDF5 data
         """
 
-        # define the output file
-        out = h5py.File(output_file, 'w')
-        # create the datasets based on the first file
-        data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=0, **obs_config)
-        with h5py.File(data_file, 'r') as h5:
-            keys = h5.keys()
-        # for each dataset, copy it to the output file and allow reshaping to infinite size
-        for key in keys:
-            if key == 'ntriggers_skipped':
-                out.create_dataset(key, data=[0])
-                continue
-            elif key in ['data_dm_time', 'data_freq_time']:
-                num_dim = 3
-                shape = [0, obs_config['nfreq_plot'], obs_config['ntime_plot']]
-            elif key == 'params':
-                num_dim = 2
-                shape = [0, 5]
-            else:
-                num_dim = 1
-                shape = [0]
-            out.create_dataset(key, shape=shape, maxshape=[None] * num_dim)
+        # define the data set keys
+        keys_data = self.config['keys_data']
+        key_ntrigger_skipped = self.config['key_ntriggers_skipped']
+        keys_all = keys_data + [key_ntrigger_skipped]
+
+        ntrigger = 0
+
+        # initialize the output data
+        out_data = {key_ntrigger_skipped: 0}
+        for key in keys_data:
+            out_data[key] = []
 
         # extend the datasets by the other TABs
         for tab in range(obs_config['ntabs']):
+            data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab, **obs_config)
             try:
-                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab, **obs_config)
-                h5 = h5py.File(data_file, 'r')
-                # add each dataset, reshaping the outfile as needed
-                for key in keys:
-                    if key == 'ntriggers_skipped':
-                        # just one number, add if not -1 (=error)
-                        val = h5[key][:]
-                        if val != -1:
-                            out[key][:] = out[key][:] + val
-                        continue
-                    curr_len = out[key].shape[0]
-                    num_add = h5[key].shape[0]
-                    if num_add == 0:
-                        # nothing to do, skip this file
+                with h5py.File(data_file) as h5:
+                    keys = h5.keys()
+
+                    # check number of skipped triggers
+                    key = 'ntriggers_skipped'
+                    if key not in keys:
+                        print "Error: key {} not found, skipping this file".format(key)
                         break
-                    else:
-                        try:
-                            # resize
-                            out[key].resize(curr_len + num_add, axis=0)
-                            # add dataset
-                            out[key][-num_add:] = h5[key]
-                        except Exception as e:
-                            self.logger.error("Failed to add {} from {}: {}".format(key, data_file, e))
-                h5.close()
+                    val = h5[key][:]
+                    out_data[key] += val
+
+                    # check number of clustered triggers
+                    key = 'data_freq_time'
+                    if key not in keys:
+                        print "Error: key {} not found, skipping remainer of this file".format(key)
+                        break
+
+                    # check if there are any triggers
+                    val = len(h5[key][:])
+                    ntrigger += val
+                    if val == 0:
+                        self.logger.info("No triggers found in {}".format(data_file))
+                        continue
+
+                    # load the datasets
+                    for key in keys_data:
+                        if key not in keys:
+                            print "Warning: key {} not found, skipping this dataset".format(key)
+                            continue
+                        out_data[key] += list(h5[key][:])
+
             except IOError as e:
                 self.logger.error("Failed to load hdf5 file {}: {}".format(data_file, e))
                 continue
-        out.close()
-        return
+
+        # create the output data file
+        try:
+            with h5py.File(output_file, 'w') as out:
+                for key in keys_all:
+                    out.create_dataset(key, data=out_data[key])
+        except IOError as e:
+            self.logger.error("Failed to create output hdf5 file {}: {}".format(output_file, e))
+        return ntrigger
 
     def _classify(self, obs_config, input_file):
         """
