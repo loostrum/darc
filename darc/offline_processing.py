@@ -366,7 +366,7 @@ class OfflineProcessing(threading.Thread):
         # Copy results
         conf = obs_config.copy()
         conf.update(**kwargs)
-        cmd = "python {trigger_to_master} {data_file} {output_prefix}_freq_time.hdf5 {numcand_raw} {numcand_grouped} {master_dir}".format(**conf)
+        cmd = "python {trigger_to_master} {data_file} {output_prefix}_freq_time*.hdf5 {numcand_raw} {numcand_grouped} {master_dir}".format(**conf)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
