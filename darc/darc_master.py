@@ -12,12 +12,6 @@ import threading
 import socket
 from time import sleep, time
 
-# reload is built-in in python2
-try:
-    from importlib import reload
-except ImportError:
-    pass
-
 from darc.definitions import *
 from darc.logger import get_logger
 from darc.amber_listener import AMBERListener
@@ -399,7 +393,7 @@ class DARCMaster(object):
         if service in self.service_mapping.keys():
             module = self.service_mapping[service]
             # Force reimport
-            reload(module)
+            self._reload(module)
             # Instantiate a new instance of the class
             self.threads[service] = module(self.events[service])
         else:
@@ -478,6 +472,32 @@ class DARCMaster(object):
         """
         self.logger.error("Loading parset config not implemented yet!")
         return None
+
+    def _reload(self, service):
+        """
+        Reimport class of a service
+        :param service: which service to reload class of
+        :return:
+        """
+        if service == 'amber_listener':
+            del AMBERListener
+            from darc.amber_listener import AMBERListener
+        elif service == 'amber_triggering':
+            del AMBERTriggering
+            from darc.amber_triggering import AMBERTriggering
+        elif service == 'voevent_generator':
+            del VOEventGenerator
+            from darc.voevent_generator import VOEventGenerator
+        elif service == 'status_website':
+            del StatusWebsite
+            from darc.status_website import StatusWebsite
+        elif service == 'offline_processing':
+            del OfflineProcessing
+            from darc.offline_processing import OfflineProcessing
+        else:
+            self.logger.error("Unknown how to reimport class for {}".format(service))
+
+        return
 
 
 def main():
