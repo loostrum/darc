@@ -196,7 +196,10 @@ class OfflineProcessing(threading.Thread):
         
         # Gather results
         self.logger.info("Gathering results")
-        kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 'numcand_grouped': numcand_grouped}
+        # create PDF if >0 candidates
+        create_pdf =  numcand_merged > 0:
+        kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 
+                  'numcand_grouped': numcand_grouped, 'create_pdf': create_pdf}
         self._gather_results(obs_config, **kwargs)
 
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -354,14 +357,17 @@ class OfflineProcessing(threading.Thread):
         """
         Merge classifier output plots and call trigger_to_master
         :param obs_config: Observation config
-        :param kwargs: number of candidates, output prefixes
+        :param kwargs: number of candidates, output prefixes, whether to create pdf
         """
 
-        # Merge output figures
-        output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**obs_config)
-        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
-        self.logger.info("Running {}".format(cmd))
-        os.system(cmd)
+        # Merge output figures (True if not specified)
+        if kwargs.get('create_pdf', True):
+            output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**obs_config)
+            cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
+            self.logger.info("Running {}".format(cmd))
+            os.system(cmd)
+        else:
+            self.logger.info("Not creating merged PDF")
 
         # Copy results
         conf = obs_config.copy()
