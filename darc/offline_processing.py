@@ -6,6 +6,7 @@
 import os
 import sys
 import ast
+import glob
 import yaml
 import errno
 import multiprocessing as mp
@@ -16,6 +17,7 @@ except ImportError:
 import threading
 import socket
 import subprocess
+from shutil import copyfile
 
 import h5py
 import numpy as np
@@ -174,7 +176,7 @@ class OfflineProcessing(threading.Thread):
             for thread in threads:
                 thread.join()
             # gather results
-            numcand_grouped = int(np.sum(numcand_all[numcand_all != -1))
+            numcand_grouped = int(np.sum(numcand_all[numcand_all != -1]))
         tend = Time.now()
         self.logger.info("Trigger clustering took {}s".format((tend-tstart).sec))
 
@@ -194,12 +196,18 @@ class OfflineProcessing(threading.Thread):
             self.logger.info("No candidates post-merge. Not running classifier")
             output_prefix = ''
         
-        # Gather results
+        # Merge PDFs
+        if numcand_merged > 0:
+            self.logger.info("Merging classifier output files")
+            self._merge_plots(obs_config)
+        else:
+            self.logger.info("No candidates found post-classifier, not creating merged PDF")
+
+        # Centralize results
         self.logger.info("Gathering results")
-        # create PDF if >0 candidates
-        create_pdf =  numcand_merged > 0:
+
         kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 
-                  'numcand_grouped': numcand_grouped, 'create_pdf': create_pdf}
+                  'numcand_grouped': numcand_grouped}
         self._gather_results(obs_config, **kwargs)
 
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -353,27 +361,93 @@ class OfflineProcessing(threading.Thread):
         # ToDo: count number of output figures
         return output_prefix
 
+    def _merge_plots(self, obs_config):
+        """
+        Merge classifier output plots
+        :param obs_config: Observation config
+        """
+        output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**obs_config)
+        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)
+
+        return
+
     def _gather_results(self, obs_config, **kwargs):
         """
-        Merge classifier output plots and call trigger_to_master
+        Gather output results and put in central location
         :param obs_config: Observation config
-        :param kwargs: number of candidates, output prefixes, whether to create pdf
+        :param kwargs: number of candidates, output prefixes
         """
-
-        # Merge output figures (True if not specified)
-        if kwargs.get('create_pdf', True):
-            output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**obs_config)
-            cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
-            self.logger.info("Running {}".format(cmd))
-            os.system(cmd)
-        else:
-            self.logger.info("Not creating merged PDF")
 
         # Copy results
         conf = obs_config.copy()
         conf.update(**kwargs)
-        cmd = "python {trigger_to_master} {data_file} {output_prefix}_freq_time*.hdf5 {numcand_raw} {numcand_grouped} {master_dir}".format(**conf)
-        self.logger.info("Running {}".format(cmd))
-        os.system(cmd)
+
+        # Read number of skipped triggers and tab
+        self.logger.info("Reading number of skipped triggers and TAB column")
+        try:
+            # read dataset
+            with h5py.File(kwargs.get('data_file'), 'r') as f:
+                ncand_skipped = int(f['ntriggers_skipped'][0])
+                try:
+                    tab = f['tab'][:]
+                except KeyError:
+                    tab = None
+        except IOError as e:
+            # success = False
+            self.logger.warning("could not get ncand_skipped from {}: {}".format(kwargs.get('data_file'), e))
+            ncand_skipped = -1
+
+        # read classifier output (only the first file!)
+        fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
+        try:
+            # read dataset
+            with h5py.File(fname_classifier, 'r') as f:
+                frb_index = f['frb_index'][:]
+                data_frb_candidate = f['data_frb_candidate'][:]
+                probability = f['probability'][:][frb_index]
+                params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
+                if tab is not None:
+                    tab = tab[frb_index]
+        except IOError:
+            ncand_classifier = 0
+        # Process output
+        else:
+            # convert widths to ms
+            params[:, 2] *= params[:, 4] * 1000
+            # number of canddiates
+            ncand_classifier = len(params)
+            # make one big matrix with candidates, removing the dt column
+            if tab is not None:
+                data = np.column_stack([params[:, :4], probability, tab])
+            else:
+                data = np.column_stack([params[:, :4], probability])
+            # sort by probability
+            data = data[data[:, -1].argsort()[::-1]]
+            # save to file in master output directory
+            fname = "{master_dir}/CB{beam:02d}_triggers.txt".format(**conf)
+            if tab is not None:
+                header = "SNR DM Width T0 p TAB"
+                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
+            else:
+                header = "SNR DM Width T0 p"
+                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f")
+
+        # copy candidates file if it exists
+        fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)
+        if os.path.isfile(fname):
+            copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf)".format(**conf))
+
+        # create summary file
+        summary = {}
+        summary['ncand_raw'] = kwargs.get('numcand_raw')
+        summary['ncand_trigger'] = kwargs.get('numcand_grouped')
+        summary['ncand_skipped'] = ncand_skipped
+        summary['ncand_abovethresh'] = kwargs.get('numcand_grouped') - ncand_skipped
+        summary['ncand_classifier'] = ncand_classifier
+        fname = "{master_dir}/CB{beam:02d}_summary.yaml".format(**conf)
+        with open(fname, 'w') as f:
+            yaml.dump(summary, f, default_flow_style=False)
 
         return
