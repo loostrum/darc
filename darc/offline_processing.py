@@ -401,7 +401,11 @@ class OfflineProcessing(threading.Thread):
 
         # read classifier output (only the first file!)
         self.logger.info("Reading classifier output file")
-        fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
+        try:
+            fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
+        except IndexError:
+            self.logger.info("No classifier output file found")
+            fname_classifier = ''
         try:
             # read dataset
             with h5py.File(fname_classifier, 'r') as f:
@@ -411,7 +415,7 @@ class OfflineProcessing(threading.Thread):
                 params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
                 if tab is not None:
                     tab = tab[frb_index]
-        except IOError as e:
+        except Exception as e:
             self.logger.warning("Could not read classifier output file: {}".format(e))
             ncand_classifier = 0
         # Process output
