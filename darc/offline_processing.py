@@ -396,10 +396,11 @@ class OfflineProcessing(threading.Thread):
                     tab = None
         except IOError as e:
             # success = False
-            self.logger.warning("could not get ncand_skipped from {}: {}".format(kwargs.get('data_file'), e))
+            self.logger.warning("Could not get ncand_skipped from {}: {}".format(kwargs.get('data_file'), e))
             ncand_skipped = -1
 
         # read classifier output (only the first file!)
+        self.logger.info("Reading classifier output file")
         fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
         try:
             # read dataset
@@ -410,10 +411,12 @@ class OfflineProcessing(threading.Thread):
                 params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
                 if tab is not None:
                     tab = tab[frb_index]
-        except IOError:
+        except IOError as e:
+            self.logger.warning("Could not read classifier output file: {}".format(e))
             ncand_classifier = 0
         # Process output
         else:
+            self.logger.info("Saving trigger metadata")
             # convert widths to ms
             params[:, 2] *= params[:, 4] * 1000
             # number of canddiates
@@ -437,9 +440,13 @@ class OfflineProcessing(threading.Thread):
         # copy candidates file if it exists
         fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)
         if os.path.isfile(fname):
+            self.logger.info("Saving candidate pdf")
             copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf)".format(**conf))
+        else:
+            self.logger.info("No candidate pdf found")
 
         # create summary file
+        self.logger.info("Creating summary file")
         summary = {}
         summary['ncand_raw'] = kwargs.get('numcand_raw')
         summary['ncand_trigger'] = kwargs.get('numcand_grouped')
