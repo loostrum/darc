@@ -174,7 +174,7 @@ class OfflineProcessing(threading.Thread):
             for thread in threads:
                 thread.join()
             # gather results
-            numcand_grouped = int(numcand_all.sum())
+            numcand_grouped = int(np.sum(numcand_all[numcand_all != -1))
         tend = Time.now()
         self.logger.info("Trigger clustering took {}s".format((tend-tstart).sec))
 
