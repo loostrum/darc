@@ -441,7 +441,7 @@ class OfflineProcessing(threading.Thread):
         fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)
         if os.path.isfile(fname):
             self.logger.info("Saving candidate pdf")
-            copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf)".format(**conf))
+            copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf".format(**conf))
         else:
             self.logger.info("No candidate pdf found")
 
