@@ -127,9 +127,9 @@ class DARCMaster(object):
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
             raw_message = client.recv(1024)
-            self.logger.info("Received message: {}".format(raw_message))
+            self.logger.info("Received message: {}".format(raw_message.decode()))
             try:
-                status, reply = self.parse_message(raw_message)
+                status, reply = self.parse_message(raw_message.decode())
             except Exception as e:
                 status = "Error"
                 reply = "Caught exception: {}".format(e)
@@ -139,9 +139,8 @@ class DARCMaster(object):
                 full_reply = "{{'status': \"{}\", 'message': \"{}\"}}".format(status, reply)
             else:
                 full_reply = "{{'status': \"{}\", 'message': {}}}".format(status, reply)
-            print reply
             try:
-                client.sendall(full_reply)
+                client.sendall(full_reply.encode())
             except socket.error as e:
                 self.logger.error("Failed to send reply: {}".format(e))
             client.close()
@@ -367,7 +366,6 @@ class DARCMaster(object):
                 reply = 'Stopped service'
                 # this thread is done, create a new thread
                 self.create_thread(service)
-                print self.threads[service]
                 self.logger.info("Stopped service: {}".format(service))
 
         return status, reply
