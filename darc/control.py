@@ -39,12 +39,12 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         logging.error("Failed to connect to DARC master: {}".format(e))
         return None
     # send message
-    master_socket.sendall(message)
+    master_socket.sendall(message.encode())
     logging.info("Command sent successfully")
     # receive reply unless stop_all was sent
     if not command == 'stop_all':
         try:
-            reply = master_socket.recv(1024)
+            reply = master_socket.recv(1024).decode()
         except socket.timeout:
             logging.error("Did not receive reply before timeout")
             reply = None
