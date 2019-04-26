@@ -19,7 +19,7 @@ DARC comprises several parts that communicate through either queues or sockets. 
 * AMBERTriggering: Directly applies thresholds to AMBER triggers and puts triggers on VOEvent queue.
 * VOEventGenerator: Converts incoming trigger to VOEvent and sends it.
 * StatusWebsite: Queries status of all services and generates status webpage.
-* ObservationControl: Handles offline processing for IAB mode
+* OfflineProcesing: Handles offline processing for 12 TABs / IAB.
 
 ### Executables
 `darc`: Used to interact with the all services through the DARC Master service.\
