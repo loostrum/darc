@@ -61,7 +61,7 @@ offline_processing:
     pthresh: 0.5
     cmap: 'viridis'
     ntime_plot: 64
-    nfreq_plot: 32
+    nfreq_plot: 128
     ndm: 1
     ml_gpus: 0
     key_ntriggers_skipped: "ntriggers_skipped"
