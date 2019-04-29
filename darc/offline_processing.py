@@ -389,7 +389,11 @@ class OfflineProcessing(threading.Thread):
         try:
             # read dataset
             with h5py.File(kwargs.get('data_file'), 'r') as f:
-                ncand_skipped = int(f['ntriggers_skipped'][0])
+                try:
+                    ncand_skipped = int(f['ntriggers_skipped'][0])
+                except ValueError as e:
+                    self.logger.warning("Could not read ntriggers_skipped from {}: {}".format(kwargs.get('data_file'), e))
+                    ncand_skipped = -1
                 try:
                     tab = f['tab'][:]
                 except KeyError:
