@@ -35,9 +35,7 @@ class TestVOEventGenerator(unittest.TestCase):
         # send the trigger
         queue.put(trigger)
         # wait and stop
-        # wait for a while
         sleep(5)
-        # stop the generator
         stop_event.set()
         # check the output file
         filename = os.path.join(generator.voevent_dir, "{}.xml".format(trigger['utc']))

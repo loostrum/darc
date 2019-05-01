@@ -42,6 +42,9 @@ class TestAMBERListener(unittest.TestCase):
         except Empty:
             output = []
 
+        # stop the listener
+        stop_event.set()
+
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
 
