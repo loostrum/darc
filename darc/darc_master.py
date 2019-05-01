@@ -11,14 +11,19 @@ import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
+# reload is only built-in in python <=3.3
+try:
+    from importlib import reload
+except ImportError:
+    pass
 
 from darc.definitions import *
 from darc.logger import get_logger
-from darc.amber_listener import AMBERListener
-from darc.amber_triggering import AMBERTriggering
-from darc.voevent_generator import VOEventGenerator
-from darc.status_website import StatusWebsite
-from darc.offline_processing import OfflineProcessing
+import darc.amber_listener
+import darc.amber_triggering
+import darc.voevent_generator
+import darc.status_website
+import darc.offline_processing
 
 
 class DARCMasterException(Exception):
@@ -62,11 +67,11 @@ class DARCMaster(object):
         else:
             self.services = []
         # service to class mapper
-        self.service_mapping = {'voevent_generator': VOEventGenerator,
-                                'status_website': StatusWebsite,
-                                'amber_listener': AMBERListener,
-                                'amber_triggering': AMBERTriggering,
-                                'offline_processing': OfflineProcessing}
+        self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
+                                'status_website': darc.status_website.StatusWebsite,
+                                'amber_listener': darc.amber_listener.AMBERListener,
+                                'amber_triggering': darc.amber_triggering.AMBERTriggering,
+                                'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -473,25 +478,20 @@ class DARCMaster(object):
 
     def _reload(self, service):
         """
-        Reimport class of a service
-        :param service: which service to reload class of
+        Reimport service from .py file
+        :param service: which service to reload
         :return:
         """
         if service == 'amber_listener':
-            del AMBERListener
-            from darc.amber_listener import AMBERListener
+            reload(darc.amber_listener)
         elif service == 'amber_triggering':
-            del AMBERTriggering
-            from darc.amber_triggering import AMBERTriggering
+            reload(darc.amber_triggering)
         elif service == 'voevent_generator':
-            del VOEventGenerator
-            from darc.voevent_generator import VOEventGenerator
+            reload(darc.voevent_generator)
         elif service == 'status_website':
-            del StatusWebsite
-            from darc.status_website import StatusWebsite
+            reload(darc.status_website)
         elif service == 'offline_processing':
-            del OfflineProcessing
-            from darc.offline_processing import OfflineProcessing
+            reload(darc.offline_processing)
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 
