@@ -43,6 +43,15 @@ amber_triggering:
     snr_min: 80
     age_max: 10
 
+# Clustering of AMBER triggers
+amber_clustering:
+    log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
+    interval: 10
+    dm_min: 0
+    dm_max: 3000
+    snr_min: 80
+    age_max: 10
+
 # VOEvent generator
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
