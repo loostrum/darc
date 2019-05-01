@@ -16,9 +16,9 @@ from darc.amber_clustering import AMBERClustering
 
 class TestAMBERClustering(unittest.TestCase):
 
-    def test_clustering(self):
+    def test_clusters(self):
         """
-        Test AMBER Clustering
+        Test AMBER clustering without applying thresholds
         """
 
         # create queues
@@ -31,6 +31,12 @@ class TestAMBERClustering(unittest.TestCase):
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
+        # remove tresholds
+        clustering.age_max = np.inf
+        clustering.dm_min = 0
+        clustering.dm_max = np.inf
+        clustering.snr_min = 0
+
         # start the clustering
         clustering.start()
 

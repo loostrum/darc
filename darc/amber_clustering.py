@@ -154,21 +154,23 @@ class AMBERClustering(threading.Thread):
 
         # ToDo: feed other obs parameters
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(clusters_for_clustering, tab=clusters[:, self.hdr_mapping['beam_id']])
-        self.logger.info("Clustering done")
-        # put clusters on queue
-        clusters = np.transpose([cluster_snr, cluster_dm, cluster_time, cluster_downsamp])
-        columns = {'SNR': 0, 'DM':1, 'time': 2, 'integration_step': 3}
-        self.cluster_queue.put({'clusters': clusters, 'columns': columns})
+        self.logger.info("Clustered {} raw triggers into {} clusters".format(len(clusters_for_clustering), len(cluster_snr)))
 
-        #print("Generating VO for highest S/N")
-        #ind = np.argmax(cluster_snr)
-        #voevent_cluster = {'dm': cluster_dm[ind], 'dm_err': 0,
-        #                  'width': cluster_downsamp[ind]*81.92E-3,
-        #                  'snr': cluster_snr[ind], 'flux': 0,
-        #                  'ra': 83.63322083333333, 'dec': 22.01446111111111,
-        #                  'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
-        #                  'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
-        #self.logger.info("Putting cluster on voevent queue: {}".format(voevent_cluster))
-        #self.cluster_queue.put(voevent_cluster)
 
+        # Apply thresholds
+        self.logger.info("Applying thresholds")
+        age = time() - (cluster_time + 0)  # 0 to be replaced by start time of observation
+        age_max = age <= self.age_max
+        dm_min = cluster_dm >= self.dm_min
+        dm_max = cluster_dm <= self.dm_max
+        snr_min = cluster_snr >= self.snr_min
+        mask = dm_min & dm_max & snr_min & age_max
+        if np.any(mask):
+            self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(np.sum(mask)))
+            # put good clusters on queue
+            clusters = np.transpose([cluster_snr[mask], cluster_dm[mask], cluster_time[mask], cluster_downsamp[mask]])
+            columns = {'SNR': 0, 'DM':1, 'time': 2, 'integration_step': 3}
+            self.cluster_queue.put({'clusters': clusters, 'columns': columns})
+        else:
+            self.logger.info("No clusters after thresholding")
 
