@@ -42,7 +42,7 @@ class TestVOEventGenerator(unittest.TestCase):
         # check the output file
         filename = os.path.join(generator.voevent_dir, "{}.xml".format(trigger['utc']))
 
-        assert os.path.isfile(filename)
+        self.assertTrue(os.path.isfile(filename))
 
         # remove output file
         os.remove(filename)
