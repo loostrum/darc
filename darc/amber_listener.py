@@ -100,7 +100,7 @@ class AMBERListener(threading.Thread):
             client.settimeout(1)
             while not self.stop_event.is_set():
                 try:
-                    output = client.recv(1024).decode()
+                    output = client.recv(65536).decode()
                 except socket.timeout:
                     continue
                 if output.strip() == 'EOF' or not output:
