@@ -134,7 +134,7 @@ class DARCMaster(object):
             raw_message = client.recv(1024).decode()
             self.logger.info("Received message: {}".format(raw_message))
             try:
-                status, reply = self.parse_message(raw_message.decode())
+                status, reply = self.parse_message(raw_message)
             except Exception as e:
                 status = "Error"
                 reply = "Caught exception: {}".format(e)
