@@ -1,7 +1,7 @@
 FROM tensorflow/tensorflow:1.12.0-gpu-py3
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y git vim openssh-server apache2 gfortran
+RUN apt-get install -y git vim openssh-server apache2 gfortran netcat
 RUN apt-get clean all
 
 RUN ssh-keygen -A
