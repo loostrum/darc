@@ -16,7 +16,12 @@ try:
     from importlib import reload
 except ImportError:
     pass
-
+# pyparameterset is only available on Apertif/LOFAR systems
+HAVE_PARSET=True
+try:
+    from lofar.parameterset import parameterset
+except ImportError:
+    HAVE_PARSET=False
 from darc.definitions import *
 from darc.logger import get_logger
 import darc.amber_listener
@@ -201,6 +206,15 @@ class DARCMaster(object):
             else:
                 status, reply = self.start_observation(payload)
             return status, reply
+        # Read parset
+        elif command == 'read_parset':
+            if not payload:
+                self.logger.error('Payload is required when reading from parset')
+                status = 'Error'
+                reply = {'error': 'Payload missing'}
+            else:
+                status, reply = self.read_parset(payload)
+            return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
@@ -230,7 +244,7 @@ class DARCMaster(object):
                 _status, _reply =  self.check_status(service)
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
-                status  = 'Error'
+                status = 'Error'
                 reply = {'error': 'Unknown command: {}'.format(command)}
                 return status, reply
             if _status != 'Success':
@@ -456,6 +470,59 @@ class DARCMaster(object):
         self.processing_queue.put(command)
         return "Success", "Observation started for offline processing"
 
+    def stop_observation(self, taskid):
+        """
+        Stop an observation
+        :param taskid: task ID of observation to stop
+        :return:
+        """
+        self.logger.error("Stop not implemented yet")
+        status = "Error"
+        reply = {'error': "Stop is not implemented yet"}
+        return status, reply
+
+    def read_parset(self, parset):
+        """
+        Parse a parset and determine which command to run
+        :param parset: path to parset
+        :return: status (str), reply (dict)
+        """
+
+        status = 'Success'
+        reply = {}
+
+        config = self._load_parset(parset)
+
+        # read command type
+        try:
+            command_type = config['_control.command.type']
+        except KeyError:
+            self.logger.error("Cannot read command type from parset")
+            status = 'Error'
+            reply = {'error': 'Failed to parse parset'}
+            return status, reply
+
+        # decide which command to execute
+        if command_type == 'start_observation':
+            # start requires the full parset
+            status, reply = self.start_observation(parset)
+        elif command_type in ['stop_observation', 'abort_observation']:
+            # stop only needs the taskid
+            try:
+                taskid = config['task.taskID']
+            except KeyError:
+                self.logger.error("Cannot read task ID from parset")
+                status = 'Error'
+                reply = {'error': 'Failed to parse parset'}
+            else:
+                status, reply = self.stop_observation(taskid)
+                reply = "Stopping observation {}".format(taskid)
+        else:
+            self.logger.error("Unrecognised command type: {}".format(command_type))
+            status = 'Error'
+            reply = {'error': 'Failed to parse parset'}
+        return status, reply
+
     def _load_yaml(self, config_file):
         """
         Load yaml file and convert to observation config
@@ -469,12 +536,18 @@ class DARCMaster(object):
 
     def _load_parset(self, config_file):
         """
-        Load yaml file and convert to observation config
+        Load parset file and convert to observation config
         :param config_file: Path to parset file
         :return: observation config dict
         """
-        self.logger.error("Loading parset config not implemented yet!")
-        return None
+        if not HAVE_PARSET:
+            self.logger.error("Parset reader not available")
+            return {}
+        if not os.path.isfile(config_file):
+            self.logger.error("Parset not found: {}".format(config_file))
+            return {}
+        ps = parameterset(config_file)
+        return ps.dict(removeQuotes=True)
 
     def _reload(self, service):
         """
