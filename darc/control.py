@@ -9,7 +9,7 @@ import socket
 
 from darc.definitions import *
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
 
 
 def send_command(timeout, service, command, payload=None, host='localhost'):
