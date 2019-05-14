@@ -11,14 +11,24 @@ import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
-
+# reload is only built-in in python <=3.3
+try:
+    from importlib import reload
+except ImportError:
+    pass
+# pyparameterset is only available on Apertif/LOFAR systems
+HAVE_PARSET=True
+try:
+    from lofar.parameterset import parameterset
+except ImportError:
+    HAVE_PARSET=False
 from darc.definitions import *
 from darc.logger import get_logger
-from darc.amber_listener import AMBERListener
-from darc.amber_triggering import AMBERTriggering
-from darc.voevent_generator import VOEventGenerator
-from darc.status_website import StatusWebsite
-from darc.offline_processing import OfflineProcessing
+import darc.amber_listener
+import darc.amber_triggering
+import darc.voevent_generator
+import darc.status_website
+import darc.offline_processing
 
 
 class DARCMasterException(Exception):
@@ -62,11 +72,11 @@ class DARCMaster(object):
         else:
             self.services = []
         # service to class mapper
-        self.service_mapping = {'voevent_generator': VOEventGenerator,
-                                'status_website': StatusWebsite,
-                                'amber_listener': AMBERListener,
-                                'amber_triggering': AMBERTriggering,
-                                'offline_processing': OfflineProcessing}
+        self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
+                                'status_website': darc.status_website.StatusWebsite,
+                                'amber_listener': darc.amber_listener.AMBERListener,
+                                'amber_triggering': darc.amber_triggering.AMBERTriggering,
+                                'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -126,7 +136,7 @@ class DARCMaster(object):
                 self.logger.error('Caught exception while waiting for command: {}', e)
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
-            raw_message = client.recv(1024)
+            raw_message = client.recv(1024).decode()
             self.logger.info("Received message: {}".format(raw_message))
             try:
                 status, reply = self.parse_message(raw_message)
@@ -139,9 +149,8 @@ class DARCMaster(object):
                 full_reply = "{{'status': \"{}\", 'message': \"{}\"}}".format(status, reply)
             else:
                 full_reply = "{{'status': \"{}\", 'message': {}}}".format(status, reply)
-            print reply
             try:
-                client.sendall(full_reply)
+                client.sendall(full_reply.encode())
             except socket.error as e:
                 self.logger.error("Failed to send reply: {}".format(e))
             client.close()
@@ -197,6 +206,15 @@ class DARCMaster(object):
             else:
                 status, reply = self.start_observation(payload)
             return status, reply
+        # Read parset
+        elif command == 'read_parset':
+            if not payload:
+                self.logger.error('Payload is required when reading from parset')
+                status = 'Error'
+                reply = {'error': 'Payload missing'}
+            else:
+                status, reply = self.read_parset(payload)
+            return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
@@ -226,7 +244,7 @@ class DARCMaster(object):
                 _status, _reply =  self.check_status(service)
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
-                status  = 'Error'
+                status = 'Error'
                 reply = {'error': 'Unknown command: {}'.format(command)}
                 return status, reply
             if _status != 'Success':
@@ -367,7 +385,6 @@ class DARCMaster(object):
                 reply = 'Stopped service'
                 # this thread is done, create a new thread
                 self.create_thread(service)
-                print self.threads[service]
                 self.logger.info("Stopped service: {}".format(service))
 
         return status, reply
@@ -453,6 +470,59 @@ class DARCMaster(object):
         self.processing_queue.put(command)
         return "Success", "Observation started for offline processing"
 
+    def stop_observation(self, taskid):
+        """
+        Stop an observation
+        :param taskid: task ID of observation to stop
+        :return:
+        """
+        self.logger.error("Stop not implemented yet")
+        status = "Error"
+        reply = {'error': "Stop is not implemented yet"}
+        return status, reply
+
+    def read_parset(self, parset):
+        """
+        Parse a parset and determine which command to run
+        :param parset: path to parset
+        :return: status (str), reply (dict)
+        """
+
+        status = 'Success'
+        reply = {}
+
+        config = self._load_parset(parset)
+
+        # read command type
+        try:
+            command_type = config['_control.command.type']
+        except KeyError:
+            self.logger.error("Cannot read command type from parset")
+            status = 'Error'
+            reply = {'error': 'Failed to parse parset'}
+            return status, reply
+
+        # decide which command to execute
+        if command_type == 'start_observation':
+            # start requires the full parset
+            status, reply = self.start_observation(parset)
+        elif command_type in ['stop_observation', 'abort_observation']:
+            # stop only needs the taskid
+            try:
+                taskid = config['task.taskID']
+            except KeyError:
+                self.logger.error("Cannot read task ID from parset")
+                status = 'Error'
+                reply = {'error': 'Failed to parse parset'}
+            else:
+                status, reply = self.stop_observation(taskid)
+                reply = "Stopping observation {}".format(taskid)
+        else:
+            self.logger.error("Unrecognised command type: {}".format(command_type))
+            status = 'Error'
+            reply = {'error': 'Failed to parse parset'}
+        return status, reply
+
     def _load_yaml(self, config_file):
         """
         Load yaml file and convert to observation config
@@ -466,34 +536,35 @@ class DARCMaster(object):
 
     def _load_parset(self, config_file):
         """
-        Load yaml file and convert to observation config
+        Load parset file and convert to observation config
         :param config_file: Path to parset file
         :return: observation config dict
         """
-        self.logger.error("Loading parset config not implemented yet!")
-        return None
+        if not HAVE_PARSET:
+            self.logger.error("Parset reader not available")
+            return {}
+        if not os.path.isfile(config_file):
+            self.logger.error("Parset not found: {}".format(config_file))
+            return {}
+        ps = parameterset(config_file)
+        return ps.dict(removeQuotes=True)
 
     def _reload(self, service):
         """
-        Reimport class of a service
-        :param service: which service to reload class of
+        Reimport service from .py file
+        :param service: which service to reload
         :return:
         """
         if service == 'amber_listener':
-            del AMBERListener
-            from darc.amber_listener import AMBERListener
+            reload(darc.amber_listener)
         elif service == 'amber_triggering':
-            del AMBERTriggering
-            from darc.amber_triggering import AMBERTriggering
+            reload(darc.amber_triggering)
         elif service == 'voevent_generator':
-            del VOEventGenerator
-            from darc.voevent_generator import VOEventGenerator
+            reload(darc.voevent_generator)
         elif service == 'status_website':
-            del StatusWebsite
-            from darc.status_website import StatusWebsite
+            reload(darc.status_website)
         elif service == 'offline_processing':
-            del OfflineProcessing
-            from darc.offline_processing import OfflineProcessing
+            reload(darc.offline_processing)
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 
