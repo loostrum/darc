@@ -89,8 +89,8 @@ def main():
     if not args.cmd and not args.parset:
         logging.error("Add command to execute unless reading from parset or running start_observation, e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    elif not args.service and args.cmd not in ['stop_master', None]:
-        logging.error("Argument --service is required unless calling stop_master")
+    elif not args.service and args.cmd not in ['stop_master', 'start_observation', None]:
+        logging.error("Argument --service is required unless calling stop_master, start_observation, or reading from parset")
         sys.exit(1)
 
     # Get payload
