@@ -112,7 +112,8 @@ class OfflineProcessing(threading.Thread):
         obs_config.update(self.config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -139,7 +140,8 @@ class OfflineProcessing(threading.Thread):
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
