@@ -73,7 +73,6 @@ class OfflineProcessing(threading.Thread):
         if not self.observation_queue:
             self.logger.error('Observation queue not set')
             raise OfflineProcessingException('Observation queue not set')
-
         self.logger.info("Starting Offline Processing")
         data = None
         while not self.stop_event.is_set():
@@ -319,7 +318,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of skipped triggers
                     key = 'ntriggers_skipped'
                     if key not in keys:
-                        self.logger.error("Error: key {} not found, skipping this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping HDF5 file {}".format(key, data_file))
                         break
                     val = h5[key][:]
                     out_data[key] += val
@@ -327,25 +326,25 @@ class OfflineProcessing(threading.Thread):
                     # check number of clustered triggers
                     key = 'data_freq_time'
                     if key not in keys:
-                        self.logger.error("Error: key {} not found, skipping remainer of this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping HDF5 file {}".format(key, data_file))
                         break
 
                     # check if there are any triggers
                     val = len(h5[key][:])
                     ntrigger += val
                     if val == 0:
-                        self.logger.info("No triggers found in {}".format(data_file))
+                        self.logger.info("No triggers found in HDF5 file {}".format(data_file))
                         continue
 
                     # load the datasets
                     for key in keys_data:
                         if key not in keys:
-                            self.logger.error("Warning: key {} not found, skipping this dataset".format(key))
+                            self.logger.error("Warning: key {} not found, skipping HDF5 file {}".format(key, data_file))
                             continue
                         out_data[key] += list(h5[key][:])
 
             except IOError as e:
-                self.logger.error("Failed to load hdf5 file {}: {}".format(data_file, e))
+                self.logger.error("Failed to load HDF5 file {}: {}".format(data_file, e))
                 continue
 
         # create the output data file
@@ -354,7 +353,7 @@ class OfflineProcessing(threading.Thread):
                 for key in keys_all:
                     out.create_dataset(key, data=out_data[key])
         except IOError as e:
-            self.logger.error("Failed to create output hdf5 file {}: {}".format(output_file, e))
+            self.logger.error("Failed to create output HDF5 file {}: {}".format(output_file, e))
         return ntrigger
 
     def _classify(self, obs_config, input_file):

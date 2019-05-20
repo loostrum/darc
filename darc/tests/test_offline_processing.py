@@ -4,6 +4,7 @@
 # 
 # 
 import os
+import sys
 import logging
 import threading
 
@@ -26,17 +27,26 @@ def run_processing(**config):
     logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
     logger = logging.getLogger()
 
+    # Create result dir (normally done in run method, but that is skipped)
+    try:
+        os.makedirs(config['result_dir'])
+    except OSError as e:
+        logger.error('Cannot create result dir {}: {}'.format(config['result_dir'], e))
+        sys.exit(1)
+
     event = threading.Event()
     proc = OfflineProcessing(event)
     # override logger (first initalized message still goes to normal logger)
     proc.logger = logger
 
-    # override nfreq
+    # override config
     proc.config['nfreq_plot'] = 32
     proc.config['snrmin_processing'] = 10
     proc.config['snrmin_processing_local'] = 5
     proc.config['dmmin'] = 20
     proc.config['dmmax'] = 5000
+    # Add offline processing config to obs config (normally done in run method, but that is skipped)
+    config.update(proc.config)
 
     # start worker observation 
     try:
@@ -49,6 +59,7 @@ def run_processing(**config):
 if __name__ == '__main__':
     output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
     amber_dir = os.path.join(output_dir, 'amber')
+    result_dir = os.path.join(output_dir, 'results')
 
     duration = 300.032
     startpacket = int((Time.now().unix - duration) * 781250)
@@ -56,6 +67,6 @@ if __name__ == '__main__':
 
     conf = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
             'output_dir': output_dir, 'duration': 300.032, 
-            'startpacket': startpacket}
+            'startpacket': startpacket, 'result_dir': result_dir}
 
     run_processing(**conf)
