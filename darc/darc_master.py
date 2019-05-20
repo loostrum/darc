@@ -16,12 +16,6 @@ try:
     from importlib import reload
 except ImportError:
     pass
-# pyparameterset is only available on Apertif/LOFAR systems
-HAVE_PARSET=True
-try:
-    from lofar.parameterset import parameterset
-except ImportError:
-    HAVE_PARSET=False
 from darc.definitions import *
 from darc.logger import get_logger
 import darc.amber_listener
@@ -205,15 +199,6 @@ class DARCMaster(object):
                 reply = {'error': 'Payload missing'}
             else:
                 status, reply = self.start_observation(payload)
-            return status, reply
-        # Read parset
-        elif command == 'read_parset':
-            if not payload:
-                self.logger.error('Payload is required when reading from parset')
-                status = 'Error'
-                reply = {'error': 'Payload missing'}
-            else:
-                status, reply = self.read_parset(payload)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -481,55 +466,17 @@ class DARCMaster(object):
         reply = {'error': "Stop is not implemented yet"}
         return status, reply
 
-    def read_parset(self, parset):
-        """
-        Parse a parset and determine which command to run
-        :param parset: path to parset
-        :return: status (str), reply (dict)
-        """
-
-        status = 'Success'
-        reply = {}
-
-        config = self._load_parset(parset)
-
-        # read command type
-        try:
-            command_type = config['_control.command.type']
-        except KeyError:
-            self.logger.error("Cannot read command type from parset")
-            status = 'Error'
-            reply = {'error': 'Failed to parse parset'}
-            return status, reply
-
-        # decide which command to execute
-        if command_type == 'start_observation':
-            # start requires the full parset
-            status, reply = self.start_observation(parset)
-        elif command_type in ['stop_observation', 'abort_observation']:
-            # stop only needs the taskid
-            try:
-                taskid = config['task.taskID']
-            except KeyError:
-                self.logger.error("Cannot read task ID from parset")
-                status = 'Error'
-                reply = {'error': 'Failed to parse parset'}
-            else:
-                status, reply = self.stop_observation(taskid)
-                reply = "Stopping observation {}".format(taskid)
-        else:
-            self.logger.error("Unrecognised command type: {}".format(command_type))
-            status = 'Error'
-            reply = {'error': 'Failed to parse parset'}
-        return status, reply
-
     def _load_yaml(self, config_file):
         """
         Load yaml file and convert to observation config
         :param config_file: Path to yaml file
         :return: observation config dict
         """
-        self.logger.info("Loading yaml config")
+        self.logger.info("Loading yaml config {}".format(config_file))
+        if not os.path.isfile(config_file):
+            self.logger.error("Yaml file not found: {}".format(config_file))
+            return {}
+
         with open(config_file) as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)
         return config
@@ -540,14 +487,33 @@ class DARCMaster(object):
         :param config_file: Path to parset file
         :return: observation config dict
         """
-        if not HAVE_PARSET:
-            self.logger.error("Parset reader not available")
-            return {}
+        self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
             self.logger.error("Parset not found: {}".format(config_file))
             return {}
-        ps = parameterset(config_file)
-        return ps.dict(removeQuotes=True)
+
+        # Read raw parset
+        with open(config_file) as f:
+            raw_config = f.readlines()
+        # Split keys/values. Separator might be "=" or " = "
+        raw_config = [item.replace(' = ', '=').strip().split('=') for item in raw_config]
+        # remove empty last line if present
+        if raw_config[-1] == '':
+            raw_config = raw_config[:-1]
+
+        # convert to dict
+        config = dict(raw_config)
+        # fix types where needed
+        # ints
+        for key in ['startpacket', 'beam', 'ntabs', 'nsynbeams']:
+            config[key] = int(config[key])
+        # floats
+        for key in ['duration', 'history_i', 'history_iquv', 'snrmin', 'min_freq']:
+            config[key] = float(config[key])
+        # bools
+        for key in ['proctrigger', 'enable_iquv']:
+            config[key] = bool(config[key])
+        return config
 
     def _reload(self, service):
         """
