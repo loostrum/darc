@@ -391,9 +391,9 @@ class DARCMaster(object):
         :param service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
-            module = self.service_mapping[service]
             # Force reimport
-            self._reload(module)
+            self._reload(service)
+            module = self.service_mapping[service]
             # Instantiate a new instance of the class
             self.threads[service] = module(self.events[service])
         else:
@@ -431,7 +431,6 @@ class DARCMaster(object):
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
         # start the observation
-        # for now use startpacket as unique ID. Should move to task ID when available
 
         # check if offline processing is running. If not, start it
         _, offline_processing_status = self.check_status('offline_processing')
