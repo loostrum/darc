@@ -19,7 +19,9 @@ def get_logger(name, log_file, level=logging.DEBUG):
     handler.setFormatter(formatter)
     logger.setLevel(level)
     # remove any old handlers
-    logger.handlers = []
+    for h in logger.handlers:
+        h.close()
+        logger.removeHandler(h)
     logger.addHandler(handler)
     logger.propagate = False
 
