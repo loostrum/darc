@@ -26,12 +26,6 @@ def run_processing(**config):
     logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
     logger = logging.getLogger()
 
-    try:
-        os.makedirs(config['result_dir'])
-    except OSError as e:
-        logger.error('Cannot create master dir {}: {}'.format(config['result_dir'], e))
-        #return
-
     event = threading.Event()
     proc = OfflineProcessing(event)
     # override logger (first initalized message still goes to normal logger)
@@ -55,7 +49,6 @@ def run_processing(**config):
 if __name__ == '__main__':
     output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
     amber_dir = os.path.join(output_dir, 'amber')
-    result_dir = os.path.join(output_dir, 'results')
 
     duration = 300.032
     startpacket = int((Time.now().unix - duration) * 781250)
@@ -63,6 +56,6 @@ if __name__ == '__main__':
 
     conf = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
             'output_dir': output_dir, 'duration': 300.032, 
-            'startpacket': startpacket, 'result_dir': result_dir}
+            'startpacket': startpacket}
 
     run_processing(**conf)
