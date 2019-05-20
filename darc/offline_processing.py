@@ -156,12 +156,18 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        # change to trigger directory
+        # create trigger directory
         trigger_dir = "{output_dir}/triggers".format(**obs_config)
+        try:
+            util.makedirs(trigger_dir)
+        except Exception as e:
+            self.logger.error("Failed to create triggers directory")
+            raise OfflineProcessingException("Failed to create triggers directory: {}".format(e))
+        # change to trigger directory
         try:
             os.chdir(trigger_dir)
         except Exception as e:
-            self.logger.error("Failed to cd to trigger directory {}: {}".format(trigger_dir, e))
+            self.logger.error("Failed to cd to triggers directory {}: {}".format(trigger_dir, e))
 
         # merge the trigger files
         self.logger.info("Merging raw trigger files")
