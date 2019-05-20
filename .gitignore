@@ -107,7 +107,3 @@ venv.bak/
 
 # PyCharm
 .idea/
-
-# Docker
-docker/
-Dockerfile
