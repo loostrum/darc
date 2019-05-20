@@ -63,6 +63,7 @@ voevent_generator:
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    result_dir: "{home}/observations/results/"
     interval: 10
     timeout: 10
     pthresh: 0.5

@@ -21,15 +21,15 @@ def run_processing(**config):
     # beam (CB)
     # amber_dir
     # duration
-    # master_dir
+    # result_dir
 
     logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
     logger = logging.getLogger()
 
     try:
-        os.makedirs(config['master_dir'])
+        os.makedirs(config['result_dir'])
     except OSError as e:
-        logger.error('Cannot create master dir {}: {}'.format(config['master_dir'], e))
+        logger.error('Cannot create master dir {}: {}'.format(config['result_dir'], e))
         #return
 
     event = threading.Event()
@@ -55,12 +55,12 @@ def run_processing(**config):
 if __name__ == '__main__':
     output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
     amber_dir = os.path.join(output_dir, 'amber')
-    master_dir = os.path.join(output_dir, 'results')
+    result_dir = os.path.join(output_dir, 'results')
 
     endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
 
     conf = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
             'output_dir': output_dir, 'duration': 300.032, 
-            'endtime': endtime, 'master_dir': master_dir}
+            'endtime': endtime, 'result_dir': result_dir}
 
     run_processing(**conf)

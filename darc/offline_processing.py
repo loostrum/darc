@@ -8,7 +8,6 @@ import sys
 import ast
 import glob
 import yaml
-import errno
 import multiprocessing as mp
 try:
     from queue import Empty
@@ -83,10 +82,15 @@ class OfflineProcessing(threading.Thread):
             except Empty:
                 continue
 
-            # start observation in thread
+            # load observation config
             host_type = data['host_type']
             obs_config = data['obs_config']
+            # add general config to obs config
+            obs_config.update(self.config)
+            # format result dir
+            obs_config['result_dir'] = os.path.join(self.result_dir, obsconfig['date'], obsconfig['datetimesource'])
             
+            # start observation corresponding to host type
             if host_type == 'master':
                 thread = threading.Thread(target=self._start_observation_master, args=[obs_config])
                 thread.daemon = True
@@ -108,8 +112,11 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         """
         self.logger.info("Starting observation on master node")
-        # Add general config to obs config
-        obs_config.update(self.config)
+        # create result dir
+        try:
+            os.makedirs(obs_config['result_dir'])
+        except Exception as e:
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e)
 
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
@@ -117,7 +124,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        cmd = "python {emailer} {master_dir} '{beams}' {ntabs}".format(**obs_config)
+        cmd = "python {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -128,8 +135,11 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         """
         self.logger.info("Starting observation on worker node")
-        # Add general config to obs config
-        obs_config.update(self.config)
+        # create result dir
+        try:
+            os.makedirs(obs_config['result_dir'])
+        except Exception as e:
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e)
 
         # TAB or IAB mode
         if obs_config['ntabs'] == 1:
@@ -439,7 +449,7 @@ class OfflineProcessing(threading.Thread):
             # sort by probability
             data = data[data[:, -1].argsort()[::-1]]
             # save to file in master output directory
-            fname = "{master_dir}/CB{beam:02d}_triggers.txt".format(**conf)
+            fname = "{result_dir}/CB{beam:02d}_triggers.txt".format(**conf)
             if tab is not None:
                 header = "SNR DM Width T0 p TAB"
                 np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
@@ -451,7 +461,7 @@ class OfflineProcessing(threading.Thread):
         fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)
         if os.path.isfile(fname):
             self.logger.info("Saving candidate pdf")
-            copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf".format(**conf))
+            copyfile(fname, "{result_dir}/CB{beam:02d}_candidates_summary.pdf".format(**conf))
         else:
             self.logger.info("No candidate pdf found")
 
@@ -463,7 +473,7 @@ class OfflineProcessing(threading.Thread):
         summary['ncand_skipped'] = ncand_skipped
         summary['ncand_abovethresh'] = kwargs.get('numcand_grouped') - ncand_skipped
         summary['ncand_classifier'] = ncand_classifier
-        fname = "{master_dir}/CB{beam:02d}_summary.yaml".format(**conf)
+        fname = "{result_dir}/CB{beam:02d}_summary.yaml".format(**conf)
         with open(fname, 'w') as f:
             yaml.dump(summary, f, default_flow_style=False)
 

@@ -2,6 +2,7 @@
 #
 # utility functions
 
+import errno
 import datetime
 import time
 from astropy.time import Time, TimeDelta
@@ -33,3 +34,17 @@ def sleepuntil_utc(end_time, event=None):
         time.sleep(sleep_seconds)
 
     return
+
+def makedirs(path):
+    """
+    Mimic os.makedirs, but do not error when directory already exists
+    :param: path: path to create
+    """
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass
+        else
+            raise
+

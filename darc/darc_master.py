@@ -6,7 +6,6 @@
 import sys
 import ast
 import yaml
-import errno
 import multiprocessing as mp
 import threading
 import socket
@@ -17,6 +16,7 @@ try:
 except ImportError:
     pass
 from darc.definitions import *
+from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
 import darc.amber_triggering
@@ -75,11 +75,10 @@ class DARCMaster(object):
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
         try:
-            os.makedirs(log_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                self.logger.error("Cannot create log directory: {}".format(e))
-                raise DARCMasterException("Cannot create log directory")
+            util.makedirs(log_dir)
+        except exception as e:
+            self.logger.error("Cannot create log directory: {}".format(e))
+            raise DARCMasterException("Cannot create log directory")
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
