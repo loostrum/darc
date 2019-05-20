@@ -487,7 +487,8 @@ class DARCMaster(object):
         self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
             self.logger.error("Parset not found: {}".format(config_file))
-            return {}
+            # not parset - do not process this observation
+            return {'proctrigger': False}
 
         # Read raw parset
         with open(config_file) as f:
