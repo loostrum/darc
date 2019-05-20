@@ -114,7 +114,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Starting observation on master node")
         # create result dir
         try:
-            os.makedirs(obs_config['result_dir'])
+            util.makedirs(obs_config['result_dir'])
         except Exception as e:
             self.logger.error("Failed to create results directory")
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
@@ -122,7 +122,7 @@ class OfflineProcessing(threading.Thread):
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
         start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
-        self.logger.info("Sleeping until {}".format(start_processing_time))
+        self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
         cmd = "python {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
@@ -138,7 +138,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Starting observation on worker node")
         # create result dir
         try:
-            os.makedirs(obs_config['result_dir'])
+            util.makedirs(obs_config['result_dir'])
         except Exception as e:
             self.logger.error("Failed to create results directory")
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
@@ -154,7 +154,7 @@ class OfflineProcessing(threading.Thread):
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
         start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
-        self.logger.info("Sleeping until {}".format(start_processing_time))
+        self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
         # change to trigger directory
@@ -319,7 +319,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of skipped triggers
                     key = 'ntriggers_skipped'
                     if key not in keys:
-                        print("Error: key {} not found, skipping this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping this file".format(key))
                         break
                     val = h5[key][:]
                     out_data[key] += val
@@ -327,7 +327,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of clustered triggers
                     key = 'data_freq_time'
                     if key not in keys:
-                        print("Error: key {} not found, skipping remainer of this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping remainer of this file".format(key))
                         break
 
                     # check if there are any triggers
@@ -340,7 +340,7 @@ class OfflineProcessing(threading.Thread):
                     # load the datasets
                     for key in keys_data:
                         if key not in keys:
-                            print("Warning: key {} not found, skipping this dataset".format(key))
+                            self.logger.error("Warning: key {} not found, skipping this dataset".format(key))
                             continue
                         out_data[key] += list(h5[key][:])
 
