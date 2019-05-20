@@ -492,25 +492,9 @@ class DARCMaster(object):
 
         # Read raw parset
         with open(config_file) as f:
-            raw_config = f.readlines()
-        # Split keys/values. Separator might be "=" or " = "
-        raw_config = [item.replace(' = ', '=').strip().split('=') for item in raw_config]
-        # remove empty last line if present
-        if raw_config[-1] == '':
-            raw_config = raw_config[:-1]
-
-        # convert to dict
-        config = dict(raw_config)
-        # fix types where needed
-        # ints
-        for key in ['startpacket', 'beam', 'ntabs', 'nsynbeams']:
-            config[key] = int(config[key])
-        # floats
-        for key in ['duration', 'history_i', 'history_iquv', 'snrmin', 'min_freq']:
-            config[key] = float(config[key])
-        # bools
-        for key in ['proctrigger', 'enable_iquv']:
-            config[key] = bool(config[key])
+            parset = f.read()
+        # Convert to dict
+        config = util.parse_parset(parset)
         return config
 
     def _reload(self, service):
