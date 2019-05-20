@@ -224,7 +224,7 @@ class VOEventGenerator(threading.Thread):
             with open('{}.xml'.format(utc), 'wb') as f:
                 voxml = vp.dumps(v)
                 xmlstr = minidom.parseString(voxml).toprettyxml(indent="   ")
-                f.write(xmlstr)
+                f.write(xmlstr.encode())
                 self.logger.info(vp.prettystr(v.Who))
                 self.logger.info(vp.prettystr(v.What))
                 self.logger.info(vp.prettystr(v.WhereWhen))

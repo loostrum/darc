@@ -9,7 +9,6 @@ Note: IAB modes also support processing the central TAB.
 * master: Real-time, TAB mode processing.
 * dev: Development of real-time processing
 * test_trigger: Directly apply thresholds to AMBER triggers to test IQUV triggering (IAB).
-* real-time: Development of real-time processing.
 
 ### Overview
 DARC comprises several parts that communicate through either queues or sockets. The availability of different services depends on which branch is active.

@@ -112,7 +112,8 @@ class OfflineProcessing(threading.Thread):
         obs_config.update(self.config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -139,7 +140,8 @@ class OfflineProcessing(threading.Thread):
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -305,7 +307,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of skipped triggers
                     key = 'ntriggers_skipped'
                     if key not in keys:
-                        print "Error: key {} not found, skipping this file".format(key)
+                        print("Error: key {} not found, skipping this file".format(key))
                         break
                     val = h5[key][:]
                     out_data[key] += val
@@ -313,7 +315,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of clustered triggers
                     key = 'data_freq_time'
                     if key not in keys:
-                        print "Error: key {} not found, skipping remainer of this file".format(key)
+                        print("Error: key {} not found, skipping remainer of this file".format(key))
                         break
 
                     # check if there are any triggers
@@ -326,7 +328,7 @@ class OfflineProcessing(threading.Thread):
                     # load the datasets
                     for key in keys_data:
                         if key not in keys:
-                            print "Warning: key {} not found, skipping this dataset".format(key)
+                            print("Warning: key {} not found, skipping this dataset".format(key))
                             continue
                         out_data[key] += list(h5[key][:])
 
@@ -389,7 +391,11 @@ class OfflineProcessing(threading.Thread):
         try:
             # read dataset
             with h5py.File(kwargs.get('data_file'), 'r') as f:
-                ncand_skipped = int(f['ntriggers_skipped'][0])
+                try:
+                    ncand_skipped = int(f['ntriggers_skipped'][0])
+                except ValueError as e:
+                    self.logger.warning("Could not read ntriggers_skipped from {}: {}".format(kwargs.get('data_file'), e))
+                    ncand_skipped = -1
                 try:
                     tab = f['tab'][:]
                 except KeyError:

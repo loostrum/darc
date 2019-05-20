@@ -9,7 +9,7 @@ import socket
 
 from darc.definitions import *
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
 
 
 def send_command(timeout, service, command, payload=None, host='localhost'):
@@ -39,15 +39,15 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         logging.error("Failed to connect to DARC master: {}".format(e))
         return None
     # send message
-    master_socket.sendall(message)
+    master_socket.sendall(message.encode())
     logging.info("Command sent successfully")
+    reply = None
     # receive reply unless stop_all was sent
     if not command == 'stop_all':
         try:
-            reply = master_socket.recv(1024)
+            reply = master_socket.recv(1024).decode()
         except socket.timeout:
             logging.error("Did not receive reply before timeout")
-            reply = None
         else:
             try:
                 reply = ast.literal_eval(reply)
@@ -82,20 +82,22 @@ def main():
     parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
     parser.add_argument('--config', type=str, default=None, help="Node observation config")
 
-    parser.add_argument('cmd', type=str, help="Command to execute, available commands: {}".format(', '.join(commands)))
+    parser.add_argument('cmd', type=str, default=None, help="Command to execute, available commands: {}".format(', '.join(commands)))
     args = parser.parse_args()
 
     # Check arguments
-    if not args.cmd:
-        logging.error("Add command to execute, e.g. \"darc --service amber_listener --cmd status\"")
+    if not args.cmd and not args.parset:
+        logging.error("Add command to execute unless reading from parset or running start_observation, e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    elif not args.service and args.cmd not in ['stop_master', 'start_observation']:
-        logging.error("Argument --service is required unless calling stop_master or start_observation")
+    elif not args.service and args.cmd not in ['stop_master', 'start_observation', None]:
+        logging.error("Argument --service is required unless calling stop_master, start_observation, or reading from parset")
         sys.exit(1)
 
     # Get payload
     if args.parset:
         payload = args.parset
+        # explicitly set command
+        args.cmd = 'read_parset'
     elif args.config:
         payload = args.config
     else:

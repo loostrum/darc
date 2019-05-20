@@ -28,6 +28,10 @@ RUN mv /root/darc/docker/authorized_keys /root/.ssh/
 RUN mv /root/darc/docker/id_rsa /root/.ssh
 RUN chmod go-rwx /root/.ssh/id_rsa
 
+COPY . /root/darc/
+RUN mv /root/darc/docker/authorized_keys /root/.ssh/
+RUN mv /root/darc/docker/id_rsa /root/.ssh
+
 RUN pip3 install --upgrade pip
 RUN pip3 install /root/darc
 

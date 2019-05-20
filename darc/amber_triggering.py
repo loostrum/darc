@@ -15,6 +15,7 @@ import numpy as np
 
 from darc.definitions import *
 from darc.logger import get_logger
+from darc.external import tools
 
 
 class AMBERTriggeringException(Exception):
@@ -32,7 +33,8 @@ class AMBERTriggering(threading.Thread):
         self.stop_event = stop_event
 
         self.amber_queue = None
-        self.voevent_queue = None
+        #self.voevent_queue = None
+        self.cluster_queue = None
 
         self.hdr_mapping = {}
         self.start_time = None
@@ -67,15 +69,17 @@ class AMBERTriggering(threading.Thread):
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given target queue is not an instance of Queue')
             raise AMBERTriggeringException('Given target queue is not an instance of Queue')
-        self.voevent_queue = queue
+        #self.voevent_queue = queue
+        self.cluster_queue = queue
 
     def run(self):
         if not self.amber_queue:
             self.logger.error('AMBER trigger queue not set')
             raise AMBERTriggeringException('AMBER trigger queue not set')
-        if not self.voevent_queue:
-            self.logger.error('VOEvent queue not set')
-            raise AMBERTriggeringException('AMBER trigger queue not set')
+        #if not self.voevent_queue:
+        if not self.cluster_queue:
+            self.logger.error('Cluster queue not set')
+            raise AMBERTriggeringException('Cluster queue not set')
 
         self.logger.info("Starting AMBER triggering")
         while not self.stop_event.is_set():
@@ -143,32 +147,52 @@ class AMBERTriggering(threading.Thread):
             self.logger.error("First triggers received but header not found")
             return
 
-        # split strings
-        triggers = np.array(map(lambda val: val.split(), triggers), dtype=float)
 
-        self.logger.info("Applying thresholds")
+        # split strings
+        print(triggers)
+        triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
+
+        self.logger.info("Clustering")
+        triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'], self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
+
+        # ToDo: feed other obs parameters
+        cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(triggers_for_clustering, tab=triggers[:, self.hdr_mapping['beam_id']])
+        print("Clustering done")
+        print("Generating VO for highest S/N")
+        ind = np.argmax(cluster_snr)
+        voevent_trigger = {'dm': cluster_dm[ind], 'dm_err': 0,
+                          'width': cluster_downsamp[ind]*81.92E-3,
+                          'snr': cluster_snr[ind], 'flux': 0,
+                          'ra': 83.63322083333333, 'dec': 22.01446111111111,
+                          'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
+                          'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
+        self.logger.info("Putting trigger on voevent queue: {}".format(voevent_trigger))
+        #self.voevent_queue.put(voevent_trigger)
+        self.cluster_queue.put(voevent_trigger)
+
+
         # get age of triggers
-        age = time() - (triggers[:, self.hdr_mapping['time']] + self.start_time)
-        # do thresholding
-        dm_min = triggers[:, self.hdr_mapping['DM']] > self.dm_min
-        dm_max = triggers[:, self.hdr_mapping['DM']] < self.dm_max
-        snr_min = triggers[:, self.hdr_mapping['SNR']] > self.snr_min
-        age_max = age < self.age_max
-        good_triggers_mask = dm_min & dm_max & snr_min & age_max
-        self.logger.info("Found {} good triggers".format(np.sum(good_triggers_mask)))
-        if np.any(good_triggers_mask):
-            good_triggers = triggers[good_triggers_mask]
-            # find trigger with highest S/N
-            ind = np.argmax(good_triggers[:, self.hdr_mapping['SNR']])
-            trigger = good_triggers[ind]
-            # put trigger on queues
-            voevent_trigger = {'dm': trigger[self.hdr_mapping['DM']], 'dm_err': 0,
-                               'width': trigger[self.hdr_mapping['integration_step']]*81.92E-3,
-                               'snr': trigger[self.hdr_mapping['SNR']], 'flux': 0,
-                               'ra': 83.63322083333333, 'dec': 22.01446111111111,
-                               'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
-                               'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
-            self.logger.info("Putting trigger on voevent queue: {}".format(voevent_trigger))
-            self.voevent_queue.put(voevent_trigger)
-        else:
-            self.logger.info("No good triggers found")
+        #age = time() - (triggers[:, self.hdr_mapping['time']] + self.start_time)
+        ## do thresholding
+        #dm_min = triggers[:, self.hdr_mapping['DM']] > self.dm_min
+        #dm_max = triggers[:, self.hdr_mapping['DM']] < self.dm_max
+        #snr_min = triggers[:, self.hdr_mapping['SNR']] > self.snr_min
+        #age_max = age < self.age_max
+        #good_triggers_mask = dm_min & dm_max & snr_min & age_max
+        #self.logger.info("Found {} good triggers".format(np.sum(good_triggers_mask)))
+        #if np.any(good_triggers_mask):
+        #    good_triggers = triggers[good_triggers_mask]
+        #    # find trigger with highest S/N
+        #    ind = np.argmax(good_triggers[:, self.hdr_mapping['SNR']])
+        #    trigger = good_triggers[ind]
+        #    # put trigger on queues
+        #    voevent_trigger = {'dm': trigger[self.hdr_mapping['DM']], 'dm_err': 0,
+        #                       'width': trigger[self.hdr_mapping['integration_step']]*81.92E-3,
+        #                       'snr': trigger[self.hdr_mapping['SNR']], 'flux': 0,
+        #                       'ra': 83.63322083333333, 'dec': 22.01446111111111,
+        #                       'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
+        #                       'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
+        #    self.logger.info("Putting trigger on voevent queue: {}".format(voevent_trigger))
+        #    self.voevent_queue.put(voevent_trigger)
+        #else:
+        #    self.logger.info("No good triggers found")
