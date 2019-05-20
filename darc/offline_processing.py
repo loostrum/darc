@@ -88,7 +88,7 @@ class OfflineProcessing(threading.Thread):
             # add general config to obs config
             obs_config.update(self.config)
             # format result dir
-            obs_config['result_dir'] = os.path.join(self.result_dir, obsconfig['date'], obsconfig['datetimesource'])
+            obs_config['result_dir'] = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
             
             # start observation corresponding to host type
             if host_type == 'master':
@@ -116,7 +116,8 @@ class OfflineProcessing(threading.Thread):
         try:
             os.makedirs(obs_config['result_dir'])
         except Exception as e:
-            raise OfflineProcessingException("Failed to create result directory: {}".format(e)
+            self.logger.error("Failed to create results directory")
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
@@ -139,7 +140,8 @@ class OfflineProcessing(threading.Thread):
         try:
             os.makedirs(obs_config['result_dir'])
         except Exception as e:
-            raise OfflineProcessingException("Failed to create result directory: {}".format(e)
+            self.logger.error("Failed to create results directory")
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
         # TAB or IAB mode
         if obs_config['ntabs'] == 1:
