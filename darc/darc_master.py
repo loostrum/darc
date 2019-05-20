@@ -76,8 +76,7 @@ class DARCMaster(object):
         log_dir = os.path.dirname(self.log_file)
         try:
             util.makedirs(log_dir)
-        except exception as e:
-            self.logger.error("Cannot create log directory: {}".format(e))
+        except Exception as e:
             raise DARCMasterException("Cannot create log directory")
 
         # setup logger

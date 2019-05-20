@@ -17,7 +17,7 @@ def run_processing(**config):
     # ntabs 
     # mode (IAB/TAB)
     # output_dir (/data2/output/<date>/<datetimesource)
-    # endtime (UTC)
+    # startpacket
     # beam (CB)
     # amber_dir
     # duration
@@ -57,10 +57,12 @@ if __name__ == '__main__':
     amber_dir = os.path.join(output_dir, 'amber')
     result_dir = os.path.join(output_dir, 'results')
 
-    endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
+    duration = 300.032
+    startpacket = int((Time.now().unix - duration) * 781250)
+    #endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
 
     conf = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
             'output_dir': output_dir, 'duration': 300.032, 
-            'endtime': endtime, 'result_dir': result_dir}
+            'startpacket': startpacket, 'result_dir': result_dir}
 
     run_processing(**conf)

@@ -2,6 +2,7 @@
 #
 # utility functions
 
+import os
 import errno
 import datetime
 import time
@@ -45,6 +46,6 @@ def makedirs(path):
     except OSError as e:
         if e.errno == errno.EEXIST:
             pass
-        else
+        else:
             raise
 
