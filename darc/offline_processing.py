@@ -18,6 +18,8 @@ import socket
 import subprocess
 from shutil import copyfile
 import ast
+import random
+import string
 
 import h5py
 import numpy as np
@@ -40,7 +42,7 @@ class OfflineProcessing(threading.Thread):
         self.stop_event = stop_event
 
         self.observation_queue = None
-        self.threads = []
+        self.threads = {}
 
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
@@ -94,17 +96,24 @@ class OfflineProcessing(threading.Thread):
             raw_parset = obs_config['parset'].decode('hex').decode('bz2')
             # convert to dict
             obs_config['parset'] = util.parse_parset(raw_parset)
-            
+            # get taskid
+            try:
+                taskid = obs_config['parset']['task.taskID']
+            except Exception as e:
+                self.logger.warning("Cannot find task ID in parset - using random number thread")
+                # taskid length is 8
+                taskid = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
+
             # start observation corresponding to host type
             if host_type == 'master':
-                thread = threading.Thread(target=self._start_observation_master, args=[obs_config])
+                thread = threading.Thread(target=self._start_observation_master, args=[obs_config], name=taskid)
                 thread.daemon = True
-                self.threads.append(thread)
+                self.threads[taskid] = thread
                 thread.start()
             elif host_type == 'worker':
-                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config])
+                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config], name=taskid)
                 thread.daemon = True
-                self.threads.append(thread)
+                self.threads[taskid] = thread
                 thread.start()
             else:
                 self.logger.error("Unknown host type: {}".format(self.host_type))
@@ -123,6 +132,12 @@ class OfflineProcessing(threading.Thread):
         except Exception as e:
             self.logger.error("Failed to create results directory")
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
+
+        # create general info file
+        self._get_overview(obs_config)
+
+        # create coordinates file
+        self._get_coordinates(obs_config)
 
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
@@ -496,7 +511,7 @@ class OfflineProcessing(threading.Thread):
         """
         Generate the coordinates file from the pointing directions
         :param obs_config: Observation config
-        :return: dict with RA, Dec, gl, gb for each CB
+        #:return: dict with RA, Dec, gl, gb for each CB
         """
         parset = obs_config['parset']
         # check the reference frame
@@ -532,12 +547,36 @@ class OfflineProcessing(threading.Thread):
                 ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
                 dec = pointing.dec.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
                 gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-                coordinates[cb_str] = {'ra': ra, 'dec': dec, 'gl': gl, 'gb': gb}
-        return coordinates
+                coordinates[cb_str] = [ra, dec, gl, gb]
+
+        # save to result dir
+        with open(os.path.join(obs_config['result_dir'], 'coordinates.txt'), 'w') as f:
+            for cb, coords in coordinates.items():
+                line = "{} {} {} {} {}\n".format(cb, *coords)
+                f.write(line)
+        #return coordinates
+
+    def _get_overview(self, obs_config):
+        """
+        Generate observation overview file
+        :param obs_config: Observation config
+        """
+        # For now replicate old command
+        parset = obs_config['parset']
+        info_file = os.path.join(obs_config['result_dir'], 'info.yaml')
+        info = {}
+        info['utc_start'] = parset['task.startTime']
+        info['tobs'] = parset['task.duration']
+        info['source'] = parset['task.source.name']
+        info['ymw16'] = "{:.2d}".format(self._get_ymw16(obs_config))
+        info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
+        info['taskid'] = parset['task.taskID']
+        with open(info_file, 'w') as f:
+            yaml.dump(info, f, default_flow_style=False)
 
     def _get_ymw16(self, obs_config):
         """
-
+        Get YMW16 DM
         :param obs_config: Observation config
         :return: YMW16 DM
         """
