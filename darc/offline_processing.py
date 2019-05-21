@@ -230,6 +230,8 @@ class OfflineProcessing(threading.Thread):
         # empty lines, which can happen when there is superfluous carriage returns at the end of files.
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)
 
         # check number of triggers
         cmd = "grep -v \# {prefix}.trigger | wc -l".format(prefix=prefix)
