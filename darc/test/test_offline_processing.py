@@ -13,6 +13,7 @@ import yaml
 from astropy.time import Time
 
 from darc.offline_processing import OfflineProcessing
+from darc import util
 
 
 class TestOfflineProcessing(unittest.TestCase):
@@ -63,8 +64,8 @@ class TestOfflineProcessing(unittest.TestCase):
 
         # Create result dir (normally done in run method, but that is skipped)
         try:
-            os.makedirs(config['result_dir'])
-        except OSError as e:
+            util.makedirs(config['result_dir'])
+        except Exception as e:
             self.fail('Cannot create result dir {}: {}'.format(config['result_dir'], e))
         else:
             event = threading.Event()
