@@ -42,7 +42,7 @@ class TestAMBERClustering(unittest.TestCase):
 
         # load triggers to put on queue
         nline_to_check = 50
-        trigger_file = 'CB00_step1.trigger'
+        trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         # check the output is correct, i.e. equal to input
         line = 0 
         with open(trigger_file, 'r') as f:
@@ -96,7 +96,7 @@ class TestAMBERClustering(unittest.TestCase):
 
         # load triggers to put on queue
         nline_to_check = 50
-        trigger_file = 'CB00_step1.trigger'
+        trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         # check the output is correct, i.e. equal to input
         line = 0
         with open(trigger_file, 'r') as f:

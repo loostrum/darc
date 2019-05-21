@@ -6,7 +6,6 @@
 import sys
 import ast
 import yaml
-import errno
 import multiprocessing as mp
 import threading
 import socket
@@ -16,13 +15,8 @@ try:
     from importlib import reload
 except ImportError:
     pass
-# pyparameterset is only available on Apertif/LOFAR systems
-HAVE_PARSET=True
-try:
-    from lofar.parameterset import parameterset
-except ImportError:
-    HAVE_PARSET=False
 from darc.definitions import *
+from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
 import darc.amber_triggering
@@ -81,11 +75,9 @@ class DARCMaster(object):
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
         try:
-            os.makedirs(log_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                self.logger.error("Cannot create log directory: {}".format(e))
-                raise DARCMasterException("Cannot create log directory")
+            util.makedirs(log_dir)
+        except Exception as e:
+            raise DARCMasterException("Cannot create log directory")
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
@@ -205,15 +197,6 @@ class DARCMaster(object):
                 reply = {'error': 'Payload missing'}
             else:
                 status, reply = self.start_observation(payload)
-            return status, reply
-        # Read parset
-        elif command == 'read_parset':
-            if not payload:
-                self.logger.error('Payload is required when reading from parset')
-                status = 'Error'
-                reply = {'error': 'Payload missing'}
-            else:
-                status, reply = self.read_parset(payload)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -408,9 +391,9 @@ class DARCMaster(object):
         :param service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
-            module = self.service_mapping[service]
             # Force reimport
-            self._reload(module)
+            self._reload(service)
+            module = self.service_mapping[service]
             # Instantiate a new instance of the class
             self.threads[service] = module(self.events[service])
         else:
@@ -435,6 +418,10 @@ class DARCMaster(object):
         """
 
         self.logger.info("Starting observation with config file {}".format(config_file))
+        # check if config file exists
+        if not os.path.isfile(config_file):
+            self.logger.error("File not found: {}".format(config_file))
+            return "Error", "Failed: config file not found"
         # load config
         if config_file.endswith('.yaml'):
             config = self._load_yaml(config_file)
@@ -448,7 +435,6 @@ class DARCMaster(object):
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
         # start the observation
-        # for now use startpacket as unique ID. Should move to task ID when available
 
         # check if offline processing is running. If not, start it
         _, offline_processing_status = self.check_status('offline_processing')
@@ -481,55 +467,17 @@ class DARCMaster(object):
         reply = {'error': "Stop is not implemented yet"}
         return status, reply
 
-    def read_parset(self, parset):
-        """
-        Parse a parset and determine which command to run
-        :param parset: path to parset
-        :return: status (str), reply (dict)
-        """
-
-        status = 'Success'
-        reply = {}
-
-        config = self._load_parset(parset)
-
-        # read command type
-        try:
-            command_type = config['_control.command.type']
-        except KeyError:
-            self.logger.error("Cannot read command type from parset")
-            status = 'Error'
-            reply = {'error': 'Failed to parse parset'}
-            return status, reply
-
-        # decide which command to execute
-        if command_type == 'start_observation':
-            # start requires the full parset
-            status, reply = self.start_observation(parset)
-        elif command_type in ['stop_observation', 'abort_observation']:
-            # stop only needs the taskid
-            try:
-                taskid = config['task.taskID']
-            except KeyError:
-                self.logger.error("Cannot read task ID from parset")
-                status = 'Error'
-                reply = {'error': 'Failed to parse parset'}
-            else:
-                status, reply = self.stop_observation(taskid)
-                reply = "Stopping observation {}".format(taskid)
-        else:
-            self.logger.error("Unrecognised command type: {}".format(command_type))
-            status = 'Error'
-            reply = {'error': 'Failed to parse parset'}
-        return status, reply
-
     def _load_yaml(self, config_file):
         """
         Load yaml file and convert to observation config
         :param config_file: Path to yaml file
         :return: observation config dict
         """
-        self.logger.info("Loading yaml config")
+        self.logger.info("Loading yaml config {}".format(config_file))
+        if not os.path.isfile(config_file):
+            self.logger.error("Yaml file not found: {}".format(config_file))
+            return {}
+
         with open(config_file) as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)
         return config
@@ -540,14 +488,18 @@ class DARCMaster(object):
         :param config_file: Path to parset file
         :return: observation config dict
         """
-        if not HAVE_PARSET:
-            self.logger.error("Parset reader not available")
-            return {}
+        self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
             self.logger.error("Parset not found: {}".format(config_file))
-            return {}
-        ps = parameterset(config_file)
-        return ps.dict(removeQuotes=True)
+            # not parset - do not process this observation
+            return {'proctrigger': False}
+
+        # Read raw parset
+        with open(config_file) as f:
+            parset = f.read().strip()
+        # Convert to dict
+        config = util.parse_parset(parset)
+        return config
 
     def _reload(self, service):
         """
