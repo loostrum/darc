@@ -529,7 +529,6 @@ class OfflineProcessing(threading.Thread):
         # get the CB pointings
         coordinates = {}
         for cb in range(NUMCB):
-            cb_str = "{:02d}".format(cb)
             try:
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
@@ -538,21 +537,22 @@ class OfflineProcessing(threading.Thread):
                     start_time = Time(parset['task.startTime'])
                     lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
                     c1 = lst_start.to(u.deg).value - c1
-                pointing = SkyCoord(c1, c2, units=(u.deg, u.deg))
+                pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
                 self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
-                coordinates[cb_str] = None
+                coordinates[cb] = None
             else:
                 # get pretty strings
                 ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
-                dec = pointing.dec.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
+                dec = pointing.dec.to_string(unit=u.deg, sep=':', pad=True, precision=1)
                 gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-                coordinates[cb_str] = [ra, dec, gl, gb]
+                coordinates[cb] = [ra, dec, gl, gb]
 
         # save to result dir
         with open(os.path.join(obs_config['result_dir'], 'coordinates.txt'), 'w') as f:
-            for cb, coords in coordinates.items():
-                line = "{} {} {} {} {}\n".format(cb, *coords)
+            for cb in range(NUMCB):
+                coord = coordinates[cb]
+                line = "{:02d} {} {} {} {}\n".format(cb, *coord)
                 f.write(line)
         #return coordinates
 
@@ -568,7 +568,7 @@ class OfflineProcessing(threading.Thread):
         info['utc_start'] = parset['task.startTime']
         info['tobs'] = parset['task.duration']
         info['source'] = parset['task.source.name']
-        info['ymw16'] = "{:.2d}".format(self._get_ymw16(obs_config))
+        info['ymw16'] = "{:.2f}".format(self._get_ymw16(obs_config))
         info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
         info['taskid'] = parset['task.taskID']
         with open(info_file, 'w') as f:
@@ -594,7 +594,7 @@ class OfflineProcessing(threading.Thread):
             start_time = Time(parset['task.startTime'])
             lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
             c1 = lst_start.to(u.deg).value - c1
-        pointing = SkyCoord(c1, c2, units=(u.deg, u.deg))
+        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
 
         # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
         gl, gb = pointing.galactic.to_string(precision=8).split(' ')

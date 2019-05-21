@@ -5,7 +5,7 @@
 port=51000
 timeout=30
 
-wait () {
+wait_until_up () {
     port=51000
     while [ -z "$(netstat -tln | grep $port)" ]; do
         sleep 1
@@ -19,10 +19,14 @@ if ps ax | grep "[d]arc_service" > /dev/null; then
     echo "DARC master service online"
 else
     echo "DARC master service offline, starting"
-    nohup darc_service 2>&1 >/dev/null &
+    # log to actual log dir if it exists
+    if [ -d $HOME/darc/log ]; then
+        nohup darc_service 2>&1 >>$HOME/darc/log/darc_master.$(hostname).log &
+    else
+        nohup darc_service 2>&1 >/dev/null &
     # Wait until online 
     echo "Waiting for DARC master to be online"
-    timeout $timeout bash -c wait
+    timeout $timeout bash -c wait_until_up
     if [ $? -ne 0 ]; then
         echo "Failed to start DARC master - check logs"
     else
