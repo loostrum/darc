@@ -17,8 +17,8 @@ from darc.offline_processing import OfflineProcessing
 
 class TestOfflineProcessing(unittest.TestCase):
 
-    def __init__(self):
-        super(TestOfflineProcessing, self).__init__()
+    @staticmethod
+    def setup():
 
         output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
         amber_dir = os.path.join(output_dir, 'amber')
@@ -28,9 +28,10 @@ class TestOfflineProcessing(unittest.TestCase):
         startpacket = int((Time.now().unix - duration) * 781250)
         # endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
 
-        self.config = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
-                       'output_dir': output_dir, 'duration': 300.032,
-                       'startpacket': startpacket, 'result_dir': result_dir}
+        config = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
+                  'output_dir': output_dir, 'duration': 300.032,
+                  'startpacket': startpacket, 'result_dir': result_dir}
+        return config
 
     def test_worker_processing(self):
         # config for worker should contain:
@@ -43,41 +44,43 @@ class TestOfflineProcessing(unittest.TestCase):
         # duration
         # result_dir
 
+        config = self.setup()
+
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
         logger = logging.getLogger()
 
         # Create result dir (normally done in run method, but that is skipped)
         try:
-            os.makedirs(self.config['result_dir'])
+            os.makedirs(config['result_dir'])
         except OSError as e:
-            logger.error('Cannot create result dir {}: {}'.format(self.config['result_dir'], e))
-            sys.exit(1)
-
-        event = threading.Event()
-        proc = OfflineProcessing(event)
-        # override logger (first initalized message still goes to normal logger)
-        proc.logger = logger
-
-        # override config
-        proc.config['nfreq_plot'] = 32
-        proc.config['snrmin_processing'] = 10
-        proc.config['snrmin_processing_local'] = 5
-        proc.config['dmmin'] = 20
-        proc.config['dmmax'] = 5000
-        # Add offline processing config to obs config (normally done in run method, but that is skipped)
-        config = self.config.copy()
-        config.update(proc.config)
-
-        # start worker observation
-        try:
-            proc._start_observation_worker(config)
-            success = True
-        except Exception as e:
-            logger.error("Unhandled exception in offline processing: {}".format(e))
+            logger.error('Cannot create result dir {}: {}'.format(config['result_dir'], e))
             success = False
+        else:
+            event = threading.Event()
+            proc = OfflineProcessing(event)
+            # override logger (first initalized message still goes to normal logger)
+            proc.logger = logger
+
+            # override config
+            proc.config['nfreq_plot'] = 32
+            proc.config['snrmin_processing'] = 10
+            proc.config['snrmin_processing_local'] = 5
+            proc.config['dmmin'] = 20
+            proc.config['dmmax'] = 5000
+            # Add offline processing config to obs config (normally done in run method, but that is skipped)
+            config = config.copy()
+            config.update(proc.config)
+
+            # start worker observation
+            try:
+                proc._start_observation_worker(config)
+                success = True
+            except Exception as e:
+                logger.error("Unhandled exception in offline processing: {}".format(e))
+                success = False
 
         # remove the results dir
-        shutil.rmtree(self.config['result_dir'])
+        shutil.rmtree(config['result_dir'])
 
         self.assertTrue(success)
 
