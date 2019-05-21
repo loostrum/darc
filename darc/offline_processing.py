@@ -17,10 +17,12 @@ import threading
 import socket
 import subprocess
 from shutil import copyfile
+import ast
 
 import h5py
 import numpy as np
 from astropy.time import Time, TimeDelta
+from astropy.coordinates import SkyCoord
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -88,6 +90,10 @@ class OfflineProcessing(threading.Thread):
             obs_config.update(self.config)
             # format result dir
             obs_config['result_dir'] = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
+            # decode the parset
+            raw_parset = obs_config['parset'].decode('hex').decode('bz2')
+            # convert to dict
+            obs_config['parset'] = util.parse_parset(raw_parset)
             
             # start observation corresponding to host type
             if host_type == 'master':
@@ -485,3 +491,79 @@ class OfflineProcessing(threading.Thread):
             yaml.dump(summary, f, default_flow_style=False)
 
         return
+
+    def _get_coordinates(self, obs_config):
+        """
+        Generate the coordinates file from the pointing directions
+        :param obs_config: Observation config
+        :return: dict with RA, Dec, gl, gb for each CB
+        """
+        parset = obs_config['parset']
+        # check the reference frame
+        ref_frame = parset['task.directionReferenceFrame'].upper()
+        if ref_frame == 'J2000':
+            self.logger.info("Detected J2000 reference frame")
+            mode = 'RA'
+        elif ref_frame == 'HADEC':
+            self.logger.info("Detected HADEC reference frame")
+            mode = 'HA'
+        else:
+            self.logger.error("Unknown reference frame: {}. Assuming J2000 RA,Dec".format(ref_frame))
+            mode = 'RA'
+
+        # get the CB pointings
+        coordinates = {}
+        for cb in range(NUMCB):
+            cb_str = "{:02d}".format(cb)
+            try:
+                key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
+                c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+                if mode == 'HA':
+                    # RA = LST - HA. Get RA at the start of the observation
+                    start_time = Time(parset['task.startTime'])
+                    lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
+                    c1 = lst_start.to(u.deg).value - c1
+                pointing = SkyCoord(c1, c2, units=(u.deg, u.deg))
+            except Exception as e:
+                self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
+                coordinates[cb_str] = None
+            else:
+                # get pretty strings
+                ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
+                dec = pointing.dec.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
+                gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+                coordinates[cb_str] = {'ra': ra, 'dec': dec, 'gl': gl, 'gb': gb}
+        return coordinates
+
+    def _get_ymw16(self, obs_config):
+        """
+
+        :param obs_config: Observation config
+        :return: YMW16 DM
+        """
+        # get pointing of CB00
+        parset = obs_config['parset']
+        try:
+            key = "task.beamSet.0.compoundBeam.0.phaseCenter"
+            c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+        except Exception as e:
+            self.logger.error("Could not parse pointing for CB00, setting YMW16 DM to zero ({})".format(e))
+            return 0
+        # convert HA to RA if HADEC is used
+        if parset['task.directionReferenceFrame'].upper() == 'HADEC':
+            # RA = LST - HA. Get RA at the start of the observation
+            start_time = Time(parset['task.startTime'])
+            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
+            c1 = lst_start.to(u.deg).value - c1
+        pointing = SkyCoord(c1, c2, units=(u.deg, u.deg))
+
+        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
+        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
+        result = subprocess.check_output(cmd)
+        try:
+            dm = float(result.split()[7])
+        except Exception as e:
+            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
+            return 0
+        return dm
