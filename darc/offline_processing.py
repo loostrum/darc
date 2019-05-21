@@ -450,41 +450,42 @@ class OfflineProcessing(threading.Thread):
             fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
         except IndexError:
             self.logger.info("No classifier output file found")
-            fname_classifier = ''
-        try:
-            # read dataset
-            with h5py.File(fname_classifier, 'r') as f:
-                frb_index = f['frb_index'][:]
-                data_frb_candidate = f['data_frb_candidate'][:]
-                probability = f['probability'][:][frb_index]
-                params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
-                if tab is not None:
-                    tab = tab[frb_index]
-        except Exception as e:
-            self.logger.warning("Could not read classifier output file: {}".format(e))
             ncand_classifier = 0
-        # Process output
         else:
-            self.logger.info("Saving trigger metadata")
-            # convert widths to ms
-            params[:, 2] *= params[:, 4] * 1000
-            # number of canddiates
-            ncand_classifier = len(params)
-            # make one big matrix with candidates, removing the dt column
-            if tab is not None:
-                data = np.column_stack([params[:, :4], probability, tab])
+            try:
+                # read dataset
+                with h5py.File(fname_classifier, 'r') as f:
+                    frb_index = f['frb_index'][:]
+                    data_frb_candidate = f['data_frb_candidate'][:]
+                    probability = f['probability'][:][frb_index]
+                    params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
+                    if tab is not None:
+                        tab = tab[frb_index]
+            except Exception as e:
+                self.logger.warning("Could not read classifier output file: {}".format(e))
+                ncand_classifier = 0
+            # Process output
             else:
-                data = np.column_stack([params[:, :4], probability])
-            # sort by probability
-            data = data[data[:, -1].argsort()[::-1]]
-            # save to file in master output directory
-            fname = "{result_dir}/CB{beam:02d}_triggers.txt".format(**conf)
-            if tab is not None:
-                header = "SNR DM Width T0 p TAB"
-                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
-            else:
-                header = "SNR DM Width T0 p"
-                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f")
+                self.logger.info("Saving trigger metadata")
+                # convert widths to ms
+                params[:, 2] *= params[:, 4] * 1000
+                # number of canddiates
+                ncand_classifier = len(params)
+                # make one big matrix with candidates, removing the dt column
+                if tab is not None:
+                    data = np.column_stack([params[:, :4], probability, tab])
+                else:
+                    data = np.column_stack([params[:, :4], probability])
+                # sort by probability
+                data = data[data[:, -1].argsort()[::-1]]
+                # save to file in master output directory
+                fname = "{result_dir}/CB{beam:02d}_triggers.txt".format(**conf)
+                if tab is not None:
+                    header = "SNR DM Width T0 p TAB"
+                    np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
+                else:
+                    header = "SNR DM Width T0 p"
+                    np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f")
 
         # copy candidates file if it exists
         fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)

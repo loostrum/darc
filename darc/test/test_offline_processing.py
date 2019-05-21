@@ -7,6 +7,7 @@ import os
 import sys
 import logging
 import threading
+import shutil
 
 import numpy as np
 from astropy.time import Time
@@ -70,3 +71,6 @@ if __name__ == '__main__':
             'startpacket': startpacket, 'result_dir': result_dir}
 
     run_processing(**conf)
+
+    # remove the results dir
+    shutil.remtree(result_dir)
