@@ -418,6 +418,10 @@ class DARCMaster(object):
         """
 
         self.logger.info("Starting observation with config file {}".format(config_file))
+        # check if config file exists
+        if not os.path.isfile(config_file):
+            self.logger.error("File not found: {}".format(config_file))
+            return "Error", "Failed: config file not found"
         # load config
         if config_file.endswith('.yaml'):
             config = self._load_yaml(config_file)
