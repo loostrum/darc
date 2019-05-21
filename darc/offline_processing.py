@@ -92,13 +92,9 @@ class OfflineProcessing(threading.Thread):
             obs_config.update(self.config)
             # format result dir
             obs_config['result_dir'] = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
-            # decode the parset
-            raw_parset = obs_config['parset'].decode('hex').decode('bz2')
-            # convert to dict
-            obs_config['parset'] = util.parse_parset(raw_parset)
             # get taskid
             try:
-                taskid = obs_config['parset']['task.taskID']
+                taskid = obs_config['taskid']
             except Exception as e:
                 self.logger.warning("Cannot find task ID in parset - using random number thread")
                 # taskid length is 8
@@ -132,6 +128,11 @@ class OfflineProcessing(threading.Thread):
         except Exception as e:
             self.logger.error("Failed to create results directory")
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
+
+        # decode the parset
+        raw_parset = obs_config['parset'].decode('hex').decode('bz2')
+        # convert to dict
+        obs_config['parset'] = util.parse_parset(raw_parset)
 
         # create general info file
         self._get_overview(obs_config)
