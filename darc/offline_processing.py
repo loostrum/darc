@@ -437,7 +437,8 @@ class OfflineProcessing(threading.Thread):
                     ncand_skipped = -1
                 try:
                     tab = f['tab'][:]
-                except KeyError:
+                except Exception as e:
+                    self.logger.warning("Could not read TAB column from {}: {}".format(kwargs.get('data_file'), e))
                     tab = None
         except IOError as e:
             # success = False

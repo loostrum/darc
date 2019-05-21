@@ -37,6 +37,7 @@ def sleepuntil_utc(end_time, event=None):
 
     return
 
+
 def makedirs(path):
     """
     Mimic os.makedirs, but do not error when directory already exists
@@ -49,6 +50,7 @@ def makedirs(path):
             pass
         else:
             raise
+
 
 def parse_parset(parset_str):
     """

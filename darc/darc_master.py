@@ -496,7 +496,7 @@ class DARCMaster(object):
 
         # Read raw parset
         with open(config_file) as f:
-            parset = f.read()
+            parset = f.read().strip()
         # Convert to dict
         config = util.parse_parset(parset)
         return config
