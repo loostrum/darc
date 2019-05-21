@@ -305,17 +305,9 @@ class DARCMaster(object):
         self.logger.info("Starting service: {}".format(service))
         # check if already running
         if thread.isAlive():
-            if thread.exitcode is not None:
-                # was running but stopped
-                thread.join()
-                self.logger.info("Creating new thread for service {}".format(service))
-                self.create_thread(service)
-                thread = self.threads[service]
-            else:
-                # already running
-                status = 'Success'
-                reply = "Service already running: {}".format(service)
-                self.logger.warning(status)
+            status = 'Success'
+            reply = "Service already running: {}".format(service)
+            self.logger.warning(status)
         else:
             # set queues
             if source_queue:
