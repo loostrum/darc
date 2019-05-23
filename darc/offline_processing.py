@@ -142,7 +142,7 @@ class OfflineProcessing(threading.Thread):
 
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -174,7 +174,7 @@ class OfflineProcessing(threading.Thread):
 
         # wait until end time + 10s
         #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        start_processing_time = Time(obs_config['startpacket']/782150., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
