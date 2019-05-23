@@ -190,6 +190,13 @@ class OfflineProcessing(threading.Thread):
             os.chdir(trigger_dir)
         except Exception as e:
             self.logger.error("Failed to cd to triggers directory {}: {}".format(trigger_dir, e))
+        # create subdir
+        try:
+            util.makedirs('data')
+        except Exception as e:
+            self.logger.error("Failed to create triggers/data directory")
+            raise OfflineProcessingException("Failed to create triggers/data directory: {}".format(e))
+        
 
         # merge the trigger files
         self.logger.info("Merging raw trigger files")
