@@ -23,6 +23,7 @@ import darc.amber_triggering
 import darc.voevent_generator
 import darc.status_website
 import darc.offline_processing
+import darc.dada_trigger
 
 
 class DARCMasterException(Exception):
@@ -44,6 +45,7 @@ class DARCMaster(object):
         self.amber_listener_queue = mp.Queue()
         self.voevent_queue = mp.Queue()
         self.processing_queue = mp.Queue()
+        self.dadatrigger_queue = mp.Queue()
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -70,7 +72,8 @@ class DARCMaster(object):
                                 'status_website': darc.status_website.StatusWebsite,
                                 'amber_listener': darc.amber_listener.AMBERListener,
                                 'amber_triggering': darc.amber_triggering.AMBERTriggering,
-                                'offline_processing': darc.offline_processing.OfflineProcessing}
+                                'offline_processing': darc.offline_processing.OfflineProcessing,
+                                'dada_trigger': darc.dada_trigger.DADATRigger}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -281,6 +284,9 @@ class DARCMaster(object):
             target_queue = None
         elif service == 'offline_processing':
             source_queue = self.processing_queue
+            target_queue = None
+        elif service == 'dada_trigger':
+            source_queue = self.dadatrigger_queue
             target_queue = None
         else:
             self.logger.error('Unknown service: {}'.format(service))
@@ -517,6 +523,8 @@ class DARCMaster(object):
             reload(darc.status_website)
         elif service == 'offline_processing':
             reload(darc.offline_processing)
+        elif service == 'dada_trigger':
+            reload(darc.dada_trigge)
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 
