@@ -4,11 +4,13 @@
 # 
 # 
 import os
+import sys
 import logging
 import threading
 import shutil
 import unittest
 import yaml
+import socket
 
 from astropy.time import Time
 
@@ -18,8 +20,9 @@ from darc import util
 
 class TestOfflineProcessing(unittest.TestCase):
 
-    @staticmethod
-    def setup():
+    def setUp(self):
+        if socket.gethostname() != 'arts041':
+            self.skipTest("Can only run offline processing tests on arts041")
 
         output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
         amber_dir = os.path.join(output_dir, 'amber')
@@ -32,7 +35,7 @@ class TestOfflineProcessing(unittest.TestCase):
         config = {'ntabs': 12, 'beam': 0, 'mode': 'TAB', 'amber_dir': amber_dir,
                   'output_dir': output_dir, 'duration': 300.032,
                   'startpacket': startpacket, 'result_dir': result_dir}
-        return config
+        self.config = config
 
     def test_worker_processing(self):
         # config for worker should contain:
@@ -44,8 +47,6 @@ class TestOfflineProcessing(unittest.TestCase):
         # amber_dir
         # duration
         # result_dir
-
-        config = self.setup()
 
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
         logger = logging.getLogger()
@@ -64,9 +65,9 @@ class TestOfflineProcessing(unittest.TestCase):
 
         # Create result dir (normally done in run method, but that is skipped)
         try:
-            util.makedirs(config['result_dir'])
+            util.makedirs(self.config['result_dir'])
         except Exception as e:
-            self.fail('Cannot create result dir {}: {}'.format(config['result_dir'], e))
+            self.fail('Cannot create result dir {}: {}'.format(self.config['result_dir'], e))
         else:
             event = threading.Event()
             proc = OfflineProcessing(event)
@@ -81,7 +82,7 @@ class TestOfflineProcessing(unittest.TestCase):
             proc.config['dmmax'] = 5000
             # Add offline processing config to obs config (normally done in run method, but that is skipped)
             fullconfig = proc.config.copy()
-            fullconfig.update(config)
+            fullconfig.update(self.config)
 
             # run worker observation
             try:
@@ -91,19 +92,20 @@ class TestOfflineProcessing(unittest.TestCase):
 
         # check if output files exist
         for fname in [fname_yaml, fname_txt, fname_pdf]:
-            self.assertTrue(os.path.isfile(os.path.join(config['result_dir'], fname)))
+            self.assertTrue(os.path.isfile(os.path.join(self.config['result_dir'], fname)))
 
         # for the yaml and txt, verify the content
-        with open(os.path.join(config['result_dir'], fname_yaml)) as f:
+        with open(os.path.join(self.config['result_dir'], fname_yaml)) as f:
             output_yaml = yaml.load(f, Loader=yaml.SafeLoader)
         self.assertDictEqual(expected_output_yaml, output_yaml)
 
-        with open(os.path.join(config['result_dir'], fname_txt)) as f:
+        with open(os.path.join(self.config['result_dir'], fname_txt)) as f:
             output_txt = f.read().strip().split()
         self.assertListEqual(expected_output_txt, output_txt)
 
-        # remove the results dir
-        shutil.rmtree(config['result_dir'], ignore_errors=True)
+    def tearDown(self):
+        # remove the results dir if it exists
+        shutil.rmtree(self.config['result_dir'], ignore_errors=True)
 
 
 if __name__ == '__main__':
