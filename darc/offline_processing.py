@@ -547,12 +547,14 @@ class OfflineProcessing(threading.Thread):
                 if mode == 'HA':
                     # RA = LST - HA. Get RA at the start of the observation
                     start_time = Time(parset['task.startTime'])
+                    # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
+                    start_time.delta_ut1_utc = 0
                     lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
                     c1 = lst_start.to(u.deg).value - c1
                 pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
                 self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
-                coordinates[cb] = None
+                coordinates[cb] = [0, 0, 0, 0]
             else:
                 # get pretty strings
                 ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
@@ -604,6 +606,8 @@ class OfflineProcessing(threading.Thread):
         if parset['task.directionReferenceFrame'].upper() == 'HADEC':
             # RA = LST - HA. Get RA at the start of the observation
             start_time = Time(parset['task.startTime'])
+            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
+            start_time.delta_ut1_utc = 0
             lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
             c1 = lst_start.to(u.deg).value - c1
         pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
