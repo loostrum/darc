@@ -143,7 +143,7 @@ class TestDADATrigger(unittest.TestCase):
             received = False
             while not received:
                 try:
-                    out_event = client.recv(1024)
+                    out_event = client.recv(1024).decode()
                     received = True
                 except socket.error as e:
                     if e.errno == errno.EAGAIN:
@@ -151,7 +151,7 @@ class TestDADATrigger(unittest.TestCase):
                     else:
                         raise
         else:
-            out_event = client.recv(1024)
+            out_event = client.recv(1024).decode()
         # close the socket
         sock.close()
 
