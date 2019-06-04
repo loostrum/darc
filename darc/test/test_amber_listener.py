@@ -32,7 +32,7 @@ class TestAMBERListener(unittest.TestCase):
         listener.start()
         # send triggers to network port (ToDo: implement sending in python)
         nline_to_send = 50
-        trigger_file = 'CB00_step1.trigger'
+        trigger_file  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         cmd = "head -n {} {} | nc localhost {}".format(nline_to_send, trigger_file, listener.port)
         os.system(cmd)
         # check they arrived at output queue

@@ -8,7 +8,6 @@ import sys
 import ast
 import glob
 import yaml
-import errno
 import multiprocessing as mp
 try:
     from queue import Empty
@@ -18,10 +17,14 @@ import threading
 import socket
 import subprocess
 from shutil import copyfile
+import ast
+import random
+import string
 
 import h5py
 import numpy as np
 from astropy.time import Time, TimeDelta
+from astropy.coordinates import SkyCoord
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -39,7 +42,7 @@ class OfflineProcessing(threading.Thread):
         self.stop_event = stop_event
 
         self.observation_queue = None
-        self.threads = []
+        self.threads = {}
 
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
@@ -74,7 +77,6 @@ class OfflineProcessing(threading.Thread):
         if not self.observation_queue:
             self.logger.error('Observation queue not set')
             raise OfflineProcessingException('Observation queue not set')
-
         self.logger.info("Starting Offline Processing")
         data = None
         while not self.stop_event.is_set():
@@ -83,19 +85,31 @@ class OfflineProcessing(threading.Thread):
             except Empty:
                 continue
 
-            # start observation in thread
+            # load observation config
             host_type = data['host_type']
             obs_config = data['obs_config']
-            
+            # add general config to obs config
+            obs_config.update(self.config)
+            # format result dir
+            obs_config['result_dir'] = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
+            # get taskid
+            try:
+                taskid = obs_config['taskid']
+            except Exception as e:
+                self.logger.warning("Cannot find task ID in parset - using random number thread")
+                # taskid length is 8
+                taskid = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
+
+            # start observation corresponding to host type
             if host_type == 'master':
-                thread = threading.Thread(target=self._start_observation_master, args=[obs_config])
+                thread = threading.Thread(target=self._start_observation_master, args=[obs_config], name=taskid)
                 thread.daemon = True
-                self.threads.append(thread)
+                self.threads[taskid] = thread
                 thread.start()
             elif host_type == 'worker':
-                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config])
+                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config], name=taskid)
                 thread.daemon = True
-                self.threads.append(thread)
+                self.threads[taskid] = thread
                 thread.start()
             else:
                 self.logger.error("Unknown host type: {}".format(self.host_type))
@@ -108,15 +122,31 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         """
         self.logger.info("Starting observation on master node")
-        # Add general config to obs config
-        obs_config.update(self.config)
+        # create result dir
+        try:
+            util.makedirs(obs_config['result_dir'])
+        except Exception as e:
+            self.logger.error("Failed to create results directory")
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e))
+
+        # decode the parset
+        raw_parset = obs_config['parset'].decode('hex').decode('bz2')
+        # convert to dict
+        obs_config['parset'] = util.parse_parset(raw_parset)
+
+        # create general info file
+        self._get_overview(obs_config)
+
+        # create coordinates file
+        self._get_coordinates(obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        self.logger.info("Sleeping until {}".format(start_processing_time))
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        cmd = "python {emailer} {master_dir} '{beams}' {ntabs}".format(**obs_config)
+        cmd = "python {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -127,8 +157,12 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         """
         self.logger.info("Starting observation on worker node")
-        # Add general config to obs config
-        obs_config.update(self.config)
+        # create result dir
+        try:
+            util.makedirs(obs_config['result_dir'])
+        except Exception as e:
+            self.logger.error("Failed to create results directory")
+            raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
         # TAB or IAB mode
         if obs_config['ntabs'] == 1:
@@ -139,16 +173,30 @@ class OfflineProcessing(threading.Thread):
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        self.logger.info("Sleeping until {}".format(start_processing_time))
+        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
+        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        # change to trigger directory
+        # create trigger directory
         trigger_dir = "{output_dir}/triggers".format(**obs_config)
+        try:
+            util.makedirs(trigger_dir)
+        except Exception as e:
+            self.logger.error("Failed to create triggers directory")
+            raise OfflineProcessingException("Failed to create triggers directory: {}".format(e))
+        # change to trigger directory
         try:
             os.chdir(trigger_dir)
         except Exception as e:
-            self.logger.error("Failed to cd to trigger directory {}: {}".format(trigger_dir, e))
+            self.logger.error("Failed to cd to triggers directory {}: {}".format(trigger_dir, e))
+        # create subdir
+        try:
+            util.makedirs('data')
+        except Exception as e:
+            self.logger.error("Failed to create triggers/data directory")
+            raise OfflineProcessingException("Failed to create triggers/data directory: {}".format(e))
+        
 
         # merge the trigger files
         self.logger.info("Merging raw trigger files")
@@ -228,6 +276,8 @@ class OfflineProcessing(threading.Thread):
         # empty lines, which can happen when there is superfluous carriage returns at the end of files.
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)
 
         # check number of triggers
         cmd = "grep -v \# {prefix}.trigger | wc -l".format(prefix=prefix)
@@ -305,7 +355,7 @@ class OfflineProcessing(threading.Thread):
                     # check number of skipped triggers
                     key = 'ntriggers_skipped'
                     if key not in keys:
-                        print("Error: key {} not found, skipping this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping HDF5 file {}".format(key, data_file))
                         break
                     val = h5[key][:]
                     out_data[key] += val
@@ -313,25 +363,25 @@ class OfflineProcessing(threading.Thread):
                     # check number of clustered triggers
                     key = 'data_freq_time'
                     if key not in keys:
-                        print("Error: key {} not found, skipping remainer of this file".format(key))
+                        self.logger.error("Error: key {} not found, skipping HDF5 file {}".format(key, data_file))
                         break
 
                     # check if there are any triggers
                     val = len(h5[key][:])
                     ntrigger += val
                     if val == 0:
-                        self.logger.info("No triggers found in {}".format(data_file))
+                        self.logger.info("No triggers found in HDF5 file {}".format(data_file))
                         continue
 
                     # load the datasets
                     for key in keys_data:
                         if key not in keys:
-                            print("Warning: key {} not found, skipping this dataset".format(key))
+                            self.logger.error("Warning: key {} not found, skipping HDF5 file {}".format(key, data_file))
                             continue
                         out_data[key] += list(h5[key][:])
 
             except IOError as e:
-                self.logger.error("Failed to load hdf5 file {}: {}".format(data_file, e))
+                self.logger.error("Failed to load HDF5 file {}: {}".format(data_file, e))
                 continue
 
         # create the output data file
@@ -340,7 +390,7 @@ class OfflineProcessing(threading.Thread):
                 for key in keys_all:
                     out.create_dataset(key, data=out_data[key])
         except IOError as e:
-            self.logger.error("Failed to create output hdf5 file {}: {}".format(output_file, e))
+            self.logger.error("Failed to create output HDF5 file {}: {}".format(output_file, e))
         return ntrigger
 
     def _classify(self, obs_config, input_file):
@@ -396,7 +446,8 @@ class OfflineProcessing(threading.Thread):
                     ncand_skipped = -1
                 try:
                     tab = f['tab'][:]
-                except KeyError:
+                except Exception as e:
+                    self.logger.warning("Could not read TAB column from {}: {}".format(kwargs.get('data_file'), e))
                     tab = None
         except IOError as e:
             # success = False
@@ -409,47 +460,48 @@ class OfflineProcessing(threading.Thread):
             fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
         except IndexError:
             self.logger.info("No classifier output file found")
-            fname_classifier = ''
-        try:
-            # read dataset
-            with h5py.File(fname_classifier, 'r') as f:
-                frb_index = f['frb_index'][:]
-                data_frb_candidate = f['data_frb_candidate'][:]
-                probability = f['probability'][:][frb_index]
-                params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
-                if tab is not None:
-                    tab = tab[frb_index]
-        except Exception as e:
-            self.logger.warning("Could not read classifier output file: {}".format(e))
             ncand_classifier = 0
-        # Process output
         else:
-            self.logger.info("Saving trigger metadata")
-            # convert widths to ms
-            params[:, 2] *= params[:, 4] * 1000
-            # number of canddiates
-            ncand_classifier = len(params)
-            # make one big matrix with candidates, removing the dt column
-            if tab is not None:
-                data = np.column_stack([params[:, :4], probability, tab])
+            try:
+                # read dataset
+                with h5py.File(fname_classifier, 'r') as f:
+                    frb_index = f['frb_index'][:]
+                    data_frb_candidate = f['data_frb_candidate'][:]
+                    probability = f['probability'][:][frb_index]
+                    params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
+                    if tab is not None:
+                        tab = tab[frb_index]
+            except Exception as e:
+                self.logger.warning("Could not read classifier output file: {}".format(e))
+                ncand_classifier = 0
+            # Process output
             else:
-                data = np.column_stack([params[:, :4], probability])
-            # sort by probability
-            data = data[data[:, -1].argsort()[::-1]]
-            # save to file in master output directory
-            fname = "{master_dir}/CB{beam:02d}_triggers.txt".format(**conf)
-            if tab is not None:
-                header = "SNR DM Width T0 p TAB"
-                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
-            else:
-                header = "SNR DM Width T0 p"
-                np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f")
+                self.logger.info("Saving trigger metadata")
+                # convert widths to ms
+                params[:, 2] *= params[:, 4] * 1000
+                # number of canddiates
+                ncand_classifier = len(params)
+                # make one big matrix with candidates, removing the dt column
+                if tab is not None:
+                    data = np.column_stack([params[:, :4], probability, tab])
+                else:
+                    data = np.column_stack([params[:, :4], probability])
+                # sort by probability
+                data = data[data[:, -1].argsort()[::-1]]
+                # save to file in master output directory
+                fname = "{result_dir}/CB{beam:02d}_triggers.txt".format(**conf)
+                if tab is not None:
+                    header = "SNR DM Width T0 p TAB"
+                    np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
+                else:
+                    header = "SNR DM Width T0 p"
+                    np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f")
 
         # copy candidates file if it exists
         fname = "{output_dir}/triggers/candidates_summary.pdf".format(**conf)
         if os.path.isfile(fname):
             self.logger.info("Saving candidate pdf")
-            copyfile(fname, "{master_dir}/CB{beam:02d}_candidates_summary.pdf".format(**conf))
+            copyfile(fname, "{result_dir}/CB{beam:02d}_candidates_summary.pdf".format(**conf))
         else:
             self.logger.info("No candidate pdf found")
 
@@ -461,8 +513,112 @@ class OfflineProcessing(threading.Thread):
         summary['ncand_skipped'] = ncand_skipped
         summary['ncand_abovethresh'] = kwargs.get('numcand_grouped') - ncand_skipped
         summary['ncand_classifier'] = ncand_classifier
-        fname = "{master_dir}/CB{beam:02d}_summary.yaml".format(**conf)
+        fname = "{result_dir}/CB{beam:02d}_summary.yaml".format(**conf)
         with open(fname, 'w') as f:
             yaml.dump(summary, f, default_flow_style=False)
 
         return
+
+    def _get_coordinates(self, obs_config):
+        """
+        Generate the coordinates file from the pointing directions
+        :param obs_config: Observation config
+        #:return: dict with RA, Dec, gl, gb for each CB
+        """
+        parset = obs_config['parset']
+        # check the reference frame
+        ref_frame = parset['task.directionReferenceFrame'].upper()
+        if ref_frame == 'J2000':
+            self.logger.info("Detected J2000 reference frame")
+            mode = 'RA'
+        elif ref_frame == 'HADEC':
+            self.logger.info("Detected HADEC reference frame")
+            mode = 'HA'
+        else:
+            self.logger.error("Unknown reference frame: {}. Assuming J2000 RA,Dec".format(ref_frame))
+            mode = 'RA'
+
+        # get the CB pointings
+        coordinates = {}
+        for cb in range(NUMCB):
+            try:
+                key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
+                c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+                if mode == 'HA':
+                    # RA = LST - HA. Get RA at the start of the observation
+                    start_time = Time(parset['task.startTime'])
+                    # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
+                    start_time.delta_ut1_utc = 0
+                    lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
+                    c1 = lst_start.to(u.deg).value - c1
+                pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+            except Exception as e:
+                self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
+                coordinates[cb] = [0, 0, 0, 0]
+            else:
+                # get pretty strings
+                ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
+                dec = pointing.dec.to_string(unit=u.deg, sep=':', pad=True, precision=1)
+                gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+                coordinates[cb] = [ra, dec, gl, gb]
+
+        # save to result dir
+        with open(os.path.join(obs_config['result_dir'], 'coordinates.txt'), 'w') as f:
+            for cb in range(NUMCB):
+                coord = coordinates[cb]
+                line = "{:02d} {} {} {} {}\n".format(cb, *coord)
+                f.write(line)
+        #return coordinates
+
+    def _get_overview(self, obs_config):
+        """
+        Generate observation overview file
+        :param obs_config: Observation config
+        """
+        # For now replicate old command
+        parset = obs_config['parset']
+        info_file = os.path.join(obs_config['result_dir'], 'info.yaml')
+        info = {}
+        info['utc_start'] = parset['task.startTime']
+        info['tobs'] = parset['task.duration']
+        info['source'] = parset['task.source.name']
+        info['ymw16'] = "{:.2f}".format(self._get_ymw16(obs_config))
+        info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
+        info['taskid'] = parset['task.taskID']
+        with open(info_file, 'w') as f:
+            yaml.dump(info, f, default_flow_style=False)
+
+    def _get_ymw16(self, obs_config):
+        """
+        Get YMW16 DM
+        :param obs_config: Observation config
+        :return: YMW16 DM
+        """
+        # get pointing of CB00
+        parset = obs_config['parset']
+        try:
+            key = "task.beamSet.0.compoundBeam.0.phaseCenter"
+            c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+        except Exception as e:
+            self.logger.error("Could not parse pointing for CB00, setting YMW16 DM to zero ({})".format(e))
+            return 0
+        # convert HA to RA if HADEC is used
+        if parset['task.directionReferenceFrame'].upper() == 'HADEC':
+            # RA = LST - HA. Get RA at the start of the observation
+            start_time = Time(parset['task.startTime'])
+            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
+            start_time.delta_ut1_utc = 0
+            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
+            c1 = lst_start.to(u.deg).value - c1
+        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+
+        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
+        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
+        result = subprocess.check_output(cmd)
+        try:
+            dm = float(result.split()[7])
+        except Exception as e:
+            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
+            return 0
+        return dm
