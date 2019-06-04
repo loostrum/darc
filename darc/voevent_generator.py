@@ -2,7 +2,6 @@
 #
 # VOEvent Generator
 
-import errno
 import yaml
 import multiprocessing as mp
 try:
@@ -20,6 +19,7 @@ import pytz
 from xml.dom import minidom
 
 from darc.definitions import *
+from darc import util
 from darc.logger import get_logger
 
 
@@ -53,11 +53,10 @@ class VOEventGenerator(threading.Thread):
 
         # create and cd to voevent directory
         try:
-            os.makedirs(self.voevent_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                self.logger.error("Cannot create voevent directory:, {}".format(e))
-                raise VOEventGeneratorException("Cannot create voevent directory")
+            util.makedirs(self.voevent_dir)
+        except Exception as e:
+            self.logger.error("Cannot create voevent directory: {}".format(e))
+            raise VOEventGeneratorException("Cannot create voevent directory")
         os.chdir(self.voevent_dir)
 
         self.logger.info("VOEvent Generator initialized")

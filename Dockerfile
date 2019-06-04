@@ -21,18 +21,11 @@ RUN cd /root/$BRANCH && mkdir -p $BUILDDIR && cd $BUILDDIR && \
         cmake -DBUILD_PACKAGES=ARTSCLUSTER ../../ && make -j && make install && \
         ln -s $(pwd)/installed /opt/apertif
 
-# Install DARC
+# Install ssh keys and DARC
 COPY . /root/darc/
-RUN mkdir /root/.ssh
-RUN mv /root/darc/docker/authorized_keys /root/.ssh/
-RUN mv /root/darc/docker/id_rsa /root/.ssh
-RUN chmod go-rwx /root/.ssh/id_rsa
+RUN mkdir /root/.ssh &&  mv /root/darc/docker/authorized_keys /root/.ssh/ &&  mv /root/darc/docker/id_rsa /root/.ssh && chmod go-rwx /root/.ssh/id_rsa
 
 COPY . /root/darc/
-RUN mv /root/darc/docker/authorized_keys /root/.ssh/
-RUN mv /root/darc/docker/id_rsa /root/.ssh
-
-RUN pip3 install --upgrade pip
-RUN pip3 install /root/darc
+RUN pip3 install --upgrade pip; pip3 install /root/darc
 
 ENTRYPOINT ["/root/darc/docker/entrypoint.sh"]

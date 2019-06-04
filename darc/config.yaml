@@ -23,6 +23,7 @@ status_website:
         amber_listener: "AMBER listener"
         amber_triggering: "AMBER triggering"
         offline_processing: "Offline processing"
+        dada_trigger: "DADA triggering"
 
 # AMBER trigger listener
 amber_listener:
@@ -60,9 +61,16 @@ voevent_generator:
     broker_host: "arts041.apertif"
     broker_port: 8098
 
+# DADA triggers
+dada_trigger:
+    log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
+    window_size_i: 10.24
+    window_size_iquv: 10.24
+
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    result_dir: "{home}/observations/results/"
     interval: 10
     timeout: 10
     pthresh: 0.5

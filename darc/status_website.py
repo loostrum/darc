@@ -2,7 +2,6 @@
 #
 # Website 
 
-import errno
 import yaml
 import threading
 import socket
@@ -10,6 +9,7 @@ from textwrap import dedent
 from astropy.time import Time
 
 from darc.definitions import *
+from darc import util
 from darc.logger import get_logger
 from darc.control import send_command
 
@@ -52,11 +52,10 @@ class StatusWebsite(threading.Thread):
 
         # create website directory
         try:
-            os.makedirs(self.web_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                self.logger.error("Failed to create website directory: {}".format(e))
-                raise StatusWebsiteException("Failed to create website directory: {}".format(e))
+            util.makedirs(self.web_dir)
+        except Exception as e:
+            self.logger.error("Failed to create website directory: {}".format(e))
+            raise StatusWebsiteException("Failed to create website directory: {}".format(e))
 
     def run(self):
         """
