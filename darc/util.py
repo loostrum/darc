@@ -93,7 +93,6 @@ def tail(f, event, interval=.1):
     while not event.is_set():
         line = f.readline()
         if line:
-            print "Found line"
             yield line
         else:
             # no more lines, start the tail
