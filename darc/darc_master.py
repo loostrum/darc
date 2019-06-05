@@ -62,9 +62,15 @@ class DARCMaster(object):
         self.hostname = socket.gethostname()
         # store services
         if self.hostname == MASTER:
-            self.services = self.services_master
+            if self.real_time:
+                self.services = self.services_master_rt
+            else:
+                self.service = self.service_master_off
         elif self.hostname in WORKERS:
-            self.services = self.services_worker
+            if self.real_time:
+                self.services = self.services_worker_rt
+            else:
+                self.services = self.services_worker_off
         else:
             self.services = []
         # service to class mapper
@@ -459,8 +465,12 @@ class DARCMaster(object):
             return "Error", "Failed: running on unknown host"
 
         command['obs_config'] = config
-        self.processing_queue.put(command)
-        return "Success", "Observation started for offline processing"
+        if self.real_time:
+            pass
+            return "Success", "Observation started for real-time processing"
+        else:
+            self.processing_queue.put(command)
+            return "Success", "Observation started for offline processing"
 
     def stop_observation(self, taskid):
         """

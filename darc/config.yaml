@@ -4,8 +4,11 @@ darc_master:
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    services_master: ["offline_processing", "status_website"]
-    services_worker: ["offline_processing"]
+    real_time: True
+    services_master_rt: ["status_website", "voevent_generator"]
+    services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger"]
+    services_master_off: ["offline_processing", "status_website"]
+    services_worker_off: ["offline_processing"]
     commands: ['start_observation', 'stop_observation', 'abort_observation', 'status', 'start', 'stop', 'restart', 'stop_master']
 
 # Status website
