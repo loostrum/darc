@@ -145,6 +145,7 @@ class AMBERClustering(threading.Thread):
             triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
         except Exception as e:
             self.logger.error("Failed to process triggers: {}".format(e))
+            return
 
         # pick columns to feed to clustering algorithm
         triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
