@@ -16,7 +16,7 @@ from darc.amber_clustering import AMBERClustering
 
 class TestAMBERClustering(unittest.TestCase):
 
-    def test_clusters_with_threshold(self):
+    def test_clusters_without_thresholds(self):
         """
         Test AMBER clustering without applying thresholds
         """
@@ -43,22 +43,21 @@ class TestAMBERClustering(unittest.TestCase):
         # load triggers to put on queue
         nline_to_check = 50
         trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
-        # check the output is correct, i.e. equal to input
-        line = 0 
         with open(trigger_file, 'r') as f:
             triggers = f.readlines()
+        triggers = [line.strip() for line in triggers]
         if len(triggers) > nline_to_check:
             triggers = triggers[:nline_to_check]
-        triggers = [line.strip() for line in triggers]
 
         # put triggers on queue
-        in_queue.put(triggers)
+        for trigger in triggers:
+            in_queue.put(trigger)
         # get output
         sleep(clustering.interval + 5)
         try:
             output = out_queue.get(timeout=5)
         except Empty:
-            output = []
+            self.fail("No clusters received")
 
         # stop the clustering
         stop_event.set()
@@ -91,7 +90,10 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
 
-                # start the clustering
+        # set max age to -1, so zero trigger are approved
+        clustering.age_max = -1
+
+        # start the clustering
         clustering.start()
 
         # load triggers to put on queue
@@ -106,7 +108,8 @@ class TestAMBERClustering(unittest.TestCase):
         triggers = [line.strip() for line in triggers]
 
         # put triggers on queue
-        in_queue.put(triggers)
+        for trigger in triggers:
+            in_queue.put(trigger)
         # get output
         sleep(clustering.interval + 5)
         try:

@@ -171,4 +171,6 @@ class AMBERListener(threading.Thread):
         # tail the file
         with open(fname, 'r') as f:
             for line in util.tail(f, event):
-                self.amber_queue.put(line.strip())
+                line = line.strip()
+                if line:
+                    self.amber_queue.put(line)

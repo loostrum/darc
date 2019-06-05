@@ -72,8 +72,8 @@ class AMBERClustering(threading.Thread):
 
     def run(self):
         if not self.amber_queue:
-            self.logger.error('AMBER cluster queue not set')
-            raise AMBERClusteringException('AMBER cluster queue not set')
+            self.logger.error('AMBER trigger queue not set')
+            raise AMBERClusteringException('AMBER trigger queue not set')
         if not self.cluster_queue:
             self.logger.error('Cluster queue not set')
             raise AMBERClusteringException('Cluster queue not set')
@@ -81,7 +81,7 @@ class AMBERClustering(threading.Thread):
         self.logger.info("Starting AMBER clustering")
         while not self.stop_event.is_set():
             # read clusters for _interval_ seconds
-            clusters = []
+            amber_triggers = []
             tstart = time()
             curr_time = tstart
             while curr_time < tstart + self.interval and not self.stop_event.is_set():
@@ -90,37 +90,34 @@ class AMBERClustering(threading.Thread):
                     data = self.amber_queue.get(timeout=.1)
                 except Empty:
                     continue
-
-                if isinstance(data, str):
-                    clusters.append(data)
-                elif isinstance(data, list):
-                    clusters.extend(data)
+                # store trigger
+                amber_triggers.append(data)
 
             # start processing in thread
-            if clusters:
-                proc_thread = threading.Thread(target=self.process_clusters, args=[clusters])
+            if amber_triggers:
+                proc_thread = threading.Thread(target=self.process_triggers, args=[amber_triggers])
                 proc_thread.daemon = True
                 proc_thread.start()
             else:
                 self.logger.info("No clusters")
         self.logger.info("Stopping AMBER clustering")
 
-    def process_clusters(self, clusters):
+    def process_triggers(self, triggers):
         """
         Applies thresholding to clusters
         Put approved clusters on queue
-        :param clusters: list of clusters to process
+        :param triggers: list of clusters to process
         """
-        self.logger.info("Starting processing of {} clusters".format(len(clusters)))
+        self.logger.info("Starting processing of {} AMBER triggers".format(len(triggers)))
         # check for header
         if not self.hdr_mapping:
             self.logger.info("Checking for header")
-            for cluster in clusters:
-                if cluster.startswith('#'):
+            for trigger in triggers:
+                if trigger.startswith('#'):
                     # TEMP: set observation start time to now
                     self.start_time = time()
                     # read header, remove comment symbol
-                    header = cluster.split()[1:]
+                    header = trigger.split()[1:]
                     self.logger.info("Received header: {}".format(header))
                     # Check if all required params are present and create mapping to col index
                     keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
@@ -132,9 +129,9 @@ class AMBERClustering(threading.Thread):
                             self.hdr_mapping = {}
                             return
                     # remove header from clusters
-                    clusters.remove(cluster)
+                    triggers.remove(trigger)
                     # clusters is now empty if only header was received
-                    if not clusters:
+                    if not triggers:
                         self.logger.info("Only header received - Canceling processing")
                         return
                     else:
@@ -145,28 +142,32 @@ class AMBERClustering(threading.Thread):
             return
 
         # split strings
-        clusters = np.array(list(map(lambda val: val.split(), clusters)), dtype=float)
+        triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
 
+        # pick columns to feed to clustering algorithm
+        triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
+                                               self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
         self.logger.info("Clustering")
-        clusters_for_clustering = clusters[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'], self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
-
         # ToDo: feed other obs parameters
-        cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(clusters_for_clustering, tab=clusters[:, self.hdr_mapping['beam_id']])
-        self.logger.info("Clustered {} raw triggers into {} clusters".format(len(clusters_for_clustering), len(cluster_snr)))
+        cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = \
+            tools.get_triggers(triggers_for_clustering,
+                               tab=triggers[:, self.hdr_mapping['beam_id']])
+        self.logger.info("Clustered {} raw triggers into {} clusters".format(len(triggers_for_clustering),
+                                                                             len(cluster_snr)))
 
         # Apply thresholds
         self.logger.info("Applying thresholds")
-        age = time() - (cluster_time + 0)  # 0 to be replaced by start time of observation
-        age_max = age <= self.age_max
-        dm_min = cluster_dm >= self.dm_min
-        dm_max = cluster_dm <= self.dm_max
-        snr_min = cluster_snr >= self.snr_min
-        mask = dm_min & dm_max & snr_min & age_max
+        age = (cluster_time + self.start_time) - time()
+        age_max_ok = age <= self.age_max
+        dm_min_ok = cluster_dm >= self.dm_min
+        dm_max_ok = cluster_dm <= self.dm_max
+        snr_min_ok = cluster_snr >= self.snr_min
+        mask = dm_min_ok & dm_max_ok & snr_min_ok & age_max_ok
         if np.any(mask):
             self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(np.sum(mask)))
             # put good clusters on queue
             clusters = np.transpose([cluster_snr[mask], cluster_dm[mask], cluster_time[mask], cluster_downsamp[mask]])
-            columns = {'SNR': 0, 'DM':1, 'time': 2, 'integration_step': 3}
+            columns = {'SNR': 0, 'DM': 1, 'time': 2, 'integration_step': 3}
             self.cluster_queue.put({'clusters': clusters, 'columns': columns})
         else:
             self.logger.info("No clusters after thresholding")
