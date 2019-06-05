@@ -67,6 +67,7 @@ def parse_parset(parset_str):
     # convert to dict
     parset_dict = dict(parset)
     # fix types where needed
+    # anything not changed here remains a string
     # ints
     for key in ['startpacket', 'beam', 'ntabs', 'nsynbeams']:
         if key in parset_dict.keys():
@@ -80,3 +81,28 @@ def parse_parset(parset_str):
         if key in parset_dict.keys():
             parset_dict[key] = json.loads(parset_dict[key].lower())
     return parset_dict
+
+def tail(f, event, interval=.1):
+    """
+    Read all lines of a file, then tail until stop event is set
+    :param: f: handle to file to tail
+    :param: event: stop event
+    :param: interval: sleep time between checks for new lines (default: .1)
+    """
+    # first read any lines already present
+    while not event.is_set():
+        line = f.readline()
+        if line:
+            print "Found line"
+            yield line
+        else:
+            # no more lines, start the tail
+            while not event.is_set():
+                where = f.tell()
+                line = f.readline()
+                if not line:
+                    time.sleep(interval)
+                    f.seek(where)
+                else:
+                    yield line
+
