@@ -39,8 +39,12 @@ class StatusWebsite(threading.Thread):
             setattr(self, key, value)
 
         # set services
-        self.services_master = config_master['services_master']
-        self.services_worker = config_master['services_worker']
+        if config_master['real_time']:
+            self.services_master = config_master['services_master_rt']
+            self.services_worker = config_master['services_worker_rt']
+        else:
+            self.services_master = config_master['services_master_off']
+            self.services_worker = config_master['services_worker_off']
 
         # store all node names
         self.all_nodes = [MASTER] + WORKERS
