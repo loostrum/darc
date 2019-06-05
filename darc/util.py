@@ -17,8 +17,8 @@ except ImportError:
 def sleepuntil_utc(end_time, event=None):
     """
     Sleep until specified time.
-    :param: end_time: sleep until this time (datetime or astropy.time.Time object)
-    :param: event: If specified, uses event.wait instead of time.sleep
+    :param end_time: sleep until this time (datetime or astropy.time.Time object)
+    :param event: If specified, uses event.wait instead of time.sleep
     """
 
     # convert datetime to astropy time
@@ -45,7 +45,7 @@ def sleepuntil_utc(end_time, event=None):
 def makedirs(path):
     """
     Mimic os.makedirs, but do not error when directory already exists
-    :param: path: path to create
+    :param path: path to create
     """
     try:
         os.makedirs(path)
@@ -59,7 +59,7 @@ def makedirs(path):
 def parse_parset(parset_str):
     """
     Parse parset into dict with proper types
-    :param: parset_str: raw parset as string
+    :param parset_str: raw parset as string
     :return: parset as dict
     """
     # Split keys/values. Separator might be "=" or " = "
@@ -89,9 +89,9 @@ def parse_parset(parset_str):
 def tail(f, event, interval=.1):
     """
     Read all lines of a file, then tail until stop event is set
-    :param: f: handle to file to tail
-    :param: event: stop event
-    :param: interval: sleep time between checks for new lines (default: .1)
+    :param f: handle to file to tail
+    :param event: stop event
+    :param interval: sleep time between checks for new lines (default: .1)
     """
     # first read any lines already present
     while not event.is_set():
@@ -112,7 +112,7 @@ def tail(f, event, interval=.1):
 def clear_queue(queue):
     """
     Read all remaining items in a queue and discard them
-    :param: queue: queue to clear
+    :param queue: queue to clear
     """
     try:
         while True:

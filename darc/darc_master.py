@@ -43,10 +43,14 @@ class DARCMaster(object):
         self.hostname = socket.gethostname()
 
         # setup queues
-        self.amber_listener_queue = mp.Queue()
-        self.voevent_queue = mp.Queue()
-        self.processing_queue = mp.Queue()
-        self.dadatrigger_queue = mp.Queue()
+        self.observation_queue = mp.Queue()  # for start observation commands
+        self.amber_queue = mp.Queue()  # for amber triggers
+        self.voevent_queue = mp.Queue()  # for VO Events
+        self.dadatrigger_queue = mp.Queue()  # for dada triggers
+        self.processing_queue = mp.Queue()  # for offline processing
+
+        self.all_queues = [self.observation_queue, self.amber_queue, self.voevent_queue,
+                           self.processing_queue, self.dadatrigger_queue]
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -66,7 +70,7 @@ class DARCMaster(object):
             if self.real_time:
                 self.services = self.services_master_rt
             else:
-                self.service = self.service_master_off
+                self.services = self.service_master_off
         elif self.hostname in WORKERS:
             if self.real_time:
                 self.services = self.services_worker_rt
@@ -88,7 +92,7 @@ class DARCMaster(object):
         try:
             util.makedirs(log_dir)
         except Exception as e:
-            raise DARCMasterException("Cannot create log directory")
+            raise DARCMasterException("Cannot create log directory: {}".format(e))
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
@@ -279,14 +283,14 @@ class DARCMaster(object):
 
         # settings for specific services
         if service == 'amber_listener':
-            source_queue = None
-            target_queue = self.amber_listener_queue
+            source_queue = self.observation_queue
+            target_queue = self.amber_queue
         elif service == 'amber_triggering':
-            source_queue = self.amber_listener_queue
+            source_queue = self.amber_queue
             target_queue = self.voevent_queue
         elif service == 'amber_clustering':
-            source_queue = self.amber_listener_queue
-            target_queue = None  # TODO
+            source_queue = self.amber_queue
+            target_queue = self.dadatrigger_queue  # TODO: new processor queue?
         elif service == 'voevent_generator':
             source_queue = self.voevent_queue
             target_queue = None
@@ -454,25 +458,43 @@ class DARCMaster(object):
         # start the observation
         
         # initialize observation
-        command = {}
-        if self.hostname == MASTER:
-            command['host_type'] = 'master'
-        elif self.hostname in WORKERS:
-            command['host_type'] = 'worker'
-        else:
-            self.logger.error("Running on unknown host: {}".format(self.hostname))
-            return "Error", "Failed: running on unknown host"
-
-        command['obs_config'] = config
+        # Real-time procesing
         if self.real_time:
-            pass
+            if self.hostname == MASTER:
+                pass
+            elif self.hostname in WORKERS:
+                self.logger.info("Starting real-time processing on worker node")
+                # clear all queues
+                self.logger.info("Clearing queues")
+                for queue in self.all_queues:
+                    util.clear_queue(queue)
+                # ensure all services are running
+                self.logger.info("Making sure all services are running")
+                for service in self.services:
+                    self.start_service(service)
+                # start observation by feeding obs config to amber listener
+                self.observation_queue.put(config)
+            else:
+                self.logger.error("Running on unknown host: {}".format(self.hostname))
+                return "Error", "Failed: running on unknown host"
+
             return "Success", "Observation started for real-time processing"
+        # Offline processing
         else:
-            # check if offline processing is running. If not, start it
-            _, offline_processing_status = self.check_status('offline_processing')
-            if not offline_processing_status == 'running':
-                self.logger.info('offline_processing not running - starting')
-                self.start_service('offline_processing')
+            # ensure services are running
+            for service in self.services:
+                self.start_service(service)
+            # set host type and send config to offline processing
+            command = {}
+            if self.hostname == MASTER:
+                command['host_type'] = 'master'
+            elif self.hostname in WORKERS:
+                command['host_type'] = 'worker'
+            else:
+                self.logger.error("Running on unknown host: {}".format(self.hostname))
+                return "Error", "Failed: running on unknown host"
+
+            command['obs_config'] = config
             # put commands on queue
             self.processing_queue.put(command)
             return "Success", "Observation started for offline processing"
@@ -486,6 +508,9 @@ class DARCMaster(object):
         self.logger.error("Stop not implemented yet")
         status = "Error"
         reply = {'error': "Stop is not implemented yet"}
+        # TODO
+        # stop amber listener
+        # clear all queues
         return status, reply
 
     def _load_yaml(self, config_file):
