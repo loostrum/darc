@@ -99,7 +99,7 @@ class AMBERClustering(threading.Thread):
                 proc_thread.daemon = True
                 proc_thread.start()
             else:
-                self.logger.info("No clusters")
+                self.logger.info("No triggers received")
         self.logger.info("Stopping AMBER clustering")
 
     def process_triggers(self, triggers):
@@ -109,33 +109,30 @@ class AMBERClustering(threading.Thread):
         :param triggers: list of clusters to process
         """
         self.logger.info("Starting processing of {} AMBER triggers".format(len(triggers)))
-        # check for header
-        if not self.hdr_mapping:
-            self.logger.info("Checking for header")
-            for trigger in triggers:
-                if trigger.startswith('#'):
-                    # TEMP: set observation start time to now
-                    self.start_time = time()
-                    # read header, remove comment symbol
-                    header = trigger.split()[1:]
-                    self.logger.info("Received header: {}".format(header))
-                    # Check if all required params are present and create mapping to col index
-                    keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
-                    for key in keys:
-                        try:
-                            self.hdr_mapping[key] = header.index(key)
-                        except ValueError:
-                            self.logger.error("Key missing from clusters header: {}".format(key))
-                            self.hdr_mapping = {}
-                            return
-                    # remove header from clusters
-                    triggers.remove(trigger)
-                    # clusters is now empty if only header was received
-                    if not triggers:
-                        self.logger.info("Only header received - Canceling processing")
+        # check for header (always, because it is received once for every amber instance
+        for trigger in triggers:
+            if trigger.startswith('#'):
+                # TEMP: set observation start time to now
+                # ToDo: proper start time
+                self.start_time = time()
+                # read header, remove comment symbol
+                header = trigger.split()[1:]
+                self.logger.info("Received header: {}".format(header))
+                # Check if all required params are present and create mapping to col index
+                keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
+                for key in keys:
+                    try:
+                        self.hdr_mapping[key] = header.index(key)
+                    except ValueError:
+                        self.logger.error("Key missing from clusters header: {}".format(key))
+                        self.hdr_mapping = {}
                         return
-                    else:
-                        break
+                # remove header from clusters
+                triggers.remove(trigger)
+                # triggers is now empty if only header was received
+                if not triggers:
+                    self.logger.info("Only header received - Canceling processing")
+                    return
 
         if not self.hdr_mapping:
             self.logger.error("First clusters received but header not found")

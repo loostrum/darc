@@ -68,7 +68,10 @@ def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-    services = config['services_master'] + config['services_worker']
+    if config['real_time']:
+        services = config['services_master_rt'] + config['services_worker_rt']
+    else:
+        services = config['services_master_off'] + config['services_worker_off']
     commands = config['commands']
 
     # Parse arguments
