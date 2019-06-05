@@ -109,37 +109,43 @@ class AMBERClustering(threading.Thread):
         :param triggers: list of clusters to process
         """
         self.logger.info("Starting processing of {} AMBER triggers".format(len(triggers)))
-        # check for header (always, because it is received once for every amber instance
-        for trigger in triggers:
-            if trigger.startswith('#'):
-                # TEMP: set observation start time to now
-                # ToDo: proper start time
-                self.start_time = time()
-                # read header, remove comment symbol
-                header = trigger.split()[1:]
-                self.logger.info("Received header: {}".format(header))
-                # Check if all required params are present and create mapping to col index
-                keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
-                for key in keys:
-                    try:
-                        self.hdr_mapping[key] = header.index(key)
-                    except ValueError:
-                        self.logger.error("Key missing from clusters header: {}".format(key))
-                        self.hdr_mapping = {}
+        # TEMP: set observation start time to now
+        # ToDo: proper start time
+        self.start_time = time()
+        # check for header (always, because it is received once for every amber instance)
+        if not self.hdr_mapping:
+            for trigger in triggers:
+                if trigger.startswith('#'):
+                    # read header, remove comment symbol
+                    header = trigger.split()[1:]
+                    self.logger.info("Received header: {}".format(header))
+                    # Check if all required params are present and create mapping to col index
+                    keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
+                    for key in keys:
+                        try:
+                            self.hdr_mapping[key] = header.index(key)
+                        except ValueError:
+                            self.logger.error("Key missing from clusters header: {}".format(key))
+                            self.hdr_mapping = {}
+                            return
+                    # triggers is now empty if only header was received
+                    if not triggers:
+                        self.logger.info("Only header received - Canceling processing")
                         return
-                # remove header from clusters
-                triggers.remove(trigger)
-                # triggers is now empty if only header was received
-                if not triggers:
-                    self.logger.info("Only header received - Canceling processing")
-                    return
 
         if not self.hdr_mapping:
             self.logger.error("First clusters received but header not found")
             return
 
-        # split strings
-        triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
+        # remove headers from triggers (i.e. any trigger starting with #)
+        triggers = [trigger for trigger in triggers if not trigger.startswith('#')]
+
+        # split strings and convert to numpy array
+        try:
+            triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
+        except:
+            for t in triggers:
+                self.logger.warning(t)
 
         # pick columns to feed to clustering algorithm
         triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
