@@ -473,7 +473,9 @@ class DARCMaster(object):
                 for service in self.services:
                     self.start_service(service)
                 # start observation by feeding obs config to amber listener
-                self.observation_queue.put(config)
+                command = {'type': "start_observation"}
+                command['obs_config'] = config
+                self.observation_queue.put(command)
             else:
                 self.logger.error("Running on unknown host: {}".format(self.hostname))
                 return "Error", "Failed: running on unknown host"
