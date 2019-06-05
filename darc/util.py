@@ -98,6 +98,7 @@ def parse_parset(parset_str):
             parset_dict[key] = json.loads(parset_dict[key].lower())
     return parset_dict
 
+
 def tail(f, event, interval=.1):
     """
     Read all lines of a file, then tail until stop event is set
@@ -120,6 +121,7 @@ def tail(f, event, interval=.1):
                     f.seek(where)
                 else:
                     yield line
+
 
 def clear_queue(queue):
     """

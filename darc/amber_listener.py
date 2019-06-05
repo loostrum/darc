@@ -4,9 +4,14 @@
 
 from time import sleep, time
 import yaml
+import ast
 import multiprocessing as mp
 import threading
 import socket
+try:
+    from queue import Empty
+except ImportError:
+    from Queue import Empty
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -27,8 +32,10 @@ class AMBERListener(threading.Thread):
         self.daemon = True
         self.stop_event = stop_event
 
-        self.queue = None
-        self.observation = None
+        self.observation_queue = None
+        self.amber_queue = None
+
+        self.observation_events = []
 
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['amber_listener']
@@ -44,6 +51,15 @@ class AMBERListener(threading.Thread):
         self.logger = get_logger(__name__, self.log_file)
         self.logger.info("AMBER Listener initialized")
 
+    def set_source_queue(self, queue):
+        """
+        :param queue: Output queue
+        """
+        if not isinstance(queue, mp.queues.Queue):
+            self.logger.error('Given source queue is not instance of Queue')
+            raise AMBERListenerException('Given source queue is not instance of Queue')
+        self.observation_queue = queue
+
     def set_target_queue(self, queue):
         """
         :param queue: Output queue
@@ -51,22 +67,42 @@ class AMBERListener(threading.Thread):
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given target queue is not instance of Queue')
             raise AMBERListenerException('Given target queue is not instance of Queue')
-        self.queue = queue
+        self.amber_queue = queue
 
     def run(self):
         """
-        Initialize readers
+        Initialize and wait for observations
         """
-        if not self.queue:
-            self.logger.error('Queue not set')
-            raise AMBERListenerException('Queue not set')
+        if not self.observation_queue:
+            self.logger.error('Observation queue not set')
+            raise AMBERListenerException('Observation queue not set')
+        if not self.amber_queue:
+            self.logger.error('AMBER queue not set')
+            raise AMBERListenerException('AMBER queue not set')
 
         self.logger.info("Starting AMBER listener")
+        # Wait for observation command to arrive
         while not self.stop_event.is_set():
-            sleep(1)
-        self.logger.info("Stopping AMBER listener")
-            self.stop_observation()
+            # read queue
+            try:
+                command = self.observation_queue.get(timeout=1)
+            except Empty:
+                continue
 
+            # command received, process it
+            if command['type'] == "start_observation":
+                self.logger.info("Starting observation")
+                try:
+                    self.start_observation(command['obs_config'])
+                except Exception as e:
+                    self.logger.error("Failed to start observation: {}".format(e))
+            elif command['type'] == "stop_observation":
+                self.logger.info("Stopping observation")
+                self.stop_observation()
+            else:
+                self.logger.error("Unknown command received: {}".format(command['type']))
+        self.logger.info("Stopping AMBER listener")
+        self.stop_observation()
 
     def start_observation(self, obs_config):
         """
@@ -74,24 +110,47 @@ class AMBERListener(threading.Thread):
         :param obs_config: observation config dict
         :return:
         """
-        #thread = threading.Thread(target=self._start_observation_master, args=[obs_config], name=taskid)
-        #thread.daemon = True
-        #self.threads[taskid] = thread
+        # Stop any running observation
+        if self.observation_events:
+            self.logger.info("Old observation found, stopping it first")
+            self.stop_observation()
+
+        self.logger.info("Reading AMBER settings")
+        # Read number of amber threads from amber config file
+        amber_conf_file = obs_config['amber_config']
+        with open(amber_conf_file, 'r') as f:
+            raw_amber_conf = f.read()
+        amber_conf = util.parse_parset(raw_amber_conf)
+
+        # get directory of amber trigger files
         amber_dir = obs_config['amber_dir']
+        # get CB number
+        beam = obs_config['beam']
 
+        # start reader for each thread
+        num_amber = len(ast.literal_eval(amber_conf['opencl_device']))
+        self.logger.info("Expecting {} AMBER threads".format(num_amber))
+        for step in range(1, num_amber+1):
+            trigger_file = os.path.join(amber_dir, "CB{:02d}_step{}.trigger".format(beam, step))
+            # start thread for reading
+            event = threading.Event()
+            self.observation_events.append(event)
+            thread = threading.Thread(target=self._follow_file, args=[trigger_file, event], name="step{}".format(step))
+            thread.daemon = True
+            thread.start()
 
-        #self.queue.put(output.strip().split('\n'))
-
-        #self.logger.info("Stopping AMBER Listener")
+        self.logger.info("Observation started")
+        # ToDo: Automatic stop? Careful not to overwrite a new observation
 
     def stop_observation(self):
         """
         Stop any running observation
         """
-        for thread in self.observation_threads:
-            thread.stop_event.set()
+        for event in self.observation_events:
+            event.set()
+        self.observation_events = []
 
-    def follow_file(self, fname, event):
+    def _follow_file(self, fname, event):
         """
         Tail a file an put lines on queue
         :param fname: file to follow
@@ -99,4 +158,4 @@ class AMBERListener(threading.Thread):
         """
         with open(fname, 'r') as f:
             for line in util.tail(f, event):
-                self.queue.put(line.strip())
+                self.amber_queue.put(line.strip())
