@@ -14,7 +14,8 @@ Note: IAB modes also support processing the central TAB.
 DARC comprises several parts that communicate through either queues or sockets. The availability of different services depends on which branch is active.
 
 * DARCMaster: Master service. Handles communication with user, controls all other services.
-* AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue.
+* AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue (for clustering or direct triggering).
+* AMBERClustering: Clusters AMBER triggers together and puts them on DADA trigger queue.
 * AMBERTriggering: Directly applies thresholds to AMBER triggers and puts triggers on VOEvent queue.
 * DADATrigger: Generates and send dada_dbevent triggers for stokes I and IQUV
 * VOEventGenerator: Converts incoming trigger to VOEvent and sends it.
