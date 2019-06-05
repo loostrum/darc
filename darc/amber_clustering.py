@@ -104,7 +104,6 @@ class AMBERClustering(threading.Thread):
             else:
                 self.logger.info("No clusters")
         self.logger.info("Stopping AMBER clustering")
-            
 
     def process_clusters(self, clusters):
         """
@@ -145,7 +144,6 @@ class AMBERClustering(threading.Thread):
             self.logger.error("First clusters received but header not found")
             return
 
-
         # split strings
         clusters = np.array(list(map(lambda val: val.split(), clusters)), dtype=float)
 
@@ -155,7 +153,6 @@ class AMBERClustering(threading.Thread):
         # ToDo: feed other obs parameters
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(clusters_for_clustering, tab=clusters[:, self.hdr_mapping['beam_id']])
         self.logger.info("Clustered {} raw triggers into {} clusters".format(len(clusters_for_clustering), len(cluster_snr)))
-
 
         # Apply thresholds
         self.logger.info("Applying thresholds")

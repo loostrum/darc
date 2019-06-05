@@ -3,7 +3,6 @@
 # AMBER Listener
 
 from time import sleep, time
-import socket
 import yaml
 import multiprocessing as mp
 import threading
@@ -11,6 +10,7 @@ import socket
 
 from darc.definitions import *
 from darc.logger import get_logger
+from darc import util
 
 
 class AMBERListenerException(Exception):
@@ -19,7 +19,7 @@ class AMBERListenerException(Exception):
 
 class AMBERListener(threading.Thread):
     """
-    Listens to AMBER triggers and puts them in a queue.
+    Listens to AMBER triggers and puts them on a queue.
     """
 
     def __init__(self, stop_event):
@@ -28,6 +28,7 @@ class AMBERListener(threading.Thread):
         self.stop_event = stop_event
 
         self.queue = None
+        self.observation = None
 
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['amber_listener']
@@ -54,60 +55,48 @@ class AMBERListener(threading.Thread):
 
     def run(self):
         """
-        Initalize socket and put incoming triggers on queue
+        Initialize readers
         """
         if not self.queue:
             self.logger.error('Queue not set')
             raise AMBERListenerException('Queue not set')
 
         self.logger.info("Starting AMBER listener")
-        s = None
-        start = time()
-        while not s and time() - start < self.socket_timeout:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.bind((self.host, self.port))
-            except socket.error as e:
-                self.logger.warning("Failed to create socket, will retry: {}".format(e))
-                sleep(1)
-
-        if not s:
-            self.logger.error("Failed to create socket")
-            raise AMBERListenerException("Failed to create socket")
-
-        s.listen(5)
-        s.settimeout(1)
-
         while not self.stop_event.is_set():
-            self.logger.info("Waiting for client to connect")
-            # Use timeout to avoid hanging when stop of service is requested
-            client = None
-            adr = None
-            while not client and not self.stop_event.is_set():
-                try:
-                    client, adr = s.accept()
-                except socket.timeout:
-                    continue
-                # client may still not exist if stop is called some loop
-                if not client or not adr:
-                    continue
-                self.logger.info("Accepted connection from (host, port) = {}".format(adr))
+            sleep(1)
+        self.logger.info("Stopping AMBER listener")
+            self.stop_observation()
 
-            # again client may still not exist if stop is called some loop
-            if not client or not adr:
-                continue
-            # keep listening until we receive a stop
-            client.settimeout(1)
-            while not self.stop_event.is_set():
-                try:
-                    output = client.recv(65536).decode()
-                except socket.timeout:
-                    continue
-                if output.strip() == 'EOF' or not output:
-                    self.logger.info("Disconnecting")
-                    client.close()
-                    break
-                else:
-                    self.queue.put(output.strip().split('\n'))
 
-        self.logger.info("Stopping AMBER Listener")
+    def start_observation(self, obs_config):
+        """
+        Start an observation
+        :param obs_config: observation config dict
+        :return:
+        """
+        #thread = threading.Thread(target=self._start_observation_master, args=[obs_config], name=taskid)
+        #thread.daemon = True
+        #self.threads[taskid] = thread
+        amber_dir = obs_config['amber_dir']
+
+
+        #self.queue.put(output.strip().split('\n'))
+
+        #self.logger.info("Stopping AMBER Listener")
+
+    def stop_observation(self):
+        """
+        Stop any running observation
+        """
+        for thread in self.observation_threads:
+            thread.stop_event.set()
+
+    def follow_file(self, fname, event):
+        """
+        Tail a file an put lines on queue
+        :param fname: file to follow
+        :param event: stop event
+        """
+        with open(fname, 'r') as f:
+            for line in util.tail(f, event):
+                self.queue.put(line.strip())
