@@ -160,7 +160,7 @@ class AMBERListener(threading.Thread):
         start = time()
         while time() - start < self.start_timeout:
             if not os.path.isfile(fname):
-                print "File not yet present: {}".format(fname)
+                self.logger.info("File not yet present: {}".format(fname))
                 sleep(1)
             else:
                 break

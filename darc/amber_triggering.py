@@ -149,7 +149,6 @@ class AMBERTriggering(threading.Thread):
 
 
         # split strings
-        print(triggers)
         triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
 
         self.logger.info("Clustering")
@@ -157,8 +156,8 @@ class AMBERTriggering(threading.Thread):
 
         # ToDo: feed other obs parameters
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(triggers_for_clustering, tab=triggers[:, self.hdr_mapping['beam_id']])
-        print("Clustering done")
-        print("Generating VO for highest S/N")
+        self.logger.info("Clustering done")
+        self.logger.info("Generating VO for highest S/N")
         ind = np.argmax(cluster_snr)
         voevent_trigger = {'dm': cluster_dm[ind], 'dm_err': 0,
                           'width': cluster_downsamp[ind]*81.92E-3,
