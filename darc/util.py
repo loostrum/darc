@@ -67,9 +67,19 @@ def parse_parset(parset_str):
     # remove empty last line if present
     if parset[-1] == ['']:
         parset = parset[:-1]
+    # remove any line starting with #
+    tmp = []
+    for line in parset:
+        if not line.startswith('#'):
+            tmp.append(line)
 
     # convert to dict
     parset_dict = dict(parset)
+    # remove any comments
+    for key, value in parset_dict.items():
+        pos_comment_char = value.find('#')
+        if pos_comment_char > 0:  # -1 if not found, leave in place if first char
+            parset_dict[key] = value[:pos_comment_char].strip()  # remove any trailing spaces too
     # fix types where needed
     # anything not changed here remains a string
     # ints
