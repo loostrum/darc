@@ -20,27 +20,36 @@ class TestAMBERListener(unittest.TestCase):
         Check whether a set of triggers + header is put on the queue correctly
         """
 
+        # create input queue
+        obs_queue = mp.Queue()
         # create output queue
-        queue = mp.Queue()
+        amber_queue = mp.Queue()
         # create stop event for listener
         stop_event = threading.Event()
         # init AMBER Listener
         listener = AMBERListener(stop_event)
-        # set the queue
-        listener.set_target_queue(queue)
+        # set the queues
+        listener.set_source_queue(obs_queue)
+        listener.set_target_queue(amber_queue)
         # start the listener
         listener.start()
-        # send triggers to network port (ToDo: implement sending in python)
-        nline_to_send = 50
-        trigger_file  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
-        cmd = "head -n {} {} | nc localhost {}".format(nline_to_send, trigger_file, listener.port)
-        os.system(cmd)
-        # check they arrived at output queue
-        sleep(5)
-        try:
-            output = listener.queue.get(timeout=5)
-        except Empty:
-            output = []
+        # start observation
+        amber_conf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'amber.conf')
+        obs_config = {'amber_dir': os.path.dirname(os.path.abspath(__file__)),
+                      'beam': 0,
+                      'amber_config': amber_conf_file}
+        command = {'type': 'start_observation', 'obs_config': obs_config}
+        obs_queue.put(command)
+
+        output = []
+        # read queue until empty
+        i = 0
+        while True:
+            try:
+                raw_trigger = amber_queue.get(timeout=2)
+            except Empty:
+                break
+            output.append(raw_trigger)
 
         # stop the listener
         stop_event.set()
@@ -49,14 +58,19 @@ class TestAMBERListener(unittest.TestCase):
         self.assertTrue(len(output) > 0)
 
         # check the output is correct, i.e. equal to input
-        line = 0
-        with open(trigger_file, 'r') as f:
-            triggers = f.readlines()
-        if len(triggers) > nline_to_send:
-            triggers = triggers[:nline_to_send]
-        triggers = [line.strip() for line in triggers]
+        # load all trigger files
+        all_triggers = []
+        for step in [1, 2, 3]:
+            trigger_file  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step{}.trigger'.format(step))
+            with open(trigger_file, 'r') as f:
+                triggers = f.readlines()
+            triggers = [line.strip() for line in triggers]
+            all_triggers.extend(triggers)
 
-        self.assertEqual(output, triggers)
+        # sort input and output by last element (S/N)
+        output.sort()
+        all_triggers.sort()
+        self.assertEqual(output, all_triggers)
 
 if __name__ == '__main__':
     unittest.main()
