@@ -8,6 +8,10 @@ import datetime
 import time
 import json
 from astropy.time import Time, TimeDelta
+try:
+    from queue import Empty
+except ImportError:
+    from Queue import Empty
 
 
 def sleepuntil_utc(end_time, event=None):
@@ -105,3 +109,13 @@ def tail(f, event, interval=.1):
                 else:
                     yield line
 
+def clear_queue(queue):
+    """
+    Read all remaining items in a queue and discard them
+    :param: queue: queue to clear
+    """
+    try:
+        while True:
+            queue.get_nowait()
+    except Empty:
+        pass
