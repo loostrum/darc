@@ -62,16 +62,18 @@ def parse_parset(parset_str):
     :param parset_str: raw parset as string
     :return: parset as dict
     """
+    # split per line, remove comments
+    raw_parset = parset_str.split('\n')
+    # remove any line starting with #
+    parset = []
+    for line in raw_parset:
+        if not line.startswith('#'):
+            parset.append(line)
     # Split keys/values. Separator might be "=" or " = "
-    parset = [item.replace(' = ', '=').strip().split('=') for item in parset_str.split('\n')]
+    parset = [item.replace(' = ', '=').strip().split('=') for item in parset]
     # remove empty last line if present
     if parset[-1] == ['']:
         parset = parset[:-1]
-    # remove any line starting with #
-    tmp = []
-    for line in parset:
-        if not line.startswith('#'):
-            tmp.append(line)
 
     # convert to dict
     parset_dict = dict(parset)
