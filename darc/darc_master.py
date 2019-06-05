@@ -73,7 +73,7 @@ class DARCMaster(object):
                                 'amber_listener': darc.amber_listener.AMBERListener,
                                 'amber_triggering': darc.amber_triggering.AMBERTriggering,
                                 'offline_processing': darc.offline_processing.OfflineProcessing,
-                                'dada_trigger': darc.dada_trigger.DADATRigger}
+                                'dada_trigger': darc.dada_trigger.DADATrigger}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
