@@ -156,6 +156,19 @@ class AMBERListener(threading.Thread):
         :param fname: file to follow
         :param event: stop event
         """
+        # wait until the file exists, with a timeout
+        start = time()
+        while time() - start < self.start_timeout:
+            if not os.path.isfile(fname):
+                print "File not yet present: {}".format(fname)
+                sleep(1)
+            else:
+                break
+        if not os.path.isfile(fname):
+            # file still does not exist, error
+            self.logger.error("Giving up on following file: {}".format(fname))
+            return
+        # tail the file
         with open(fname, 'r') as f:
             for line in util.tail(f, event):
                 self.amber_queue.put(line.strip())
