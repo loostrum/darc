@@ -12,6 +12,7 @@ except ImportError:
 import threading
 import socket
 import numpy as np
+from astropy.time import Time
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -152,9 +153,12 @@ class AMBERClustering(threading.Thread):
                                                self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
         self.logger.info("Clustering")
         # ToDo: feed other obs parameters
+        utc_start = Time.now()
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = \
             tools.get_triggers(triggers_for_clustering,
                                tab=triggers[:, self.hdr_mapping['beam_id']])
+        # ToDo: need to get SB numbers after clustering
+        cluster_sb = np.ones_like(cluster_snr, dtype=int)
         self.logger.info("Clustered {} raw triggers into {} clusters".format(len(triggers_for_clustering),
                                                                              len(cluster_snr)))
 
@@ -166,12 +170,15 @@ class AMBERClustering(threading.Thread):
         dm_max_ok = cluster_dm <= self.dm_max
         snr_min_ok = cluster_snr >= self.snr_min
         mask = dm_min_ok & dm_max_ok & snr_min_ok & age_max_ok
+        ncluster = int(np.sum(mask))
         if np.any(mask):
-            self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(np.sum(mask)))
+            self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(ncluster))
             # put good clusters on queue
-            clusters = np.transpose([cluster_snr[mask], cluster_dm[mask], cluster_time[mask], cluster_downsamp[mask]])
-            columns = {'SNR': 0, 'DM': 1, 'time': 2, 'integration_step': 3}
-            self.cluster_queue.put({'clusters': clusters, 'columns': columns})
+            for i in range(ncluster):
+                dada_trigger_command = {'stokes': 'I', 'dm': cluster_dm[mask][i], 'beam': cluster_sb[mask][i],
+                                        'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
+                                        'time': cluster_time[mask][i], 'utc_start': utc_start}
+                self.cluster_queue.put(dada_trigger_command)
+
         else:
             self.logger.info("No clusters after thresholding")
-

@@ -54,25 +54,32 @@ class TestAMBERClustering(unittest.TestCase):
             in_queue.put(trigger)
         # get output
         sleep(clustering.interval + 5)
-        try:
-            output = out_queue.get(timeout=5)
-        except Empty:
+        output = []
+        while True:
+            try:
+                output.append(out_queue.get(timeout=5))
+            except Empty:
+                break
+        if not output:
             self.fail("No clusters received")
 
         # stop the clustering
         stop_event.set()
 
-        expected_output = {'clusters': np.array([[1.84666e+01, 5.66000e+01, 2.44941e-02, 1.00000e+00],
-                            [1.03451e+01, 8.00000e+01, 9.01120e-01, 1.00000e+03],
-                            [1.08202e+01, 4.78000e+01, 2.94912e+00, 1.00000e+03],
-                            [1.43720e+01, 4.16000e+01, 9.01120e-01, 1.00000e+03],
-                            [1.57447e+01, 1.58000e+01, 2.94912e+00, 1.00000e+03]]), 
-                            'columns': {'SNR': 0, 'DM': 1, 'time': 2, 'integration_step': 3}}
-        
-        # test columns are equal
-        self.assertDictEqual(output['columns'], expected_output['columns'])
+        expected_output = [{'stokes': 'I', 'dm': 56.6, 'beam': 1.0, 'width': 1.0, 'snr': 18.4666, 'time': 0.0244941},
+                            {'stokes': 'I', 'dm': 80.0, 'beam': 1.0, 'width': 1000.0, 'snr': 10.3451, 'time': 0.90112},
+                            {'stokes': 'I', 'dm': 47.8, 'beam': 1.0, 'width': 1000.0, 'snr': 10.8202, 'time': 2.94912},
+                            {'stokes': 'I', 'dm': 41.6, 'beam': 1.0, 'width': 1000.0, 'snr': 14.372, 'time': 0.90112},
+                            {'stokes': 'I', 'dm': 15.8, 'beam': 1.0, 'width': 1000.0, 'snr': 15.7447, 'time': 2.94912}]
+
+        # test all clusters are there
+        self.assertEqual(len(output), len(expected_output))
         # test clusters are equal
-        np.testing.assert_array_equal(output['clusters'], expected_output['clusters'])
+        for ind, expected_cluster in enumerate(expected_output):
+            cluster = output[ind]
+            # remove utc_start because that cannot be controlled yet
+            del cluster['utc_start']
+            self.assertDictEqual(cluster, expected_cluster)
 
     def test_clusters_with_thresholds(self):
         """

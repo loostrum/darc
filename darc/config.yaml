@@ -71,6 +71,8 @@ dada_trigger:
     log_file: '{home}/darc/log/dada_trigger.{hostname}.log'
     window_size_i: 10.24
     window_size_iquv: 10.24
+    port_i: 30000
+    port_iquv: 30001
 
 # Offline processing
 offline_processing:
