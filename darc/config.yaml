@@ -1,43 +1,43 @@
 # DARC Master config
 darc_master:
-    log_file: "{home}/darc/log/darc_master.{hostname}.log"
+    log_file: '{home}/darc/log/darc_master.{hostname}.log'
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
     real_time: True
-    services_master_rt: ["status_website", "voevent_generator"]
-    services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger"]
-    services_master_off: ["offline_processing", "status_website"]
-    services_worker_off: ["offline_processing"]
+    services_master_rt: ['status_website', 'voevent_generator']
+    services_worker_rt: ['amber_listener', 'amber_clustering', 'dada_trigger']
+    services_master_off: ['offline_processing', 'status_website']
+    services_worker_off: ['offline_processing']
     commands: ['start_observation', 'stop_observation', 'abort_observation', 'status', 'start', 'stop', 'restart', 'stop_master']
 
 # Status website
 status_website:
-    log_file: "{home}/darc/log/status_website.{hostname}.log"
-    web_dir: "{home}/public_html/darc/status"
+    log_file: '{home}/darc/log/status_website.{hostname}.log'
+    web_dir: '{home}/public_html/darc/status'
     interval: 10
     timeout: 10
-    colour_good: "green"
-    colour_bad: "red"
-    colour_unknown: "grey"
+    colour_good: 'green'
+    colour_bad: 'red'
+    colour_unknown: 'grey'
     service_to_name:
-        voevent_generator: "VOEvent generator"
-        status_website: "Status website"
-        amber_listener: "AMBER listener"
-        amber_clustering: "AMBER clustering"
-        amber_triggering: "AMBER triggering"
-        offline_processing: "Offline processing"
-        dada_trigger: "DADA triggering"
+        voevent_generator: 'VOEvent generator'
+        status_website: 'Status website'
+        amber_listener: 'AMBER listener'
+        amber_clustering: 'AMBER clustering'
+        amber_triggering: 'AMBER triggering'
+        offline_processing: 'Offline processing'
+        dada_trigger: 'DADA triggering'
 
 # AMBER trigger listener
 amber_listener:
-    log_file: "{home}/darc/log/amber_listener.{hostname}.log"
+    log_file: '{home}/darc/log/amber_listener.{hostname}.log'
     interval: .2
     start_timeout: 30
 
 # Direct processing of AMBER triggers
 amber_triggering:
-    log_file: "{home}/darc/log/amber_triggering.{hostname}.log"
+    log_file: '{home}/darc/log/amber_triggering.{hostname}.log'
     interval: 10
     #dm_min: 55
     #dm_max: 60
@@ -48,7 +48,7 @@ amber_triggering:
 
 # Clustering of AMBER triggers
 amber_clustering:
-    log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
+    log_file: '{home}/darc/log/amber_clustering.{hostname}.log'
     interval: .5
     dm_min: 0
     dm_max: 9999
@@ -57,22 +57,25 @@ amber_clustering:
 
 # VOEvent generator
 voevent_generator:
-    log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
-    voevent_dir: "{home}/darc/voevents"
+    log_file: '{home}/darc/log/voevent_generator.{hostname}.log'
+    voevent_dir: '{home}/darc/voevents'
     send_events: False
-    broker_host: "arts041.apertif"
+    server_host: 'arts041.apertif'
+    server_port: 52000
+    server_auth: '9S5JNp9MgM'
+    broker_host: 'arts041.apertif'
     broker_port: 8098
 
 # DADA triggers
 dada_trigger:
-    log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
+    log_file: '{home}/darc/log/dada_trigger.{hostname}.log'
     window_size_i: 10.24
     window_size_iquv: 10.24
 
 # Offline processing
 offline_processing:
-    log_file: "{home}/darc/log/offline_processing.{hostname}.log"
-    result_dir: "{home}/observations/results/"
+    log_file: '{home}/darc/log/offline_processing.{hostname}.log'
+    result_dir: '{home}/observations/results/'
     interval: 10
     timeout: 10
     pthresh: 0.5
@@ -85,11 +88,11 @@ offline_processing:
     dmmin: 20
     dmmax: 5000
     ml_gpus: 0
-    key_ntriggers_skipped: "ntriggers_skipped"
-    keys_data: ["data_freq_time", "data_dm_time", "params", "tab"]
-    model_dir: "{home}/keras_models"
-    emailer: "{home}/ARTS-obs/emailer.py"
-    triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
-    classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
-    trigger_to_master: "{home}/ARTS-obs/trigger_to_master.py"
-    venv_dir: "{home}/python34"
+    key_ntriggers_skipped: 'ntriggers_skipped'
+    keys_data: ['data_freq_time', 'data_dm_time', 'params', 'tab']
+    model_dir: '{home}/keras_models'
+    emailer: '{home}/ARTS-obs/emailer.py'
+    triggering: '{home}/ARTS-obs/external/arts-analysis/triggers.py'
+    classifier: '{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py'
+    trigger_to_master: '{home}/ARTS-obs/trigger_to_master.py'
+    venv_dir: '{home}/python34'

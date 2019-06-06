@@ -10,6 +10,7 @@ except ImportError:
     from Queue import Empty
 import threading
 import socket
+from multiprocessing.managers import BaseManager
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.time import Time
@@ -21,6 +22,10 @@ from xml.dom import minidom
 from darc.definitions import *
 from darc import util
 from darc.logger import get_logger
+
+
+class VOEventQueueServer(BaseManager):
+    pass
 
 
 class VOEventGeneratorException(Exception):
@@ -36,7 +41,7 @@ class VOEventGenerator(threading.Thread):
         self.stop_event = stop_event
         self.daemon = True
 
-        self.voevent_queue = None
+        self.voevent_server = None
 
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
@@ -59,25 +64,24 @@ class VOEventGenerator(threading.Thread):
             raise VOEventGeneratorException("Cannot create voevent directory")
         os.chdir(self.voevent_dir)
 
-        self.logger.info("VOEvent Generator initialized")
+        # Initalize the queue server
+        voevent_queue = mp.Queue()
+        VOEventQueueServer.register('get_queue', callable=lambda: voevent_queue)
+        self.voevent_queue = voevent_queue
 
-    def set_source_queue(self, queue):
-        """
-        :param queue: Source queue
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise VOEventGeneratorException('Given source queue is not an instance of Queue')
-        self.voevent_queue = queue
+        self.logger.info("VOEvent Generator initialized")
 
     def run(self):
         """
         Read triggers from queue and call processing for each trigger
         """
-        if not self.voevent_queue:
-            self.logger.error('Queue not set')
-            raise VOEventGeneratorException('Queue not set')
 
+        # start the queue server
+        self.voevent_server = VOEventQueueServer(address=('', self.server_port),
+                                                 authkey=self.server_auth.encode())
+        self.voevent_server.start()
+
+        # wait for events until stop is set
         while not self.stop_event.is_set():
             try:
                 trigger = self.voevent_queue.get(timeout=1)
@@ -86,6 +90,8 @@ class VOEventGenerator(threading.Thread):
             self.logger.info("Received trigger: {}".format(trigger))
             self.create_and_send(trigger)
 
+        # stop the queue server
+        self.voevent_server.shutdown()
         self.logger.info("Stopping VOEvent generator")
 
     def create_and_send(self, trigger):

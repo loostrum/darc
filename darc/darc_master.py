@@ -45,12 +45,11 @@ class DARCMaster(object):
         # setup queues
         self.observation_queue = mp.Queue()  # for start observation commands
         self.amber_queue = mp.Queue()  # for amber triggers
-        self.voevent_queue = mp.Queue()  # for VO Events
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
         self.processing_queue = mp.Queue()  # for offline processing
 
-        self.all_queues = [self.observation_queue, self.amber_queue, self.voevent_queue,
-                           self.processing_queue, self.dadatrigger_queue]
+        self.all_queues = [self.observation_queue, self.amber_queue, self.processing_queue,
+                           self.dadatrigger_queue]
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -287,12 +286,12 @@ class DARCMaster(object):
             target_queue = self.amber_queue
         elif service == 'amber_triggering':
             source_queue = self.amber_queue
-            target_queue = self.voevent_queue
+            target_queue = None
         elif service == 'amber_clustering':
             source_queue = self.amber_queue
             target_queue = self.dadatrigger_queue  # TODO: new processor queue?
         elif service == 'voevent_generator':
-            source_queue = self.voevent_queue
+            source_queue = None
             target_queue = None
         elif service == 'status_website':
             source_queue = None
