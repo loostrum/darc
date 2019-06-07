@@ -4,6 +4,8 @@
 # Controls all services
 
 import sys
+# ensure not bytecode is written, to make reload work
+sys.dont_write_bytecode = True
 import os
 import ast
 import yaml
