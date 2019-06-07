@@ -52,7 +52,8 @@ class TestAMBERClustering(unittest.TestCase):
 
         # start observation
         utc_start = Time.now()
-        obs_config = {'startpacket': int(utc_start.unix*781250), 'min_freq': 1219.70092773}
+        obs_config = {'startpacket': int(utc_start.unix*781250), 'min_freq': 1219.70092773,
+                      'network_port_event_i': 30000}
         in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
 
         # put triggers on queue
@@ -72,12 +73,16 @@ class TestAMBERClustering(unittest.TestCase):
         # stop observation
         in_queue.put({'command': 'stop_observation'})
 
-
-        expected_output = [{'stokes': 'I', 'dm': 56.6, 'beam': 1, 'width': 1.0, 'snr': 18.4666, 'time': 0.0244941},
-                            {'stokes': 'I', 'dm': 80.0, 'beam': 1, 'width': 1000.0, 'snr': 10.3451, 'time': 0.90112},
-                            {'stokes': 'I', 'dm': 47.8, 'beam': 1, 'width': 1000.0, 'snr': 10.8202, 'time': 2.94912},
-                            {'stokes': 'I', 'dm': 41.6, 'beam': 1, 'width': 1000.0, 'snr': 14.372, 'time': 0.90112},
-                            {'stokes': 'I', 'dm': 15.8, 'beam': 1, 'width': 1000.0, 'snr': 15.7447, 'time': 2.94912}]
+        expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 1, 'width': 1.0, 'window_size': 1.024,
+                            'snr': 18.4666, 'time': 0.0244941},
+                           {'stokes': 'I', 'dm': 80.0, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                            'snr': 10.3451, 'time': 0.90112},
+                           {'stokes': 'I', 'dm': 47.8, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                            'snr': 10.8202, 'time': 2.94912},
+                           {'stokes': 'I', 'dm': 41.6, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                            'snr': 14.372, 'time': 0.90112},
+                           {'stokes': 'I', 'dm': 15.8, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                            'snr': 15.7447, 'time': 2.94912}]
 
         # test all clusters are there
         self.assertEqual(len(output), len(expected_output))
@@ -122,7 +127,8 @@ class TestAMBERClustering(unittest.TestCase):
         triggers = [line.strip() for line in triggers]
 
         # start observation
-        obs_config = {'startpacket': int(Time.now().unix*781250), 'min_freq': 1219.70092773}
+        obs_config = {'startpacket': int(Time.now().unix*781250), 'min_freq': 1219.70092773,
+                      'network_port_event_i': 30000}
         in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
 
         # put triggers on queue
