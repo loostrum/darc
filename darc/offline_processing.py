@@ -25,7 +25,7 @@ import numpy as np
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE, WSRT_LON, NUMCB
 from darc.logger import get_logger
 from darc import util
 

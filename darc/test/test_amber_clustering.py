@@ -6,6 +6,7 @@ import multiprocessing as mp
 import threading
 from time import sleep
 import numpy as np
+from astropy.time import Time
 try:
     from queue import Empty
 except ImportError:
@@ -49,9 +50,14 @@ class TestAMBERClustering(unittest.TestCase):
         if len(triggers) > nline_to_check:
             triggers = triggers[:nline_to_check]
 
+        # start observation
+        utc_start = Time.now()
+        obs_config = {'startpacket': int(utc_start.unix*781250), 'min_freq': 1219.70092773}
+        in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
+
         # put triggers on queue
         for trigger in triggers:
-            in_queue.put(trigger)
+            in_queue.put({'command': 'trigger', 'trigger': trigger})
         # get output
         sleep(clustering.interval + 5)
         output = []
@@ -63,14 +69,15 @@ class TestAMBERClustering(unittest.TestCase):
         if not output:
             self.fail("No clusters received")
 
-        # stop the clustering
-        stop_event.set()
+        # stop observation
+        in_queue.put({'command': 'stop_observation'})
 
-        expected_output = [{'stokes': 'I', 'dm': 56.6, 'beam': 1.0, 'width': 1.0, 'snr': 18.4666, 'time': 0.0244941},
-                            {'stokes': 'I', 'dm': 80.0, 'beam': 1.0, 'width': 1000.0, 'snr': 10.3451, 'time': 0.90112},
-                            {'stokes': 'I', 'dm': 47.8, 'beam': 1.0, 'width': 1000.0, 'snr': 10.8202, 'time': 2.94912},
-                            {'stokes': 'I', 'dm': 41.6, 'beam': 1.0, 'width': 1000.0, 'snr': 14.372, 'time': 0.90112},
-                            {'stokes': 'I', 'dm': 15.8, 'beam': 1.0, 'width': 1000.0, 'snr': 15.7447, 'time': 2.94912}]
+
+        expected_output = [{'stokes': 'I', 'dm': 56.6, 'beam': 1, 'width': 1.0, 'snr': 18.4666, 'time': 0.0244941},
+                            {'stokes': 'I', 'dm': 80.0, 'beam': 1, 'width': 1000.0, 'snr': 10.3451, 'time': 0.90112},
+                            {'stokes': 'I', 'dm': 47.8, 'beam': 1, 'width': 1000.0, 'snr': 10.8202, 'time': 2.94912},
+                            {'stokes': 'I', 'dm': 41.6, 'beam': 1, 'width': 1000.0, 'snr': 14.372, 'time': 0.90112},
+                            {'stokes': 'I', 'dm': 15.8, 'beam': 1, 'width': 1000.0, 'snr': 15.7447, 'time': 2.94912}]
 
         # test all clusters are there
         self.assertEqual(len(output), len(expected_output))
@@ -97,8 +104,8 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
 
-        # set max age to -1, so zero trigger are approved
-        clustering.age_max = -1
+        # set max age to -inf, so zero triggers are approved
+        clustering.age_max = -np.inf
 
         # start the clustering
         clustering.start()
@@ -114,15 +121,22 @@ class TestAMBERClustering(unittest.TestCase):
             triggers = triggers[:nline_to_check]
         triggers = [line.strip() for line in triggers]
 
+        # start observation
+        obs_config = {'startpacket': int(Time.now().unix*781250), 'min_freq': 1219.70092773}
+        in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
+
         # put triggers on queue
         for trigger in triggers:
-            in_queue.put(trigger)
+            in_queue.put({'command': 'trigger', 'trigger': trigger})
         # get output
         sleep(clustering.interval + 5)
         try:
             output = out_queue.get(timeout=5)
         except Empty:
             output = []
+
+        # stop observation
+        in_queue.put({'command': 'stop_observation'})
 
         # stop the clustering
         stop_event.set()

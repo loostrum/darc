@@ -7,7 +7,7 @@ import ast
 import logging
 import socket
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE
 
 logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
 

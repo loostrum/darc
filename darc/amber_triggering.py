@@ -14,7 +14,7 @@ import threading
 import socket
 import numpy as np
 
-from darc.definitions import *
+from darc.definitions import MASTER
 from darc.logger import get_logger
 from darc.external import tools
 from darc.voevent_generator import VOEventQueueServer
@@ -57,7 +57,7 @@ class AMBERTriggering(threading.Thread):
 
         # Setup VO Event queue server
         VOEventQueueServer.register('get_queue')
-        host = self.vo_config['server_host']
+        host = MASTER
         port = self.vo_config['server_port']
         auth = self.vo_config['server_auth']
         self.voevent_queue_server = VOEventQueueServer(address=(host, port), authkey=auth)

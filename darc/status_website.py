@@ -9,7 +9,7 @@ import socket
 from textwrap import dedent
 from astropy.time import Time
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
 from darc.logger import get_logger
 from darc.control import send_command

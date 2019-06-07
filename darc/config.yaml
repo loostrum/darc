@@ -60,7 +60,6 @@ voevent_generator:
     log_file: '{home}/darc/log/voevent_generator.{hostname}.log'
     voevent_dir: '{home}/darc/voevents'
     send_events: False
-    server_host: 'arts041.apertif'
     server_port: 52000
     server_auth: '9S5JNp9MgM'
     broker_host: 'arts041.apertif'

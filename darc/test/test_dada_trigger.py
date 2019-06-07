@@ -42,7 +42,7 @@ class TestDADATrigger(unittest.TestCase):
 
         # trigger
         trigger = {'dm': 56.791, 'snr': 15.2, 'width': 2, 'beam': 22, 'time': time,
-                   'utc_start': utc_start, 'stokes': stokes, 'port': port}
+                   'window_size': 10.24, 'utc_start': utc_start, 'stokes': stokes, 'port': port}
 
         # event parameters
         event_start_full = utc_start + TimeDelta(time, format='sec') - TimeDelta(window_size/2, format='sec')
@@ -96,7 +96,7 @@ class TestDADATrigger(unittest.TestCase):
             self.fail("Failed to set up listening socket for events: {}".format(e))
 
         # send the stokes I trigger
-        queue.put(trigger_i)
+        queue.put({'command': 'trigger', 'trigger': trigger_i})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -132,7 +132,7 @@ class TestDADATrigger(unittest.TestCase):
         except socket.error as e:
             self.fail("Failed to set up listening socket for events: {}".format(e))
         # send the stokes IQUV trigger
-        queue.put(trigger_iquv)
+        queue.put({'command': 'trigger', 'trigger': trigger_iquv})
         try:
             client, adr = sock.accept()
         except socket.timeout:

@@ -14,8 +14,7 @@ from textwrap import dedent
 import socket
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import *
-from darc import util
+from darc.definitions import CONFIG_FILE
 from darc.logger import get_logger
 
 
@@ -47,19 +46,6 @@ class DADATrigger(threading.Thread):
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
-
-        # read dbevent listening ports from arts_survey_control config
-        # if this fails for any reason, the defaults in the darc config file are used
-        try:
-            with open(self.arts_survey_control_conf) as f:
-                raw_arts_config = f.read()
-            arts_survey_config = util.parse_parset(raw_arts_config)
-            self.port_i = arts_survey_config['ARTSSurveyControl.network_port_event_i']
-            self.port_iquv = arts_survey_config['ARTSSurveyControl.network_port_event_iquv']
-        except Exception as e:
-            self.logger.warning("Failed to read dada_dbevent ports from arts_survey_control config"
-                                " Using defaults from DARC config ({})".format(e))
-
         self.logger.info("DADA trigger initialized")
 
     def set_source_queue(self, queue):
@@ -78,17 +64,27 @@ class DADATrigger(threading.Thread):
 
         self.logger.info("Starting DADA trigger")
 
+        thread = None
         while not self.stop_event.is_set():
             try:
-                trigger = self.event_queue.get(timeout=.1)
+                command = self.event_queue.get(timeout=.1)
             except Empty:
                 continue
-            else:
-                thread = threading.Thread(target=self.send_event, args=[trigger])
+            # dada trigger is observation agnostic, so does not need to act on start/stop
+            if command['command'] in ['start_observation', 'stop_observation']:
+                pass
+            elif command['command'] == 'trigger':
+                # trigger received, send to dada_dbevent
+                thread = threading.Thread(target=self.send_event, args=[command['trigger']])
                 thread.daemon = True
                 thread.start()
+            else:
+                self.logger.error("Unknown command received: {}".format(command['command']))
 
         self.logger.info("Stopping DADA trigger")
+        # wait for last thread to finish
+        if thread:
+            thread.join()
 
     def send_event(self, trigger):
         """
@@ -96,20 +92,10 @@ class DADATrigger(threading.Thread):
         :param trigger: trigger dictionary
         """
         self.logger.info("Received trigger")
-        # event parameters
-        if trigger['stokes'].upper() == 'I':
-            port = self.port_i
-            window_size = self.window_size_i
-        elif trigger['stokes'].upper() == 'IQUV':
-            port = self.port_iquv
-            window_size = self.window_size_iquv
-        else:
-            self.logger.error("Unknown stokes type: {}".format(trigger['stokes']))
-            return
 
         event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
-                                TimeDelta(window_size / 2, format='sec')
-        event_end_full = event_start_full + TimeDelta(window_size, format='sec')
+                                   TimeDelta(trigger['window_size'] / 2, format='sec')
+        event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')
 
         event_start, event_start_frac = event_start_full.iso.split('.')
         # event_start_frac = '.' + event_start_frac
@@ -134,10 +120,10 @@ class DADATrigger(threading.Thread):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
-            sock.connect(("localhost", port))
+            sock.connect(("localhost", trigger['port']))
         except socket.error as e:
             self.logger.error("Failed to connect to stokes {} dada_dbevent on port {}: {}".format(trigger['stokes'],
-                                                                                                  port, e))
+                                                                                                  trigger['port'], e))
             return
 
         # send event

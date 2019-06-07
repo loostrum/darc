@@ -38,7 +38,7 @@ class TestAMBERListener(unittest.TestCase):
         obs_config = {'amber_dir': os.path.dirname(os.path.abspath(__file__)),
                       'beam': 0,
                       'amber_config': amber_conf_file}
-        command = {'type': 'start_observation', 'obs_config': obs_config}
+        command = {'command': 'start_observation', 'obs_config': obs_config}
         obs_queue.put(command)
 
         output = []
@@ -49,7 +49,10 @@ class TestAMBERListener(unittest.TestCase):
                 raw_trigger = amber_queue.get(timeout=2)
             except Empty:
                 break
-            output.append(raw_trigger)
+            output.append(raw_trigger['trigger'])
+
+        # stop the observation
+        obs_queue.put({'command': 'stop_observation'})
 
         # stop the listener
         stop_event.set()

@@ -16,7 +16,7 @@ try:
     from importlib import reload
 except ImportError:
     pass
-from darc.definitions import *
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
@@ -44,13 +44,13 @@ class DARCMaster(object):
         self.hostname = socket.gethostname()
 
         # setup queues
-        self.observation_queue = mp.Queue()  # for start observation commands
-        self.amber_queue = mp.Queue()  # for amber triggers
+        self.amber_listener_queue = mp.Queue()  # only used for start observation commands
+        self.amber_trigger_queue = mp.Queue()  # for amber triggers
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
         self.processing_queue = mp.Queue()  # for offline processing
 
-        self.all_queues = [self.observation_queue, self.amber_queue, self.processing_queue,
-                           self.dadatrigger_queue]
+        self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
+                           self.processing_queue]
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -84,8 +84,8 @@ class DARCMaster(object):
                                 'amber_listener': darc.amber_listener.AMBERListener,
                                 'amber_triggering': darc.amber_triggering.AMBERTriggering,
                                 'amber_clustering': darc.amber_clustering.AMBERClustering,
-                                'offline_processing': darc.offline_processing.OfflineProcessing,
-                                'dada_trigger': darc.dada_trigger.DADATrigger}
+                                'dada_trigger': darc.dada_trigger.DADATrigger,
+                                'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
@@ -283,13 +283,13 @@ class DARCMaster(object):
 
         # settings for specific services
         if service == 'amber_listener':
-            source_queue = self.observation_queue
-            target_queue = self.amber_queue
+            source_queue = self.amber_listener_queue
+            target_queue = self.amber_trigger_queue
         elif service == 'amber_triggering':
-            source_queue = self.amber_queue
+            source_queue = self.amber_trigger_queue
             target_queue = None
         elif service == 'amber_clustering':
-            source_queue = self.amber_queue
+            source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue  # TODO: new processor queue?
         elif service == 'voevent_generator':
             source_queue = None
@@ -455,8 +455,7 @@ class DARCMaster(object):
         if not config['proctrigger']:
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
-        # start the observation
-        
+
         # initialize observation
         # Real-time procesing
         if self.real_time:
@@ -472,10 +471,10 @@ class DARCMaster(object):
                 self.logger.info("Making sure all services are running")
                 for service in self.services:
                     self.start_service(service)
-                # start observation by feeding obs config to amber listener
-                command = {'type': "start_observation"}
-                command['obs_config'] = config
-                self.observation_queue.put(command)
+                # start observation by feeding obs config to all queues
+                command = {'command': 'start_observation', 'obs_config': config}
+                for queue in self.all_queues:
+                    queue.put(command)
             else:
                 self.logger.error("Running on unknown host: {}".format(self.hostname))
                 return "Error", "Failed: running on unknown host"
@@ -501,18 +500,17 @@ class DARCMaster(object):
             self.processing_queue.put(command)
             return "Success", "Observation started for offline processing"
 
-    def stop_observation(self, taskid):
+    def stop_observation(self):
         """
         Stop an observation
-        :param taskid: task ID of observation to stop
-        :return:
+        :return: status, reply message
         """
-        self.logger.error("Stop not implemented yet")
-        status = "Error"
-        reply = {'error': "Stop is not implemented yet"}
-        # TODO
-        # stop amber listener
-        # clear all queues
+        # call stop_observation for all relevant services through their queues
+        for queue in self.all_queues:
+            queue.put({'command': 'stop_observation'})
+        status = 'Success'
+        reply = "Stopped observation"
+        self.logger.info("Stopped observation")
         return status, reply
 
     def _load_yaml(self, config_file):

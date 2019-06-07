@@ -14,7 +14,7 @@ try:
 except ImportError:
     from Queue import Empty
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE
 from darc.logger import get_logger
 from darc import util
 
@@ -36,6 +36,7 @@ class AMBERListener(threading.Thread):
         self.observation_queue = None
         self.amber_queue = None
 
+        self.observation_threads = []
         self.observation_events = []
 
         with open(CONFIG_FILE, 'r') as f:
@@ -89,19 +90,18 @@ class AMBERListener(threading.Thread):
                 command = self.observation_queue.get(timeout=1)
             except Empty:
                 continue
-
             # command received, process it
-            if command['type'] == "start_observation":
+            if command['command'] == "start_observation":
                 self.logger.info("Starting observation")
                 try:
                     self.start_observation(command['obs_config'])
                 except Exception as e:
                     self.logger.error("Failed to start observation: {}".format(e))
-            elif command['type'] == "stop_observation":
+            elif command['command'] == "stop_observation":
                 self.logger.info("Stopping observation")
                 self.stop_observation()
             else:
-                self.logger.error("Unknown command received: {}".format(command['type']))
+                self.logger.error("Unknown command received: {}".format(command['command']))
         self.logger.info("Stopping AMBER listener")
         self.stop_observation()
 
@@ -112,7 +112,7 @@ class AMBERListener(threading.Thread):
         :return:
         """
         # Stop any running observation
-        if self.observation_events:
+        if self.observation_events or self.observation_threads:
             self.logger.info("Old observation found, stopping it first")
             self.stop_observation()
 
@@ -139,6 +139,7 @@ class AMBERListener(threading.Thread):
             thread = threading.Thread(target=self._follow_file, args=[trigger_file, event], name="step{}".format(step))
             thread.daemon = True
             thread.start()
+            self.observation_threads.append(thread)
 
         self.logger.info("Observation started")
         # ToDo: Automatic stop? Careful not to overwrite a new observation
@@ -150,6 +151,9 @@ class AMBERListener(threading.Thread):
         for event in self.observation_events:
             event.set()
         self.observation_events = []
+        for thread in self.observation_threads:
+            thread.join()
+        self.observation_threads = []
 
     def _follow_file(self, fname, event):
         """
@@ -174,4 +178,4 @@ class AMBERListener(threading.Thread):
             for line in util.tail(f, event):
                 line = line.strip()
                 if line:
-                    self.amber_queue.put(line)
+                    self.amber_queue.put({'command': 'trigger', 'trigger': line})
