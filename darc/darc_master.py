@@ -218,6 +218,7 @@ class DARCMaster(object):
         # Stop observation
         elif command == 'stop_observation':
             status, reply = self.stop_observation()
+            return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
