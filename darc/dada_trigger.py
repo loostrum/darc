@@ -93,6 +93,9 @@ class DADATrigger(threading.Thread):
         """
         self.logger.info("Received trigger")
 
+        # ensure utc_start is in iso format
+        trigger['utc_start'] = trigger['utc_start'].iso
+
         event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
                                    TimeDelta(trigger['window_size'] / 2, format='sec')
         event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')

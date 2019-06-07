@@ -49,7 +49,7 @@ amber_triggering:
 # Clustering of AMBER triggers
 amber_clustering:
     log_file: '{home}/darc/log/amber_clustering.{hostname}.log'
-    interval: .5
+    interval: 2.0
     dm_min: 0
     dm_max: 9999
     snr_min: 10

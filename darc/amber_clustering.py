@@ -183,24 +183,26 @@ class AMBERClustering(threading.Thread):
                                     self.logger.error("Key missing from clusters header: {}".format(key))
                                     self.hdr_mapping = {}
                                     return
-                            # triggers is now empty if only header was received
-                            if not triggers:
-                                self.logger.info("Only header received - Canceling processing")
-                                return
 
+                # header should be present now
                 if not self.hdr_mapping:
                     self.logger.error("First clusters received but header not found")
-                    return
+                    continue
 
                 # remove headers from triggers (i.e. any trigger starting with #)
                 triggers = [trigger for trigger in triggers if not trigger.startswith('#')]
+
+                # triggers is empty if only header was received
+                if not triggers:
+                    self.logger.info("Only header received - Canceling processing")
+                    continue
 
                 # split strings and convert to numpy array
                 try:
                     triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
                 except Exception as e:
                     self.logger.error("Failed to process triggers: {}".format(e))
-                    return
+                    continue
 
                 # pick columns to feed to clustering algorithm
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
@@ -226,11 +228,12 @@ class AMBERClustering(threading.Thread):
                     for i in range(ncluster):
                         # set window size to roughly two DM delays, and at least one page
                         window_size = max(1.024, cluster_dm[mask][i] * 2 / 1000.)
-                        dada_trigger_command = {'stokes': 'I', 'dm': cluster_dm[mask][i], 'beam': cluster_sb[mask][i],
-                                                'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
-                                                'time': cluster_time[mask][i], 'utc_start': utc_start,
-                                                'window_size': window_size, 'port': network_port}
-                        self.cluster_queue.put(dada_trigger_command)
+                        dada_trigger = {'stokes': 'I', 'dm': cluster_dm[mask][i], 'beam': cluster_sb[mask][i],
+                                        'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
+                                        'time': cluster_time[mask][i], 'utc_start': utc_start,
+                                        'window_size': window_size, 'port': network_port}
+                        self.cluster_queue.put({'command': 'trigger', 'trigger': dada_trigger})
                 else:
                     self.logger.info("No clusters after thresholding")
             sleep(self.interval)
+        self.logger.info("Observation finished")

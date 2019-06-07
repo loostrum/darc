@@ -174,6 +174,7 @@ class AMBERListener(threading.Thread):
             self.logger.error("Giving up on following file: {}".format(fname))
             return
         # tail the file
+        self.logger.info("Following file: {}".format(fname))
         with open(fname, 'r') as f:
             for line in util.tail(f, event):
                 line = line.strip()

@@ -85,7 +85,7 @@ def parse_parset(parset_str):
     # fix types where needed
     # anything not changed here remains a string
     # ints
-    for key in ['startpacket', 'beam', 'ntabs', 'nsynbeams']:
+    for key in ['startpacket', 'beam', 'ntabs', 'nsynbeams', 'network_port_event_i', 'network_port_event_iquv']:
         if key in parset_dict.keys():
             parset_dict[key] = int(parset_dict[key])
     # floats
