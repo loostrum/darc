@@ -259,7 +259,7 @@ def read_singlepulse(fn, max_rows=None, beam=None):
 def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf, 
                  t_window=0.5, max_rows=None, t_max=np.inf,
                  sig_max=np.inf, dt=2*40.96, delta_nu_MHz=300./1536, 
-                 nu_GHz=1.4, fnout=False, tab=None, dm_width_filter=False):
+                 nu_GHz=1.4, fnout=False, tab=None, sb=None, dm_width_filter=False):
     """ Get brightest trigger in each 10s chunk.
 
     Parameters
@@ -281,6 +281,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         name of text file to save clustered triggers to 
     tab : int
         which TAB to process (0 for IAB)
+    sb : np.ndarray
+        synthesized beam number for each trigger
 
     Returns
     -------
@@ -292,6 +294,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         Arrival times of brightest trigger in each DM/T window 
     ds_cut : ndarray 
         downsample factor array of brightest trigger in each DM/T window 
+    sb_cut: ndarray
+        synthesized beam array of brightest trigger in each DM/T windows (only if input SB given)
     """
     if tab is not None:
         beam_amber = tab
@@ -314,6 +318,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     dm = np.delete(dm, bad_sig_ind)
     downsample = np.delete(downsample, bad_sig_ind)
     sig_cut, dm_cut, tt_cut, ds_cut = [],[],[],[]
+    if sb is not None:
+        sb_cut = []
 
     if len(tt)==0:
         print("Returning None: time array is empty")
@@ -352,6 +358,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 dm_cut.append(dm[ind_maxsnr])
                 tt_cut.append(tt[ind_maxsnr])
                 ds_cut.append(downsample[ind_maxsnr])
+                if sb is not None:
+                    sb_cut.append(sb[ind_maxsnr])
                 ind_full.append(ind_maxsnr)
             except:
                 continue
@@ -367,6 +375,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     sig_cut = np.array(sig_cut)[ind]
     tt_cut = tt_cut[ind]
     ds_cut = np.array(ds_cut)[ind]
+    if sb is not None:
+        sb_cut = np.array(sb_cut)[ind]
 
     ntrig_group = len(dm_cut)
 
@@ -385,14 +395,23 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt_cut = np.delete(tt_cut, rm_ii)
     sig_cut = np.delete(sig_cut, rm_ii)
     ds_cut = np.delete(ds_cut, rm_ii)
+    if sb is not None:
+        sb_cut = np.delete(sb_cut, rm_ii)
     ind_full = np.delete(ind_full, rm_ii)
 
     if fnout != False:
-        clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, ind_full])
-        clustered_arr = clustered_arr.reshape(5, -1)
+        if sb is not None:
+            clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, sb_cut, ind_full])
+            clustered_arr = clustered_arr.reshape(6, -1)
+        else:
+            clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, ind_full])
+            clustered_arr = clustered_arr.reshape(5, -1)
         np.savetxt(fnout, clustered_arr) 
 
-    return sig_cut, dm_cut, tt_cut, ds_cut, ind_full
+    if sb is not None:
+        return sig_cut, dm_cut, tt_cut, ds_cut, sb_cut, ind_full
+    else:
+        return sig_cut, dm_cut, tt_cut, ds_cut, ind_full
 
 def add_tab_col(fdir, fnout='out'):
     """ Take list of .trigger files for 

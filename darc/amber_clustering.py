@@ -205,14 +205,13 @@ class AMBERClustering(threading.Thread):
                 # pick columns to feed to clustering algorithm
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
                                                        self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
+                triggers_for_clustering_sb = triggers[:, self.hdr_mapping['beam_id']].astype(int)
                 self.logger.info("Clustering")
-                cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = \
+                cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _ = \
                     tools.get_triggers(triggers_for_clustering,
                                        tab=triggers[:, self.hdr_mapping['beam_id']],
                                        dm_min=self.dm_min, dm_max=self.dm_max, sig_thresh=self.snr_min,
-                                       dt=dt, delta_nu_MHz=chan_width, nu_GHz=cent_freq)
-                # ToDo: need to get SB numbers after clustering
-                cluster_sb = np.ones_like(cluster_snr, dtype=int)
+                                       dt=dt, delta_nu_MHz=chan_width, nu_GHz=cent_freq, sb=triggers_for_clustering_sb)
                 self.logger.info("Clustered {} raw triggers into {} clusters".format(len(triggers_for_clustering),
                                                                                      len(cluster_snr)))
 

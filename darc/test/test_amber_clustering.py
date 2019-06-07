@@ -73,15 +73,15 @@ class TestAMBERClustering(unittest.TestCase):
         # stop observation
         in_queue.put({'command': 'stop_observation'})
 
-        expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 1, 'width': 1.0, 'window_size': 1.024,
+        expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 0, 'width': 1.0, 'window_size': 1.024,
                             'snr': 18.4666, 'time': 0.0244941},
-                           {'stokes': 'I', 'dm': 80.0, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                           {'stokes': 'I', 'dm': 80.0, 'port': 30000, 'beam': 2, 'width': 1000.0, 'window_size': 1.024,
                             'snr': 10.3451, 'time': 0.90112},
-                           {'stokes': 'I', 'dm': 47.8, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                           {'stokes': 'I', 'dm': 47.8, 'port': 30000, 'beam': 3, 'width': 1000.0, 'window_size': 1.024,
                             'snr': 10.8202, 'time': 2.94912},
-                           {'stokes': 'I', 'dm': 41.6, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                           {'stokes': 'I', 'dm': 41.6, 'port': 30000, 'beam': 3, 'width': 1000.0, 'window_size': 1.024,
                             'snr': 14.372, 'time': 0.90112},
-                           {'stokes': 'I', 'dm': 15.8, 'port': 30000, 'beam': 1, 'width': 1000.0, 'window_size': 1.024,
+                           {'stokes': 'I', 'dm': 15.8, 'port': 30000, 'beam': 4, 'width': 1000.0, 'window_size': 1.024,
                             'snr': 15.7447, 'time': 2.94912}]
 
         # test all clusters are there
