@@ -4,6 +4,7 @@
 # Controls all services
 
 import sys
+import os
 import ast
 import yaml
 import multiprocessing as mp
@@ -139,7 +140,7 @@ class DARCMaster(object):
             try:
                 client, adr = self.command_socket.accept()
             except Exception as e:
-                self.logger.error('Caught exception while waiting for command: {}', e)
+                self.logger.error('Caught exception while waiting for command: {}'.format(e))
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
             raw_message = client.recv(1024).decode()

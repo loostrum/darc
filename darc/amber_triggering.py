@@ -2,6 +2,7 @@
 #
 # AMBER Triggering
 
+import os
 import yaml
 from time import time
 import multiprocessing as mp
@@ -147,7 +148,8 @@ class AMBERTriggering(threading.Thread):
         triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
 
         self.logger.info("Clustering")
-        triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'], self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
+        triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'], 
+                                               self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
 
         # ToDo: feed other obs parameters
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, _ = tools.get_triggers(triggers_for_clustering, tab=triggers[:, self.hdr_mapping['beam_id']])
@@ -160,7 +162,7 @@ class AMBERTriggering(threading.Thread):
                           'ra': 83.63322083333333, 'dec': 22.01446111111111,
                           'ymw16': 0, 'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
                           'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
-
+        
         self.logger.info("Putting trigger on voevent queue: {}".format(voevent_trigger))
         self.voevent_queue_server.connect()
         voevent_queue = self.voevent_queue_server.get_queue()

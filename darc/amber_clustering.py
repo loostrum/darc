@@ -2,6 +2,7 @@
 #
 # AMBER Clustering
 
+import os
 import yaml
 from time import time
 import multiprocessing as mp
@@ -178,7 +179,6 @@ class AMBERClustering(threading.Thread):
                 dada_trigger_command = {'stokes': 'I', 'dm': cluster_dm[mask][i], 'beam': cluster_sb[mask][i],
                                         'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
                                         'time': cluster_time[mask][i], 'utc_start': utc_start}
-                self.cluster_queue.put(dada_trigger_command)
-
+            self.cluster_queue.put(dada_trigger_command)
         else:
             self.logger.info("No clusters after thresholding")

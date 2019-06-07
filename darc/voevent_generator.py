@@ -2,6 +2,7 @@
 #
 # VOEvent Generator
 
+import os
 import yaml
 import multiprocessing as mp
 try:

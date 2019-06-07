@@ -2,6 +2,7 @@
 #
 # dada_dbevent triggers
 
+import os
 import yaml
 import multiprocessing as mp
 try:

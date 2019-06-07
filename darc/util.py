@@ -7,7 +7,7 @@ import errno
 import datetime
 import time
 import json
-from astropy.time import Time, TimeDelta
+from astropy.time import Time
 try:
     from queue import Empty
 except ImportError:

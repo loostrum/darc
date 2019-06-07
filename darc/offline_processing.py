@@ -4,7 +4,6 @@
 # Controls all services
 
 import os
-import sys
 import ast
 import glob
 import yaml
@@ -17,9 +16,9 @@ import threading
 import socket
 import subprocess
 from shutil import copyfile
-import ast
 import random
 import string
+import astropy.units as u
 
 import h5py
 import numpy as np
