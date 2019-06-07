@@ -18,7 +18,7 @@ class TestParseParset(unittest.TestCase):
 
         # generate a parset dict
         input_parset_dict = {'amber_dir': '/data2/output/20190518/2019-05-18-23:51:13.B1933+16/amber',
-                       'network_port_event_iquv': '30001', 'obs_mode': 'survey', 'source': 'B1933+16',
+                       'network_port_event_iquv': 30001, 'obs_mode': 'survey', 'source': 'B1933+16',
                        'output_dir': '/data2/output/20190518/2019-05-18-23:51:13.B1933+16',
                        'network_port_start_i': '5000'}
 

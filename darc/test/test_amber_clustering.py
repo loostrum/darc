@@ -88,7 +88,7 @@ class TestAMBERClustering(unittest.TestCase):
         self.assertEqual(len(output), len(expected_output))
         # test clusters are equal
         for ind, expected_cluster in enumerate(expected_output):
-            cluster = output[ind]
+            cluster = output[ind]['trigger']
             # remove utc_start because that cannot be controlled yet
             del cluster['utc_start']
             self.assertDictEqual(cluster, expected_cluster)
