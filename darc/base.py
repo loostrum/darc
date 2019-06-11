@@ -107,7 +107,7 @@ class DARCBase(threading.Thread):
             else:
                 self.process_command(command)
         self.logger.info("Stopping {}".format(self.log_name))
-        self.stop_observation()
+        self.cleanup()
 
     def start_observation(self, *args, **kwargs):
         raise NotImplementedError("start_observation should be defined by subclass")
@@ -117,3 +117,6 @@ class DARCBase(threading.Thread):
 
     def process_command(self, *args, **kwargs):
         raise NotImplementedError("process_command should be defined by subclass")
+
+    def cleanup(self):
+        raise NotImplementedError("cleanup should be defined by subclass")
