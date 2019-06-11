@@ -4,7 +4,6 @@ import os
 import sys
 import unittest
 import multiprocessing as mp
-import threading
 from textwrap import dedent
 from time import sleep
 from astropy.time import Time, TimeDelta
@@ -74,10 +73,8 @@ class TestDADATrigger(unittest.TestCase):
 
         # create input queue
         queue = mp.Queue()
-        # create stop event for DADA Trigger
-        stop_event = threading.Event()
         # init DADA Trigger
-        dadatrigger = DADATrigger(stop_event)
+        dadatrigger = DADATrigger()
         # set the queue
         dadatrigger.set_source_queue(queue)
         # start dadatrigger
@@ -160,7 +157,7 @@ class TestDADATrigger(unittest.TestCase):
         self.assertListEqual(in_event_split, out_event_split)
 
         # stop dadatrigger
-        stop_event.set()
+        dadatrigger.stop()
 
 
 if __name__ == '__main__':

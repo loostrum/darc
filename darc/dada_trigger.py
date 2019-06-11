@@ -14,77 +14,41 @@ from textwrap import dedent
 import socket
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import CONFIG_FILE
-from darc.logger import get_logger
+from darc.base import DARCBase
 
 
 class DADATriggerException(Exception):
     pass
 
 
-class DADATrigger(threading.Thread):
+class DADATrigger(DARCBase):
     """
     Generate and send dada_dbevent triggers
     """
 
-    def __init__(self, stop_event):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = stop_event
+    def __init__(self):
+        super(DADATrigger, self).__init__()
+        self.thread = None
 
-        self.event_queue = None
-
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['dada_trigger']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-        self.logger.info("DADA trigger initialized")
-
-    def set_source_queue(self, queue):
+    def process_command(self, command):
         """
-        :param queue: Source of amber clusters
+        Process command received from queue
+        :param command: command dict
         """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise DADATriggerException('Given source queue is not an instance of Queue')
-        self.event_queue = queue
+        if command['command'] == 'trigger':
+            # trigger received, send to dada_dbevent
+            self.thread = threading.Thread(target=self.send_event, args=[command['trigger']])
+            self.thread.daemon = True
+            self.thread.start()
+        else:
+            self.logger.error("Unknown command received: {}".format(command['command']))
 
-    def run(self):
-        if not self.event_queue:
-            self.logger.error('DADA trigger queue not set')
-            raise DADATriggerException('DADA trigger queue not set')
-
-        self.logger.info("Starting DADA trigger")
-
-        thread = None
-        while not self.stop_event.is_set():
-            try:
-                command = self.event_queue.get(timeout=.1)
-            except Empty:
-                continue
-            # dada trigger is observation agnostic, so does not need to act on start/stop
-            if command['command'] in ['start_observation', 'stop_observation']:
-                pass
-            elif command['command'] == 'trigger':
-                # trigger received, send to dada_dbevent
-                thread = threading.Thread(target=self.send_event, args=[command['trigger']])
-                thread.daemon = True
-                thread.start()
-            else:
-                self.logger.error("Unknown command received: {}".format(command['command']))
-
-        self.logger.info("Stopping DADA trigger")
-        # wait for last thread to finish
-        if thread:
-            thread.join()
+    def cleanup(self):
+        """
+        Remove any remaining threads
+        """
+        if self.thread:
+            self.thread.join()
 
     def send_event(self, trigger):
         """

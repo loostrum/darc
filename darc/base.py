@@ -35,9 +35,9 @@ class DARCBase(threading.Thread):
         self.source_queue = None
         self.target_queue = None
 
-        # name is like dada_trigger, but log should use Dada Trigger
-        name = type(self).__name__
-        self.log_name = name.replace('_', ' ').title()
+        # set names for config and logger
+        name = type(self).__module__.split('.')[-1]
+        self.log_name = type(self).__name__
 
         # load config
         with open(CONFIG_FILE, 'r') as f:
@@ -58,7 +58,9 @@ class DARCBase(threading.Thread):
         """
         Set the stop event
         """
+        self.logger.info("Stopping {}".format(self.log_name))
         self.stop_event.set()
+        self.cleanup()
 
     def set_source_queue(self, queue):
         """
@@ -66,7 +68,9 @@ class DARCBase(threading.Thread):
         """
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error("Given source queue is not an instance of Queue")
-            return
+            self.stop()
+        else:
+            self.source_queue = queue
 
     def set_target_queue(self, queue):
         """
@@ -74,49 +78,54 @@ class DARCBase(threading.Thread):
         """
         if not isinstance(queue, mp.queues.Queue):
             self.logger.error("Given target queue is not an instance of Queue")
-            return
+            self.stop()
+        else:
+            self.target_queue = queue
 
     def run(self):
         """
         Main loop
         """
         # check queues
-        if self.needs_source_queue and not self.source_queue:
-            self.logger.error("Source queue not set")
+        try:
+            if self.needs_source_queue and not self.source_queue:
+                self.logger.error("Source queue not set")
 
-        if self.needs_target_queue and not self.target_queue:
-            self.logger.error("Source queue not set")
+            if self.needs_target_queue and not self.target_queue:
+                self.logger.error("Source queue not set")
 
-        self.logger.info("Starting {}".format(self.log_name))
-        while not self.stop_event.is_set():
-            # read from queue
-            try:
-                command = self.source_queue.get(timeout=.1)
-            except Empty:
-                continue
-            # command received, process it
-            if command['command'] == "start_observation":
-                self.logger.info("Starting observation")
+            self.logger.info("Starting {}".format(self.log_name))
+            while not self.stop_event.is_set():
+                # read from queue
                 try:
-                    self.start_observation(command['obs_config'])
-                except Exception as e:
-                    self.logger.error("Failed to start observation: {}".format(e))
-            elif command['command'] == "stop_observation":
-                self.logger.info("Stopping observation")
-                self.stop_observation()
-            else:
-                self.process_command(command)
-        self.logger.info("Stopping {}".format(self.log_name))
-        self.cleanup()
+                    command = self.source_queue.get(timeout=.1)
+                except Empty:
+                    continue
+                # command received, process it
+                if command['command'] == "start_observation":
+                    self.logger.info("Starting observation")
+                    try:
+                        self.start_observation(command['obs_config'])
+                    except Exception as e:
+                        self.logger.error("Failed to start observation: {}".format(e))
+                elif command['command'] == "stop_observation":
+                    self.logger.info("Stopping observation")
+                    self.stop_observation()
+                else:
+                    self.process_command(command)
+        except Exception as e:
+            self.logger.error("Caught exception in main loop: {}".format(e))
+
+        self.stop()
 
     def start_observation(self, *args, **kwargs):
-        raise NotImplementedError("start_observation should be defined by subclass")
+        pass
 
     def stop_observation(self, *args, **kwargs):
-        raise NotImplementedError("stop_observation should be defined by subclass")
+        pass
+
+    def cleanup(self):
+        pass
 
     def process_command(self, *args, **kwargs):
         raise NotImplementedError("process_command should be defined by subclass")
-
-    def cleanup(self):
-        raise NotImplementedError("cleanup should be defined by subclass")
