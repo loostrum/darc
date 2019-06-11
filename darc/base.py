@@ -125,7 +125,7 @@ class DARCBase(threading.Thread):
         pass
 
     def cleanup(self):
-        pass
+        self.stop_observation()
 
     def process_command(self, *args, **kwargs):
         raise NotImplementedError("process_command should be defined by subclass")

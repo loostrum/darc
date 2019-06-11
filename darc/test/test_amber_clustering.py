@@ -3,7 +3,6 @@
 import os
 import unittest
 import multiprocessing as mp
-import threading
 from time import sleep
 import numpy as np
 from astropy.time import Time
@@ -25,10 +24,8 @@ class TestAMBERClustering(unittest.TestCase):
         # create queues
         in_queue = mp.Queue()
         out_queue = mp.Queue()
-        # create stop event for clustering
-        stop_event = threading.Event()
         # init AMBER Clustering
-        clustering = AMBERClustering(stop_event)
+        clustering = AMBERClustering()
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
@@ -70,8 +67,8 @@ class TestAMBERClustering(unittest.TestCase):
         if not output:
             self.fail("No clusters received")
 
-        # stop observation
-        in_queue.put({'command': 'stop_observation'})
+        # stop clustering
+        clustering.stop()
 
         expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 0, 'width': 1.0, 'window_size': 1.024,
                             'snr': 18.4666, 'time': 0.0244941},
@@ -101,10 +98,8 @@ class TestAMBERClustering(unittest.TestCase):
         # create queues
         in_queue = mp.Queue()
         out_queue = mp.Queue()
-        # create stop event for clustering
-        stop_event = threading.Event()
         # init AMBER Clustering
-        clustering = AMBERClustering(stop_event)
+        clustering = AMBERClustering()
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
@@ -141,11 +136,8 @@ class TestAMBERClustering(unittest.TestCase):
         except Empty:
             output = []
 
-        # stop observation
-        in_queue.put({'command': 'stop_observation'})
-
-        # stop the clustering
-        stop_event.set()
+        # stop clustering
+        clustering.stop()
 
         # with thresholds, none of the triggers are ok
         self.assertEqual(output, [])

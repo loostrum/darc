@@ -2,9 +2,6 @@
 #
 # dada_dbevent triggers
 
-import os
-import yaml
-import multiprocessing as mp
 try:
     from queue import Empty
 except ImportError:
