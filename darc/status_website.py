@@ -20,9 +20,9 @@ class StatusWebsiteException(Exception):
 
 
 class StatusWebsite(threading.Thread):
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
         self.daemon = True
 
         # load config, including master for list of services
@@ -86,6 +86,12 @@ class StatusWebsite(threading.Thread):
             self.stop_event.wait(self.interval)
         # Create website for non-running status website
         self.make_offline_page()
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def publish_status(self, statuses):
         """

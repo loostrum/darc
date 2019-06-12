@@ -14,7 +14,7 @@ import threading
 import socket
 import numpy as np
 
-from darc.definitions import MASTER
+from darc.definitions import MASTER, CONFIG_FILE
 from darc.logger import get_logger
 from darc.external import tools
 from darc.voevent_generator import VOEventQueueServer
@@ -29,10 +29,10 @@ class AMBERTriggering(threading.Thread):
     Process AMBER triggers and turn into trigger message
     """
 
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
 
         self.amber_queue = None
         #self.voevent_queue = None
@@ -63,6 +63,12 @@ class AMBERTriggering(threading.Thread):
         self.voevent_queue_server = VOEventQueueServer(address=(host, port), authkey=auth)
 
         self.logger.info("AMBER Triggering initialized")
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def set_source_queue(self, queue):
         """

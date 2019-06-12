@@ -35,10 +35,10 @@ class OfflineProcessingException(Exception):
 
 
 class OfflineProcessing(threading.Thread):
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
 
         self.observation_queue = None
         self.threads = {}
@@ -68,6 +68,12 @@ class OfflineProcessing(threading.Thread):
             self.logger.error('Given source queue is not an instance of Queue')
             raise OfflineProcessingException('Given source queue is not an instance of Queue')
         self.observation_queue = queue
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def run(self):
         """

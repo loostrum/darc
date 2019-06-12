@@ -37,9 +37,9 @@ class VOEventGenerator(threading.Thread):
     """
     Generate VOEvent from incoming trigger
     """
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
         self.daemon = True
 
         self.voevent_server = None
@@ -71,6 +71,12 @@ class VOEventGenerator(threading.Thread):
         self.voevent_queue = voevent_queue
 
         self.logger.info("VOEvent Generator initialized")
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def run(self):
         """
