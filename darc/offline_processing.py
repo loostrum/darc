@@ -8,6 +8,7 @@ import ast
 import glob
 import yaml
 import multiprocessing as mp
+from multiprocessing import queues
 try:
     from queue import Empty
 except ImportError:
@@ -64,7 +65,7 @@ class OfflineProcessing(threading.Thread):
         """ 
         :param queue: Source of start_observation commands
         """
-        if not isinstance(queue, mp.queues.Queue):
+        if not isinstance(queue, queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise OfflineProcessingException('Given source queue is not an instance of Queue')
         self.observation_queue = queue

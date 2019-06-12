@@ -6,6 +6,7 @@ import os
 import socket
 import threading
 import multiprocessing as mp
+from multiprocessing import queues
 import yaml
 try:
     from queue import Empty
@@ -66,7 +67,7 @@ class DARCBase(threading.Thread):
         """
         :param queue: Input queue
         """
-        if not isinstance(queue, mp.queues.Queue):
+        if not isinstance(queue, queues.Queue):
             self.logger.error("Given source queue is not an instance of Queue")
             self.stop()
         else:
@@ -76,7 +77,7 @@ class DARCBase(threading.Thread):
         """
         :param queue: Output queue
         """
-        if not isinstance(queue, mp.queues.Queue):
+        if not isinstance(queue, queues.Queue):
             self.logger.error("Given target queue is not an instance of Queue")
             self.stop()
         else:

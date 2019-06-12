@@ -6,6 +6,7 @@ import os
 import yaml
 from time import time
 import multiprocessing as mp
+from multiprocessing import queues
 try:
     from queue import Empty
 except ImportError:
@@ -74,7 +75,7 @@ class AMBERTriggering(threading.Thread):
         """
         :param queue: Source of amber triggers
         """
-        if not isinstance(queue, mp.queues.Queue):
+        if not isinstance(queue, queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise AMBERTriggeringException('Given source queue is not an instance of Queue')
         self.amber_queue = queue
