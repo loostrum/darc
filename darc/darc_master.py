@@ -551,18 +551,25 @@ class DARCMaster(object):
         """
         if service == 'amber_listener':
             reload(darc.amber_listener)
+            import darc.amber_listener
         elif service == 'amber_triggering':
             reload(darc.amber_triggering)
+            import darc.amber_triggering
         elif service == 'amber_clustering':
             reload(darc.amber_clustering)
+            import darc.amber_clustering
         elif service == 'voevent_generator':
             reload(darc.voevent_generator)
+            import darc.voevent_generator
         elif service == 'status_website':
             reload(darc.status_website)
+            import darc.status_website
         elif service == 'offline_processing':
             reload(darc.offline_processing)
+            import darc.offline_processing
         elif service == 'dada_trigger':
             reload(darc.dada_trigger)
+            import darc.dada_trigger
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 
