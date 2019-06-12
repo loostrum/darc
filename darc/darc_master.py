@@ -409,7 +409,7 @@ class DARCMaster(object):
         """
         if service in self.service_mapping.keys():
             # Force reimport
-            self._reload(service)
+            #self._reload(service)
             # Instantiate a new instance of the class
             self.threads[service] = self.service_mapping[service]()
         else:
