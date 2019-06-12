@@ -30,7 +30,7 @@ class DARCBase(threading.Thread):
         self.daemon = True
         self.stop_event = threading.Event()
 
-        self.needs_source_queue = False
+        self.needs_source_queue = True
         self.needs_target_queue = False
         self.source_queue = None
         self.target_queue = None

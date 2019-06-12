@@ -24,7 +24,6 @@ class DADATrigger(DARCBase):
 
     def __init__(self):
         super(DADATrigger, self).__init__()
-        self.needs_source_queue = True
         self.thread = None
 
     def process_command(self, command):

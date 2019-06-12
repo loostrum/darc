@@ -22,7 +22,6 @@ class AMBERListener(DARCBase):
 
     def __init__(self):
         super(AMBERListener, self).__init__()
-        self.needs_source_queue = True
         self.needs_target_queue = True
 
         self.observation_threads = []
