@@ -28,7 +28,6 @@ class TestDADATrigger(unittest.TestCase):
         """
 
         utc_start = Time("2019-01-01 12:00:00")
-        utc_start_str = utc_start.iso
         time = 38.249
 
         # set network port (values from arts_survey_control.conf)
@@ -53,9 +52,10 @@ class TestDADATrigger(unittest.TestCase):
         #event_end_frac = '.' + event_end_frac
 
         event_info = trigger.copy()
-        event_info['event_start'] = event_start
+        event_info['utc_start'] = trigger['utc_start'].iso.replace(' ', '-')
+        event_info['event_start'] = event_start.replace(' ', '-')
         event_info['event_start_frac'] = event_start_frac
-        event_info['event_end'] = event_end
+        event_info['event_end'] = event_end.replace(' ', '-')
         event_info['event_end_frac'] = event_end_frac
         
         event = dedent("""\

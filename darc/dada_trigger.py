@@ -56,13 +56,10 @@ class DADATrigger(DARCBase):
         # ToDo: move this to obs config
         port = triggers[0]['port']
         stokes = triggers[0]['stokes']
-        utc_start = triggers[0]['utc_start'].iso
+        utc_start = triggers[0]['utc_start'].iso.replace(' ', '-')
 
         events = ""
-        # ensure utc_start is in iso format
         for trigger in triggers:
-            trigger['utc_start'] = trigger['utc_start'].iso
-
             event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
                                        TimeDelta(trigger['window_size'] / 2, format='sec')
             event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')
@@ -73,9 +70,9 @@ class DADATrigger(DARCBase):
             # event_end_frac = '.' + event_end_frac
 
             # Add utc start/end for event
-            trigger['event_start'] = event_start
+            trigger['event_start'] = event_start.replace(' ', '-')
             trigger['event_start_frac'] = event_start_frac
-            trigger['event_end'] = event_end
+            trigger['event_end'] = event_end.replace(' ', '-')
             trigger['event_end_frac'] = event_end_frac
 
             # Add to the event
