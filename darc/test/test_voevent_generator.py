@@ -2,8 +2,6 @@
 
 import os
 import unittest
-import multiprocessing as mp
-import threading
 from time import sleep
 
 from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
@@ -16,10 +14,8 @@ class TestVOEventGenerator(unittest.TestCase):
         Test that the VOEvent generator converts a trigger into a VOEvent
         """
 
-        # create stop event for generator
-        stop_event = threading.Event()
         # init VOEvent Generator
-        generator = VOEventGenerator(stop_event)
+        generator = VOEventGenerator()
         # overwrite server location
         generator.server_host = 'localhost'
         # start the generator
@@ -42,7 +38,7 @@ class TestVOEventGenerator(unittest.TestCase):
         queue.put(trigger)
         # wait and stop
         sleep(5)
-        stop_event.set()
+        generator.stop()
         # check the output file
         filename = os.path.join(generator.voevent_dir, "{}.xml".format(trigger['utc']))
 

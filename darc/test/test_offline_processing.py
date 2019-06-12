@@ -4,9 +4,7 @@
 # 
 # 
 import os
-import sys
 import logging
-import threading
 import shutil
 import unittest
 import yaml
@@ -69,8 +67,7 @@ class TestOfflineProcessing(unittest.TestCase):
         except Exception as e:
             self.fail('Cannot create result dir {}: {}'.format(self.config['result_dir'], e))
         else:
-            event = threading.Event()
-            proc = OfflineProcessing(event)
+            proc = OfflineProcessing()
             # override logger (first initalized message still goes to normal logger)
             proc.logger = logger
 
