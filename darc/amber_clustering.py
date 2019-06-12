@@ -162,6 +162,7 @@ class AMBERClustering(DARCBase):
                 if np.any(mask):
                     self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(ncluster))
                     # put good clusters on queue
+                    dada_triggers = []
                     for i in range(ncluster):
                         # set window size to roughly two DM delays, and at least one page
                         window_size = max(1.024, cluster_dm[mask][i] * 2 / 1000.)
@@ -169,7 +170,8 @@ class AMBERClustering(DARCBase):
                                         'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
                                         'time': cluster_time[mask][i], 'utc_start': utc_start,
                                         'window_size': window_size, 'port': network_port}
-                        self.target_queue.put({'command': 'trigger', 'trigger': dada_trigger})
+                        dada_triggers.append(dada_trigger)
+                    self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
                 else:
                     self.logger.info("No clusters after thresholding")
             sleep(self.interval)

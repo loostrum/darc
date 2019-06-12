@@ -5,6 +5,7 @@ import sys
 import unittest
 import multiprocessing as mp
 from textwrap import dedent
+import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
@@ -18,8 +19,7 @@ from darc.dada_trigger import DADATrigger
 
 class TestDADATrigger(unittest.TestCase):
 
-    @staticmethod
-    def get_trigger(window_size, stokes):
+    def get_trigger(self, window_size, stokes):
         """
         Generate a trigger dict
         :param: window_size: event duration in seconds
@@ -93,7 +93,7 @@ class TestDADATrigger(unittest.TestCase):
             self.fail("Failed to set up listening socket for events: {}".format(e))
 
         # send the stokes I trigger
-        queue.put({'command': 'trigger', 'trigger': trigger_i})
+        queue.put({'command': 'trigger', 'trigger': [trigger_i]})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -129,7 +129,7 @@ class TestDADATrigger(unittest.TestCase):
         except socket.error as e:
             self.fail("Failed to set up listening socket for events: {}".format(e))
         # send the stokes IQUV trigger
-        queue.put({'command': 'trigger', 'trigger': trigger_iquv})
+        queue.put({'command': 'trigger', 'trigger': [trigger_iquv]})
         try:
             client, adr = sock.accept()
         except socket.timeout:

@@ -61,11 +61,12 @@ class TestAMBERClustering(unittest.TestCase):
         output = []
         while True:
             try:
-                output.append(out_queue.get(timeout=5))
+                output.extend(out_queue.get(timeout=5)['trigger'])
             except Empty:
                 break
         if not output:
             self.fail("No clusters received")
+        print(output)
 
         # stop clustering
         clustering.stop()
@@ -85,7 +86,7 @@ class TestAMBERClustering(unittest.TestCase):
         self.assertEqual(len(output), len(expected_output))
         # test clusters are equal
         for ind, expected_cluster in enumerate(expected_output):
-            cluster = output[ind]['trigger']
+            cluster = output[ind]
             # remove utc_start because that cannot be controlled yet
             del cluster['utc_start']
             self.assertDictEqual(cluster, expected_cluster)
@@ -114,7 +115,6 @@ class TestAMBERClustering(unittest.TestCase):
         nline_to_check = 50
         trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         # check the output is correct, i.e. equal to input
-        line = 0
         with open(trigger_file, 'r') as f:
             triggers = f.readlines()
         if len(triggers) > nline_to_check:
