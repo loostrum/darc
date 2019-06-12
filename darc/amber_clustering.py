@@ -28,6 +28,8 @@ class AMBERClustering(DARCBase):
 
     def __init__(self):
         super(AMBERClustering, self).__init__()
+        self.needs_source_queue = True
+        self.needs_target_queue = True
 
         self.proc_thread = None
         self.hdr_mapping = {}

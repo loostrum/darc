@@ -7,7 +7,6 @@ try:
 except ImportError:
     from Queue import Empty
 import threading
-from textwrap import dedent
 import socket
 from astropy.time import Time, TimeDelta
 
@@ -25,6 +24,7 @@ class DADATrigger(DARCBase):
 
     def __init__(self):
         super(DADATrigger, self).__init__()
+        self.needs_source_queue = True
         self.thread = None
 
     def process_command(self, command):
@@ -83,14 +83,9 @@ class DADATrigger(DARCBase):
             events += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {snr} "
                        "{dm} {width} {beam}\n".format(**trigger))
 
-        # create event. the "\" ensures the string does not start with a newline
-        # the actual newline needs to be there to make dedent work properly
+        # create event
         full_event = {'num_event': len(triggers), 'utc_start': utc_start, 'events': events}
-        event = dedent("""\
-                       N_EVENTS {num_event}
-                       {utc_start}
-                       {events}
-                       """.format(**full_event))
+        event = "N_EVENTS {num_event}\n{utc_start}\n{events}".format(**full_event)
 
         # open socket
         try:
