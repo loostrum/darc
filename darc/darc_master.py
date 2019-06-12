@@ -100,13 +100,10 @@ class DARCMaster(object):
         self.logger = get_logger(__name__, self.log_file)
 
         # Initialize services. Log dir must exist at this point
-        self.events = {}
         self.threads = {}
         for service in self.services:
-            _event = threading.Event()
             _service_class = self.service_mapping[service]
-            self.events[service] = _event
-            self.threads[service] = _service_class(_event)
+            self.threads[service] = _service_class()
 
         # setup listening socket
         command_socket = None
@@ -315,12 +312,8 @@ class DARCMaster(object):
             reply = "Unknown service"
             return status, reply
 
-        # get thread and event
+        # get thread
         thread = self.threads[service]
-        event = self.events[service]
-
-        # set event to allow running
-        event.clear()
 
         # check if a new thread has to be generated
         if thread is None:
@@ -370,32 +363,30 @@ class DARCMaster(object):
 
         # get thread and event
         thread = self.threads[service]
-        event = self.events[service]
+
+        # check is it was running at all
+        if thread is None or not thread.isAlive():
+            self.logger.info("Service not running: {}".format(service))
+            reply = 'Success'
+            status = 'Stopped service'
+            return status, reply
 
         # stop the specified service
         self.logger.info("Stopping service: {}".format(service))
-
-        if not thread.isAlive():
-            status = 'Success'
-            reply = "Stopped service"
-            # this thread is done, create a new thread
-            self.create_thread(service)
-            self.logger.warning("Already stopped service: {}".format(service))
+        thread.stop()
+        tstart = time()
+        while thread.isAlive() and time()-tstart < self.stop_timeout:
+            sleep(.1)
+        if thread.isAlive():
+            status = 'error'
+            reply = "Failed to stop service before timeout"
+            self.logger.error("Failed to stop service before timeout: {}".format(service))
         else:
-            event.set()
-            tstart = time()
-            while thread.isAlive() and time()-tstart < self.stop_timeout:
-                sleep(.1)
-            if thread.isAlive():
-                status = 'error'
-                reply = "Failed to stop service before timeout"
-                self.logger.error("Failed to stop service before timeout: {}".format(service))
-            else:
-                status = 'Success'
-                reply = 'Stopped service'
-                # this thread is done, create a new thread
-                self.create_thread(service)
-                self.logger.info("Stopped service: {}".format(service))
+            status = 'Success'
+            reply = 'Stopped service'
+            self.logger.info("Stopped service: {}".format(service))
+        # remove thread
+        self.threads[service] = None
 
         return status, reply
 
@@ -420,9 +411,8 @@ class DARCMaster(object):
         if service in self.service_mapping.keys():
             # Force reimport
             self._reload(service)
-            module = self.service_mapping[service]
             # Instantiate a new instance of the class
-            self.threads[service] = module(self.events[service])
+            self.threads[service] = self.service_mapping[service]()
         else:
             self.logger.error("Cannot create thread for {}".format(service))
 

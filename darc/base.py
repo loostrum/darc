@@ -90,9 +90,11 @@ class DARCBase(threading.Thread):
         try:
             if self.needs_source_queue and not self.source_queue:
                 self.logger.error("Source queue not set")
+                self.stop()
 
             if self.needs_target_queue and not self.target_queue:
-                self.logger.error("Source queue not set")
+                self.logger.error("Target queue not set")
+                self.stop()
 
             self.logger.info("Starting {}".format(self.log_name))
             while not self.stop_event.is_set():
@@ -115,8 +117,7 @@ class DARCBase(threading.Thread):
                     self.process_command(command)
         except Exception as e:
             self.logger.error("Caught exception in main loop: {}".format(e))
-
-        self.stop()
+            self.stop()
 
     def start_observation(self, *args, **kwargs):
         pass

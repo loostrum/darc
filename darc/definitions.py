@@ -18,7 +18,7 @@ CONFIG_FILE = os.path.join(ROOT_DIR, 'config.yaml')
 #           "arts031", "arts032", "arts033", "arts034", "arts035", 
 #           "arts036", "arts037", "arts038", "arts039", "arts040"]
 MASTER = 'bla'
-WORKERS = ['arts041']
+WORKERS = ['macoostrum']
 
 # WSRT/Apertif constants
 NCHAN = 1536
