@@ -24,10 +24,8 @@ class TestAMBERListener(unittest.TestCase):
         obs_queue = mp.Queue()
         # create output queue
         amber_queue = mp.Queue()
-        # create stop event for listener
-        stop_event = threading.Event()
         # init AMBER Listener
-        listener = AMBERListener(stop_event)
+        listener = AMBERListener()
         # set the queues
         listener.set_source_queue(obs_queue)
         listener.set_target_queue(amber_queue)
@@ -55,7 +53,7 @@ class TestAMBERListener(unittest.TestCase):
         obs_queue.put({'command': 'stop_observation'})
 
         # stop the listener
-        stop_event.set()
+        listener.stop()
 
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
@@ -64,7 +62,7 @@ class TestAMBERListener(unittest.TestCase):
         # load all trigger files
         all_triggers = []
         for step in [1, 2, 3]:
-            trigger_file  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step{}.trigger'.format(step))
+            trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step{}.trigger'.format(step))
             with open(trigger_file, 'r') as f:
                 triggers = f.readlines()
             triggers = [line.strip() for line in triggers]
@@ -74,6 +72,7 @@ class TestAMBERListener(unittest.TestCase):
         output.sort()
         all_triggers.sort()
         self.assertEqual(output, all_triggers)
+
 
 if __name__ == '__main__':
     unittest.main()

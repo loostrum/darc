@@ -2,22 +2,18 @@
 #
 # AMBER Clustering
 
-import os
-import yaml
-import multiprocessing as mp
 try:
     from queue import Empty
 except ImportError:
     from Queue import Empty
 from time import sleep
 import threading
-import socket
 import numpy as np
 from astropy.time import Time, TimeDelta
 import astropy.units as u
 
-from darc.definitions import CONFIG_FILE, TSAMP, NCHAN, BANDWIDTH
-from darc.logger import get_logger
+from darc.base import DARCBase
+from darc.definitions import TSAMP, NCHAN, BANDWIDTH
 from darc.external import tools
 
 
@@ -25,18 +21,15 @@ class AMBERClusteringException(Exception):
     pass
 
 
-class AMBERClustering(threading.Thread):
+class AMBERClustering(DARCBase):
     """
     Cluster AMBER clusters
     """
 
-    def __init__(self, stop_event):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = stop_event
-
-        self.amber_queue = None
-        self.cluster_queue = None
+    def __init__(self):
+        super(AMBERClustering, self).__init__()
+        self.needs_source_queue = True
+        self.needs_target_queue = True
 
         self.proc_thread = None
         self.hdr_mapping = {}
@@ -44,72 +37,18 @@ class AMBERClustering(threading.Thread):
         self.observation_running = False
         self.amber_triggers = []
 
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['amber_clustering']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-        self.logger.info("AMBER Clustering initialized")
-
-    def set_source_queue(self, queue):
+    def process_command(self, command):
         """
-        :param queue: Source of amber clusters
+        Process command received from queue
+        :return:
         """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise AMBERClusteringException('Given source queue is not an instance of Queue')
-        self.amber_queue = queue
-
-    def set_target_queue(self, queue):
-        """
-        :param queue: Output queue for clusters
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given target queue is not an instance of Queue')
-            raise AMBERClusteringException('Given target queue is not an instance of Queue')
-        self.cluster_queue = queue
-
-    def run(self):
-        if not self.amber_queue:
-            self.logger.error('AMBER trigger queue not set')
-            raise AMBERClusteringException('AMBER trigger queue not set')
-        if not self.cluster_queue:
-            self.logger.error('Cluster queue not set')
-            raise AMBERClusteringException('Cluster queue not set')
-
-        self.logger.info("Starting AMBER clustering")
-        while not self.stop_event.is_set():
-            # read queue
-            try:
-                command = self.amber_queue.get(timeout=1)
-            except Empty:
-                continue
-            # command received, process it
-            if command['command'] == "start_observation":
-                self.logger.info("Starting observation")
-                try:
-                    self.start_observation(command['obs_config'])
-                except Exception as e:
-                    self.logger.error("Failed to start observation: {}".format(e))
-            elif command['command'] == "stop_observation":
-                self.logger.info("Stopping observation")
-                self.stop_observation()
-            elif command['command'] == 'trigger':
-                if not self.observation_running:
-                    self.logger.error("Trigger received but no observation is running - ignoring")
-                else:
-                    self.amber_triggers.append(command['trigger'])
+        if command['command'] == 'trigger':
+            if not self.observation_running:
+                self.logger.error("Trigger received but no observation is running - ignoring")
             else:
-                self.logger.error("Unknown command received: {}".format(command['command']))
-        self.logger.info("Stopping AMBER clustering")
-        self.stop_observation()
+                self.amber_triggers.append(command['trigger'])
+        else:
+            self.logger.error("Unknown command received: {}".format(command['command']))
 
     def start_observation(self, obs_config):
         """
@@ -225,6 +164,7 @@ class AMBERClustering(threading.Thread):
                 if np.any(mask):
                     self.logger.info("Clusters after thresholding: {}. Putting clusters on queue".format(ncluster))
                     # put good clusters on queue
+                    dada_triggers = []
                     for i in range(ncluster):
                         # set window size to roughly two DM delays, and at least one page
                         window_size = max(1.024, cluster_dm[mask][i] * 2 / 1000.)
@@ -232,7 +172,8 @@ class AMBERClustering(threading.Thread):
                                         'width': cluster_downsamp[mask][i], 'snr': cluster_snr[mask][i],
                                         'time': cluster_time[mask][i], 'utc_start': utc_start,
                                         'window_size': window_size, 'port': network_port}
-                        self.cluster_queue.put({'command': 'trigger', 'trigger': dada_trigger})
+                        dada_triggers.append(dada_trigger)
+                    self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
                 else:
                     self.logger.info("No clusters after thresholding")
             sleep(self.interval)

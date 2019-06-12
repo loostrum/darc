@@ -4,8 +4,8 @@ import os
 import sys
 import unittest
 import multiprocessing as mp
-import threading
 from textwrap import dedent
+import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
@@ -19,8 +19,7 @@ from darc.dada_trigger import DADATrigger
 
 class TestDADATrigger(unittest.TestCase):
 
-    @staticmethod
-    def get_trigger(window_size, stokes):
+    def get_trigger(self, window_size, stokes):
         """
         Generate a trigger dict
         :param: window_size: event duration in seconds
@@ -74,10 +73,8 @@ class TestDADATrigger(unittest.TestCase):
 
         # create input queue
         queue = mp.Queue()
-        # create stop event for DADA Trigger
-        stop_event = threading.Event()
         # init DADA Trigger
-        dadatrigger = DADATrigger(stop_event)
+        dadatrigger = DADATrigger()
         # set the queue
         dadatrigger.set_source_queue(queue)
         # start dadatrigger
@@ -96,7 +93,7 @@ class TestDADATrigger(unittest.TestCase):
             self.fail("Failed to set up listening socket for events: {}".format(e))
 
         # send the stokes I trigger
-        queue.put({'command': 'trigger', 'trigger': trigger_i})
+        queue.put({'command': 'trigger', 'trigger': [trigger_i]})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -132,7 +129,7 @@ class TestDADATrigger(unittest.TestCase):
         except socket.error as e:
             self.fail("Failed to set up listening socket for events: {}".format(e))
         # send the stokes IQUV trigger
-        queue.put({'command': 'trigger', 'trigger': trigger_iquv})
+        queue.put({'command': 'trigger', 'trigger': [trigger_iquv]})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -160,7 +157,7 @@ class TestDADATrigger(unittest.TestCase):
         self.assertListEqual(in_event_split, out_event_split)
 
         # stop dadatrigger
-        stop_event.set()
+        dadatrigger.stop()
 
 
 if __name__ == '__main__':

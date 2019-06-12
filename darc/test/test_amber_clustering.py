@@ -3,7 +3,6 @@
 import os
 import unittest
 import multiprocessing as mp
-import threading
 from time import sleep
 import numpy as np
 from astropy.time import Time
@@ -25,10 +24,8 @@ class TestAMBERClustering(unittest.TestCase):
         # create queues
         in_queue = mp.Queue()
         out_queue = mp.Queue()
-        # create stop event for clustering
-        stop_event = threading.Event()
         # init AMBER Clustering
-        clustering = AMBERClustering(stop_event)
+        clustering = AMBERClustering()
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
@@ -64,14 +61,15 @@ class TestAMBERClustering(unittest.TestCase):
         output = []
         while True:
             try:
-                output.append(out_queue.get(timeout=5))
+                output.extend(out_queue.get(timeout=5)['trigger'])
             except Empty:
                 break
         if not output:
             self.fail("No clusters received")
+        print(output)
 
-        # stop observation
-        in_queue.put({'command': 'stop_observation'})
+        # stop clustering
+        clustering.stop()
 
         expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 0, 'width': 1.0, 'window_size': 1.024,
                             'snr': 18.4666, 'time': 0.0244941},
@@ -88,7 +86,7 @@ class TestAMBERClustering(unittest.TestCase):
         self.assertEqual(len(output), len(expected_output))
         # test clusters are equal
         for ind, expected_cluster in enumerate(expected_output):
-            cluster = output[ind]['trigger']
+            cluster = output[ind]
             # remove utc_start because that cannot be controlled yet
             del cluster['utc_start']
             self.assertDictEqual(cluster, expected_cluster)
@@ -101,10 +99,8 @@ class TestAMBERClustering(unittest.TestCase):
         # create queues
         in_queue = mp.Queue()
         out_queue = mp.Queue()
-        # create stop event for clustering
-        stop_event = threading.Event()
         # init AMBER Clustering
-        clustering = AMBERClustering(stop_event)
+        clustering = AMBERClustering()
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
@@ -119,7 +115,6 @@ class TestAMBERClustering(unittest.TestCase):
         nline_to_check = 50
         trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         # check the output is correct, i.e. equal to input
-        line = 0
         with open(trigger_file, 'r') as f:
             triggers = f.readlines()
         if len(triggers) > nline_to_check:
@@ -141,11 +136,8 @@ class TestAMBERClustering(unittest.TestCase):
         except Empty:
             output = []
 
-        # stop observation
-        in_queue.put({'command': 'stop_observation'})
-
-        # stop the clustering
-        stop_event.set()
+        # stop clustering
+        clustering.stop()
 
         # with thresholds, none of the triggers are ok
         self.assertEqual(output, [])
