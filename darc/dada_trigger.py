@@ -2,10 +2,6 @@
 #
 # dada_dbevent triggers
 
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
 import threading
 import socket
 from astropy.time import Time, TimeDelta

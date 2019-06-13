@@ -4,7 +4,7 @@
 # Controls all services
 
 import sys
-# ensure not bytecode is written, to make reload work
+# ensure no bytecode is written, to make reload work
 sys.dont_write_bytecode = True
 import os
 import ast
@@ -28,6 +28,7 @@ import darc.voevent_generator
 import darc.status_website
 import darc.offline_processing
 import darc.dada_trigger
+import darc.processor
 
 
 class DARCMasterException(Exception):
@@ -49,10 +50,10 @@ class DARCMaster(object):
         self.amber_listener_queue = mp.Queue()  # only used for start observation commands
         self.amber_trigger_queue = mp.Queue()  # for amber triggers
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
-        self.processing_queue = mp.Queue()  # for offline processing
+        self.processor_queue = mp.Queue()  # for offline or real-time processing
 
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
-                           self.processing_queue]
+                           self.processor_queue]
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -87,6 +88,7 @@ class DARCMaster(object):
                                 'amber_triggering': darc.amber_triggering.AMBERTriggering,
                                 'amber_clustering': darc.amber_clustering.AMBERClustering,
                                 'dada_trigger': darc.dada_trigger.DADATrigger,
+                                'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # create main log dir
@@ -292,7 +294,7 @@ class DARCMaster(object):
             target_queue = None
         elif service == 'amber_clustering':
             source_queue = self.amber_trigger_queue
-            target_queue = self.dadatrigger_queue  # TODO: new processor queue?
+            target_queue = self.dadatrigger_queue
         elif service == 'voevent_generator':
             source_queue = None
             target_queue = None
@@ -300,11 +302,14 @@ class DARCMaster(object):
             source_queue = None
             target_queue = None
         elif service == 'offline_processing':
-            source_queue = self.processing_queue
+            source_queue = self.processor_queue
             target_queue = None
         elif service == 'dada_trigger':
             source_queue = self.dadatrigger_queue
             target_queue = None
+        elif service == 'processor':
+            source_queue = self.processor_queue
+            target_queue = self.dadatrigger_queue
         else:
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
@@ -492,7 +497,7 @@ class DARCMaster(object):
 
             command['obs_config'] = config
             # put commands on queue
-            self.processing_queue.put(command)
+            self.processor_queue.put(command)
             return "Success", "Observation started for offline processing"
 
     def stop_observation(self):
@@ -569,6 +574,9 @@ class DARCMaster(object):
         elif service == 'dada_trigger':
             reload(darc.dada_trigger)
             import darc.dada_trigger
+        elif service == 'processor':
+            reload(darc.processor)
+            import darc.processor
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 
