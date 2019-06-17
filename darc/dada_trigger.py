@@ -62,7 +62,12 @@ class DADATrigger(DARCBase):
         for trigger in triggers:
             event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
                                        TimeDelta(trigger['window_size'] / 2, format='sec')
+            # ensure start time is past start time of observation
+            if event_start_full < trigger['utc_start']:
+                self.logger.info("Event start before start of observation - adapting event start")
+                event_start_full = trigger['utc_start']
             event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')
+            # ToDo: ensure end time is before end of observation
 
             event_start, event_start_frac = event_start_full.iso.split('.')
             # event_start_frac = '.' + event_start_frac
