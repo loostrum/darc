@@ -210,7 +210,7 @@ class OfflineProcessing(threading.Thread):
             numcand_grouped = self._cluster(obs_config, 0, filterbank_file)
         elif obs_config['mode'] == 'TAB':
             numcand_all = np.zeros(obs_config['ntabs'])
-            #threads = []
+            threads = []
             self.logger.info("Starting parallel trigger clustering")
             # start the threads
             for tab in range(obs_config['ntabs']):
