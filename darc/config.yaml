@@ -67,6 +67,19 @@ dada_trigger:
     window_size_i: 10.24
     window_size_iquv: 10.24
 
+# SB generator
+sb_generator:
+    table_folder: "{home}/.controller/synthesized_beam_tables/"
+    table:
+        sc3: "sbtable-9tabs-114sbs-f1370.txt"
+        sc4: "sbtable-sc4-12tabs-71sbs.txt"
+    numtab:
+        sc3: 9
+        sc4: 12
+    numsb:
+        sc3: 114
+        sc4: 71
+
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
