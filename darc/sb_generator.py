@@ -7,8 +7,7 @@ import socket
 import yaml
 import numpy as np
 
-#from darc.definitions import *
-CONFIG_FILE="/Users/oostrum/phd/commissioning/scripts/darc/darc/config.yaml"
+from darc.definitions import *
 
 
 class SBGeneratorException(Exception):
