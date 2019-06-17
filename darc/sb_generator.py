@@ -40,9 +40,9 @@ class SBGenerator(object):
                 fname = os.path.join(self.table_folder, fname)
         elif science_case:
             if science_case == 3:
-                fname = os.path.join(self.table_folder, self.table_sc3)
+                fname = os.path.join(self.table_folder, self.table['sc3'])
             else:
-                fname = os.path.join(self.table_folder, self.table_sc4)
+                fname = os.path.join(self.table_folder, self.table['sc4'])
         self.science_case = science_case
         self.fname = fname
 
@@ -68,7 +68,7 @@ class SBGenerator(object):
             return
         else:
             # reverse the table
-            self.sb_table = self.sb_table[::-1]
+            self.sb_mapping = self.sb_mapping[::-1]
             # store state
             self.__reversed = state
 
@@ -115,7 +115,7 @@ class SBGenerator(object):
                 raise SBGeneratorException("Number of SBs ({}) not equal to expected value ({})".format(numsb,
                                                                                                         expected_numsb))
             # verify max TAB index, might be less than maximum if not all SBs are generated
-            if not max(self.sb_mapping) < expected_numtab:
+            if not np.amax(self.sb_mapping) < expected_numtab:
                 raise SBGeneratorException("Maximum TAB ({}) higher than maximum for this science case ({})".format(
                                            max(self.sb_mapping), expected_numtab))
             self.numsb = numsb
@@ -140,12 +140,12 @@ class SBGenerator(object):
             raise SBGeneratorException("Number of TABs ({}) not equal to expected number of TABs ({})".format(
                                         ntab, self.numtab))
         # verify number of channels
-        if not nfreq % self.nsub:
+        if nfreq % self.nsub:
             raise SBGeneratorException("Error: Number of subbands ({}) is not a factor of "
                                        "number of channels ({})".format(self.nsub, nfreq))
 
         nchan_per_subband = nfreq / self.nsub
-        beam = np.zeros((nfreq, self.nsub))
+        beam = np.zeros((nfreq, ntime))
         for subband, tab in enumerate(self.sb_mapping[sb]):
             # get correct subband of correct tab and add it to raw SB
             # after vsplit, shape is (nsub, nfreq/nsub, ntime) -> simply [subband] gets correct subband
