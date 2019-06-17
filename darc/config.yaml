@@ -83,6 +83,8 @@ sb_generator:
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    process_sb: True
+    numthread: 2
     result_dir: "{home}/observations/results/"
     interval: 10
     timeout: 10
