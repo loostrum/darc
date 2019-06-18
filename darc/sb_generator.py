@@ -122,6 +122,14 @@ class SBGenerator(object):
             self.numtab = expected_numtab
         self.reversed = False
 
+    def get_map(self, sb):
+        """
+        Return mapping of requested SB
+        :param sb: beam to return mapping for
+        :return: SB mapping for requested beam
+        """
+        return self.sb_mapping[sb]
+
     def synthesize_beam(self, data, sb):
         """
         Synthesize beam
