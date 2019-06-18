@@ -222,9 +222,11 @@ class OfflineProcessing(threading.Thread):
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
-            # wait until all are done
-            for thread in threads:
+                # run serially; join immediately
                 thread.join()
+            # wait until all are done
+            #for thread in threads:
+            #    thread.join()
             # gather results
             if self.process_sb:
                 # each element equal
