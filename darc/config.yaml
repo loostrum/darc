@@ -99,7 +99,7 @@ offline_processing:
     dmmax: 5000
     ml_gpus: 0
     key_ntriggers_skipped: "ntriggers_skipped"
-    keys_data: ["data_freq_time", "data_dm_time", "params", "tab"]
+    keys_data: ["data_freq_time", "data_dm_time", "params"]
     model_dir: "{home}/keras_models"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"

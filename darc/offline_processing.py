@@ -212,12 +212,13 @@ class OfflineProcessing(threading.Thread):
             filterbank_prefix = "{output_dir}/filterbank/CB{beam:02d}".format(**obs_config)
             threads = []
             self.logger.info("Starting parallel trigger clustering with {} threads".format(self.numthread))
-            for chunk in chunks:
+            for ind, chunk in enumerate(chunks):
                 # pick the SB range
                 sbmin, sbmax = min(chunk), max(chunk)
                 # create thread
                 thread = threading.Thread(target=self._cluster, args=[obs_config, filterbank_prefix],
-                                          kwargs={'out': numcand_all, 'sbmin': sbmin, 'sbmax': sbmax})
+                                          kwargs={'out': numcand_all, 'sbmin': sbmin, 'sbmax': sbmax,
+                                                  'ind': ind})
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
@@ -316,16 +317,21 @@ class OfflineProcessing(threading.Thread):
 
         return numcand_raw
 
-    def _cluster(self, obs_config, filterbank_file, tab=None, sbmin=None, sbmax=None, out=None):
+    def _cluster(self, obs_config, filterbank_name, tab=None, ind=None, sbmin=None, sbmax=None, out=None):
         """
         Run triggers.py
         :param obs_config: Observation config
-        :param filterbank_file: Full path to filterbank file to use
-        :param tab: TAB number to process (0 for IAB)
-        :param sbmin: First SB to process
-        :param sbmax: Last SB to process
-        :param out: array where return value is put a index <tab> (optional)
+        :param filterbank_name: Full path to filterbank file (TAB/IAB) or prefix (SB) to use
+        :param tab: TAB number to process (0 for IAB, absent/None for SB)
+        :param ind: Index of out array where
+        :param sbmin: First SB to process (SB mode only)
+        :param sbmax: Last SB to process (SB mode only)
+        :param out: array where return value is put at index <ind> (optional)
         """
+
+        # in TAB processing mode, out index is TAB number
+        if ind is None:
+            ind = tab
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         if self.process_sb:
@@ -334,15 +340,16 @@ class OfflineProcessing(threading.Thread):
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers " \
-                  "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax}"
-                  # ToDo: finish command
+                  "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} " \
+                  "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
+                                                                sbmax=sbmax, prefix=prefix, **obs_config)
         else:
             cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {duration} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
-                  "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \ 
+                  "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers " \
-                  "--tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_file,
+                  "--tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_name,
                                                                           prefix=prefix, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
@@ -351,7 +358,10 @@ class OfflineProcessing(threading.Thread):
         if obs_config['mode'] == 'IAB':
             fname = '{output_dir}/triggers/grouped_pulses.singlepulse'.format(**obs_config)
         else:
-            fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab, **obs_config)
+            if self.process_sb:
+                fname = '{output_dir}/triggers/grouped_pulses_{tab:02d}.singlepulse'.format(tab=tab, **obs_config)
+            else:
+                fname = '{output_dir}/triggers/grouped_pulses_synthesized_beams.singlepulse'.format(**obs_config)
 
         cmd = "wc -l {fname} | awk '{{print $1}}'".format(fname=fname)
         self.logger.info("Running {}".format(cmd))
@@ -362,7 +372,7 @@ class OfflineProcessing(threading.Thread):
             numcand_grouped = -1
 
         if out is not None:
-            out[tab] = numcand_grouped
+            out[ind] = numcand_grouped
         else:
             return numcand_grouped
 
@@ -375,6 +385,10 @@ class OfflineProcessing(threading.Thread):
 
         # define the data set keys
         keys_data = self.config['keys_data']
+        if self.process_sb:
+            keys_data.append('sb')
+        else:
+            keys_data.append('tab')
         key_ntrigger_skipped = self.config['key_ntriggers_skipped']
         keys_all = keys_data + [key_ntrigger_skipped]
 
@@ -386,8 +400,21 @@ class OfflineProcessing(threading.Thread):
             out_data[key] = []
 
         # extend the datasets by the other TABs
-        for tab in range(obs_config['ntabs']):
-            data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=tab, **obs_config)
+        if self.process_sb:
+            nitem = self.numthread
+            data_files = glob.glob('{output_dir}/triggers/data/data_sb??_??_full.hdf5')
+        else:
+            nitem = obs_config['ntabs']
+
+        for item in range(nitem):
+            if self.process_sb:
+                try:
+                    data_file = data_files[item]
+                except IndexError:
+                    self.logger.error("Data file {} out of {} not found, skipping".format(item+1, nitem))
+                    continue
+            else:
+                data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=item, **obs_config)
             try:
                 with h5py.File(data_file) as h5:
                     keys = h5.keys()
@@ -475,7 +502,11 @@ class OfflineProcessing(threading.Thread):
         conf.update(**kwargs)
 
         # Read number of skipped triggers and tab
-        self.logger.info("Reading number of skipped triggers and TAB column")
+        if self.process_sb:
+            beam = 'SB'
+        else:
+            beam = 'TAB'
+        self.logger.info("Reading number of skipped triggers and {} column".format(beam))
         try:
             # read dataset
             with h5py.File(kwargs.get('data_file'), 'r') as f:
@@ -485,10 +516,10 @@ class OfflineProcessing(threading.Thread):
                     self.logger.warning("Could not read ntriggers_skipped from {}: {}".format(kwargs.get('data_file'), e))
                     ncand_skipped = -1
                 try:
-                    tab = f['tab'][:]
+                    beam_data = f[beam.lower()][:]
                 except Exception as e:
-                    self.logger.warning("Could not read TAB column from {}: {}".format(kwargs.get('data_file'), e))
-                    tab = None
+                    self.logger.warning("Could not read {} column from {}: {}".format(beam, kwargs.get('data_file'), e))
+                    beam_data = None
         except IOError as e:
             # success = False
             self.logger.warning("Could not get ncand_skipped from {}: {}".format(kwargs.get('data_file'), e))
@@ -509,8 +540,8 @@ class OfflineProcessing(threading.Thread):
                     data_frb_candidate = f['data_frb_candidate'][:]
                     probability = f['probability'][:][frb_index]
                     params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
-                    if tab is not None:
-                        tab = tab[frb_index]
+                    if beam_data is not None:
+                        beam_data = beam_data[frb_index]
             except Exception as e:
                 self.logger.warning("Could not read classifier output file: {}".format(e))
                 ncand_classifier = 0
@@ -522,16 +553,16 @@ class OfflineProcessing(threading.Thread):
                 # number of canddiates
                 ncand_classifier = len(params)
                 # make one big matrix with candidates, removing the dt column
-                if tab is not None:
-                    data = np.column_stack([params[:, :4], probability, tab])
+                if beam_data is not None:
+                    data = np.column_stack([params[:, :4], probability, beam_data])
                 else:
                     data = np.column_stack([params[:, :4], probability])
                 # sort by probability
                 data = data[data[:, -1].argsort()[::-1]]
                 # save to file in master output directory
                 fname = "{result_dir}/CB{beam:02d}_triggers.txt".format(**conf)
-                if tab is not None:
-                    header = "SNR DM Width T0 p TAB"
+                if beam_data is not None:
+                    header = "SNR DM Width T0 p {}".format(beam)
                     np.savetxt(fname, data, header=header, fmt="%.2f %.2f %.4f %.3f %.2f %.0f")
                 else:
                     header = "SNR DM Width T0 p"
