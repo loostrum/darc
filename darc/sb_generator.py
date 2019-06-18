@@ -68,7 +68,7 @@ class SBGenerator(object):
             return
         else:
             # reverse the table
-            self.sb_mapping = self.sb_mapping[::-1]
+            self.sb_mapping = self.sb_mapping[:, ::-1]
             # store state
             self.__reversed = state
 
