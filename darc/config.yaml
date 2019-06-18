@@ -84,14 +84,14 @@ sb_generator:
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
     process_sb: True
-    numthread: 2
+    numthread: 6
     result_dir: "{home}/observations/results/"
     interval: 10
     timeout: 10
     pthresh: 0.5
     cmap: 'viridis'
     ntime_plot: 64
-    nfreq_plot: 128
+    nfreq_plot: 64
     ndm: 1
     snrmin_processing: 10
     snrmin_processing_local: 5

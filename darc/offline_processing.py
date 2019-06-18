@@ -342,7 +342,7 @@ class OfflineProcessing(threading.Thread):
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         if self.process_sb:
-            cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {duration} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
@@ -351,7 +351,7 @@ class OfflineProcessing(threading.Thread):
                   "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
                                                                 sbmax=sbmax, prefix=prefix, **obs_config)
         else:
-            cmd = "python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {duration} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
@@ -476,10 +476,16 @@ class OfflineProcessing(threading.Thread):
 
         output_prefix = "{output_dir}/triggers/ranked_CB{beam:02d}".format(**obs_config)
 
+        if self.process_sb:
+            sb_option = '--synthesized_beams'
+        else:
+            sb_option = ''
+
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
-              " --fn_model_time {model_dir}/heimdall_b0329_mix_147411d_time.hdf5 " \
+              " --fn_model_time {model_dir}/heimdall_b0329_mix_147411d_time.hdf5 {sb_option} " \
               " --pthresh {pthresh} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
-              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, input_file=input_file, **obs_config)
+              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option, 
+                                                           input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         # ToDo: count number of output figures
