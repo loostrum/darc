@@ -120,7 +120,7 @@ class SBGenerator(object):
                                            max(self.sb_mapping), expected_numtab))
             self.numsb = numsb
             self.numtab = expected_numtab
-        self.reversed = False
+        self.__reversed = False
 
     def get_map(self, sb):
         """
