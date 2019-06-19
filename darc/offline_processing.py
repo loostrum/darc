@@ -25,6 +25,7 @@ import h5py
 import numpy as np
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
+import astropy.units as u
 
 from darc.definitions import *
 from darc.logger import get_logger
@@ -211,7 +212,7 @@ class OfflineProcessing(threading.Thread):
             numcand_all = np.zeros(self.numthread)
             filterbank_prefix = "{output_dir}/filterbank/CB{beam:02d}".format(**obs_config)
             threads = []
-            self.logger.info("Starting parallel trigger clustering with {} threads".format(self.numthread))
+            self.logger.info("Starting trigger clustering with {} serial threads".format(self.numthread))
             for ind, chunk in enumerate(chunks):
                 # pick the SB range
                 sbmin, sbmax = min(chunk), max(chunk)
@@ -222,11 +223,8 @@ class OfflineProcessing(threading.Thread):
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
-                # run serially; join immediately
+                # chunks are run serially, so join immediately
                 thread.join()
-            # wait until all are done
-            #for thread in threads:
-            #    thread.join()
             # gather results
             if self.process_sb:
                 # each element equal
@@ -244,19 +242,23 @@ class OfflineProcessing(threading.Thread):
                 numcand_grouped = self._cluster(obs_config, 0, filterbank_file)
             elif obs_config['mode'] == 'TAB':
                 numcand_all = np.zeros(obs_config['ntabs'])
-                threads = []
-                self.logger.info("Starting parallel trigger clustering")
+                # max numtread tabs per run; so ntabs / numthread chunks
+                n_chunk = int(np.ceil(obs_config['ntabs'] / float(self.numthread)))
+                chunks = np.array_split(range(obs_config['ntabs']), n_chunk)
+                self.logger.info("Starting trigger clustering with {} chunks of {} threads".format(n_chunk, self.numthread))
                 # start the threads
-                for tab in range(obs_config['ntabs']):
-                    filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab, **obs_config)
-                    thread = threading.Thread(target=self._cluster, args=[obs_config, filterbank_file],
-                                              kwargs={'out': numcand_all, 'tab': tab})
-                    thread.daemon = True
-                    threads.append(thread)
-                    thread.start()
-                # wait until all are done
-                for thread in threads:
-                    thread.join()
+                for tab_set in chunks:
+                    threads = []
+                    for tab in tab_set:
+                        filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab, **obs_config)
+                        thread = threading.Thread(target=self._cluster, args=[obs_config, filterbank_file],
+                                                  kwargs={'out': numcand_all, 'tab': tab})
+                        thread.daemon = True
+                        threads.append(thread)
+                        thread.start()
+                    # wait until all are done
+                    for thread in threads:
+                        thread.join()
                 # gather results
                 numcand_grouped = int(np.sum(numcand_all[numcand_all != -1]))
         tend = Time.now()
@@ -341,23 +343,24 @@ class OfflineProcessing(threading.Thread):
             ind = tab
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
+        freq = int(np.round(obs_config['min_freq'] + BANDWIDTH.to(u.MHz).value/2.))
         if self.process_sb:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {duration} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers " \
-                  "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} " \
+                  "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} --central_freq {freq} " \
                   "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
-                                                                sbmax=sbmax, prefix=prefix, **obs_config)
+                                                                sbmax=sbmax, prefix=prefix, freq=freq, **obs_config)
         else:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {duration} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
-                  "--cmap {cmap} --outdir={output_dir}/triggers " \
+                  "--cmap {cmap} --outdir={output_dir}/triggers --central_freq {freq} " \
                   "--tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_name,
-                                                                          prefix=prefix, **obs_config)
+                                                                          prefix=prefix, freq=freq, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
