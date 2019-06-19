@@ -149,8 +149,8 @@ class TestOfflineProcessing(unittest.TestCase):
         fname_pdf = "CB00_candidates_summary.pdf"
 
         # set expected output for yaml
-        expected_output_yaml = {'ncand_abovethresh': 86, 'ncand_classifier': 84, 'ncand_raw': 2598,
-                                'ncand_skipped': 156, 'ncand_trigger': 242}
+        expected_output_yaml = {'ncand_abovethresh': 104, 'ncand_classifier': 89, 'ncand_raw': 2048,
+                                'ncand_skipped': 109, 'ncand_trigger': 213}
         # read expected output for txt
         with open(os.path.join(TESTDIR, fname_txt_in)) as f:
             expected_output_txt = f.read().strip().split()

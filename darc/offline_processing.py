@@ -554,14 +554,11 @@ class OfflineProcessing(threading.Thread):
                 with h5py.File(fname_classifier, 'r') as f:
                     frb_index = f['frb_index'][:]
                     data_frb_candidate = f['data_frb_candidate'][:]
+                    probability = f['probability'][:][frb_index]
+                    params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
                     if self.process_sb:
-                        probability = f['probability'][:]
-                        params = f['params'][:]  # snr, DM, downsampling, arrival time, dt
                         beam_data = f['sb'][:]
-                    else:
-                        probability = f['probability'][:][frb_index]
-                        params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
-                    if beam_data is not None:
+                    elif beam_data is not None:
                         beam_data = beam_data[frb_index]
             except Exception as e:
                 self.logger.warning("Could not read classifier output file: {}".format(e))
