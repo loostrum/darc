@@ -344,23 +344,26 @@ class OfflineProcessing(threading.Thread):
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         freq = int(np.round(obs_config['min_freq'] + BANDWIDTH.to(u.MHz).value/2.))
+        time_limit = self.max_proc_time / self.numthread
         if self.process_sb:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
-                  "--time_limit {duration} --descending_snr " \
+                  "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers " \
                   "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} --central_freq {freq} " \
                   "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
-                                                                sbmax=sbmax, prefix=prefix, freq=freq, **obs_config)
+                                                                sbmax=sbmax, prefix=prefix, freq=freq, 
+                                                                time_limit=time_limit, **obs_config)
         else:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
-                  "--time_limit {duration} --descending_snr " \
+                  "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers --central_freq {freq} " \
                   "--tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_name,
-                                                                          prefix=prefix, freq=freq, **obs_config)
+                                                                          prefix=prefix, freq=freq, 
+                                                                          time_limit=time_limit, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
