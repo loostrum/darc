@@ -55,6 +55,12 @@ class OfflineProcessing(threading.Thread):
                 value = value.format(**kwargs)
                 config[key] = value
             setattr(self, key, value)
+
+        # set TAB or SB for hdf5 keys
+        if self.process_sb:
+            config['keys_data'].append('sb')
+        else:
+            config['keys_data'].append('tab')
         self.config = config
 
         # setup logger
@@ -341,9 +347,8 @@ class OfflineProcessing(threading.Thread):
         # in TAB processing mode, out index is TAB number
         if ind is None:
             ind = tab
-
+        
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
-        freq = int(np.round(obs_config['min_freq'] + BANDWIDTH.to(u.MHz).value/2.))
         time_limit = self.max_proc_time / self.numthread
         if self.process_sb:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
@@ -353,7 +358,7 @@ class OfflineProcessing(threading.Thread):
                   "--cmap {cmap} --outdir={output_dir}/triggers " \
                   "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} --central_freq {freq} " \
                   "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
-                                                                sbmax=sbmax, prefix=prefix, freq=freq, 
+                                                                sbmax=sbmax, prefix=prefix,
                                                                 time_limit=time_limit, **obs_config)
         else:
             cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
@@ -362,7 +367,7 @@ class OfflineProcessing(threading.Thread):
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
                   "--cmap {cmap} --outdir={output_dir}/triggers --central_freq {freq} " \
                   "--tab {tab} {filterbank_file} {prefix}.trigger".format(tab=tab, filterbank_file=filterbank_name,
-                                                                          prefix=prefix, freq=freq, 
+                                                                          prefix=prefix,
                                                                           time_limit=time_limit, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
@@ -398,10 +403,6 @@ class OfflineProcessing(threading.Thread):
 
         # define the data set keys
         keys_data = self.config['keys_data']
-        if self.process_sb:
-            keys_data.append('sb')
-        else:
-            keys_data.append('tab')
         key_ntrigger_skipped = self.config['key_ntriggers_skipped']
         keys_all = keys_data + [key_ntrigger_skipped]
 
