@@ -185,6 +185,16 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
+        # fold pulsar if this is beam 0 and a test pulsar is being observed
+        # get source name from datetimesource, which is like 2019-05-18-23:51:13.B1933+16
+        try:
+            source = obs_config['datetimesource'].split('.')[-1]
+            if source in self.test_pulsars and (obs_config['beam'] == 0):
+                self.logger.info("Test pulsar detected: {}".format(source))
+                self._fold_pulsar(source, obs_config)
+        except Exception as e:
+            self.logger.error("Pulsar folding failed: {}".format(e))
+
         # create trigger directory
         trigger_dir = "{output_dir}/triggers".format(**obs_config)
         try:
@@ -715,3 +725,39 @@ class OfflineProcessing(threading.Thread):
             self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
             return 0
         return dm
+
+    def _fold_pulsar(self, source, obs_config):
+        """
+        Fold pulsar with PRESTO
+        :param source: pulsar name including B or J
+        :param obs_config: Observation config
+        """
+
+        if obs_config['mode'] == 'IAB':
+            fname = "{output_dir}/filterbank/CB{beam:02d}.fil".format(**obs_config)
+        else:
+            fname = "{output_dir}/filterbank/CB{beam:02d}_00.fil".format(**obs_config)
+
+        # try to find par file, otherwise use psr option
+        parfile = "{}/tzpar/{}.par".format(os.environ['TEMPO'], source[1:])
+        if not os.path.isfile(parfile):
+            opt = "-psr {}".format(source)
+        else:
+            opt = "-par {}".format(parfile)
+
+        # run in filterbank dir
+        os.chdir("{output_dir}/filterbank".format(**obs_config))
+
+        # prepfold command
+        prepfold_cmd = "prepfold -n 64 -nsub 128 -nodmsearch -nopdsearch {opt}" \
+                       " -noxwin -filterbank" \
+                       " {fname}".format(opt=opt, fname=fname)
+
+        # convert to pdf command
+        figname = fname.replace('.fil', '_PSR_{}.pfd.ps'.format(source[1:]))
+        convert_cmd = "ps2pdf {}".format(figname)
+
+        # Create and run full command
+        full_cmd = prepfold_cmd + " && " + convert_cmd + ' &'
+        self.logger.info("Running {}".format(full_cmd))
+        os.system(full_cmd)

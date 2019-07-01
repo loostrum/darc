@@ -99,6 +99,7 @@ offline_processing:
     dmmax: 5000
     max_proc_time: 36000
     ml_gpus: 0
+    test_pulsars: ["B0329+54", "B1933+16", "B0531+21", "B0950+08"]
     key_ntriggers_skipped: "ntriggers_skipped"
     keys_data: ["data_freq_time", "data_dm_time", "params"]
     model_dir: "{home}/keras_models"
