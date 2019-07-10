@@ -241,6 +241,9 @@ class OfflineProcessing(threading.Thread):
                 thread.start()
                 # chunks are run serially, so join immediately
                 thread.join()
+            # wait until all are done
+            #for thread in threads:
+            #    thread.join()
             # gather results
             if self.process_sb:
                 # each element equal
