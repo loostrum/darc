@@ -368,7 +368,7 @@ class OfflineProcessing(threading.Thread):
                   "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
-                  "--cmap {cmap} --outdir={output_dir}/triggers " \
+                  "--cmap {cmap} --outdir={output_dir}/triggers --clean_type {clean_type} " \
                   "--synthesized_beams --sbmin {sbmin} --sbmax {sbmax} --central_freq {freq} " \
                   "{filterbank_prefix} {prefix}.trigger".format(filterbank_prefix=filterbank_name, sbmin=sbmin,
                                                                 sbmax=sbmax, prefix=prefix,
