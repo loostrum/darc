@@ -152,7 +152,7 @@ class SBGenerator(object):
             raise SBGeneratorException("Error: Number of subbands ({}) is not a factor of "
                                        "number of channels ({})".format(self.nsub, nfreq))
 
-        nchan_per_subband = nfreq / self.nsub
+        nchan_per_subband = int(nfreq / self.nsub)
         beam = np.zeros((nfreq, ntime))
         for subband, tab in enumerate(self.sb_mapping[sb]):
             # get correct subband of correct tab and add it to raw SB

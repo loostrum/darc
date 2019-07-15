@@ -92,7 +92,7 @@ offline_processing:
     cmap: 'viridis'
     ntime_plot: 64
     nfreq_plot: 64
-    ndm: 1
+    ndm: 64
     snrmin_processing: 10
     snrmin_processing_local: 5
     dmmin: 20
@@ -103,6 +103,9 @@ offline_processing:
     key_ntriggers_skipped: "ntriggers_skipped"
     keys_data: ["data_freq_time", "data_dm_time", "params"]
     model_dir: "{home}/keras_models"
+    model_1dtime: "heimdall_b0329_mix_147411d_time.hdf5"
+    model_dmtime: "heimdall_dm_time.hdf5"
+    model_freqtime: "20190501freq_time.hdf5"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
