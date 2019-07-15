@@ -228,7 +228,7 @@ class OfflineProcessing(threading.Thread):
             numcand_all = np.zeros(self.numthread)
             filterbank_prefix = "{output_dir}/filterbank/CB{beam:02d}".format(**obs_config)
             threads = []
-            self.logger.info("Starting trigger clustering with {} serial threads".format(self.numthread))
+            self.logger.info("Starting trigger clustering with {} threads".format(self.numthread))
             for ind, chunk in enumerate(chunks):
                 # pick the SB range
                 sbmin, sbmax = min(chunk), max(chunk)
@@ -239,11 +239,9 @@ class OfflineProcessing(threading.Thread):
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
-                # chunks are run serially, so join immediately
-                thread.join()
             # wait until all are done
-            #for thread in threads:
-            #    thread.join()
+            for thread in threads:
+                thread.join()
             # gather results
             if self.process_sb:
                 # each element equal
