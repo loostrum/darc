@@ -228,7 +228,7 @@ class OfflineProcessing(threading.Thread):
             numcand_all = np.zeros(self.numthread)
             filterbank_prefix = "{output_dir}/filterbank/CB{beam:02d}".format(**obs_config)
             threads = []
-            self.logger.info("Starting trigger clustering with {} serial threads".format(self.numthread))
+            self.logger.info("Starting trigger clustering with {} threads".format(self.numthread))
             for ind, chunk in enumerate(chunks):
                 # pick the SB range
                 sbmin, sbmax = min(chunk), max(chunk)
@@ -239,11 +239,9 @@ class OfflineProcessing(threading.Thread):
                 thread.daemon = True
                 threads.append(thread)
                 thread.start()
-                # chunks are run serially, so join immediately
-                thread.join()
             # wait until all are done
-            #for thread in threads:
-            #    thread.join()
+            for thread in threads:
+                thread.join()
             # gather results
             if self.process_sb:
                 # each element equal
@@ -501,10 +499,18 @@ class OfflineProcessing(threading.Thread):
         else:
             sb_option = ''
 
+        # Add optional classifier models (1D time and DM-time)
+        model_option = ''
+        if self.model_dmtime:
+            model_option += ' --fn_model_dm {model_dir}/{model_dmtime}'.format(**obs_config)
+        if self.model_1dtime:
+            model_option += ' --fn_model_time {model_dir}/{model_1dtime}'.format(**obs_config)
+
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
-              " --fn_model_time {model_dir}/heimdall_b0329_mix_147411d_time.hdf5 {sb_option} " \
+              " {model_option} {sb_option} " \
               " --pthresh {pthresh} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
-              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option, 
+              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option,
+                                                           model_option=model_option,
                                                            input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
