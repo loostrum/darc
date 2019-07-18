@@ -97,6 +97,7 @@ class TestOfflineProcessing(unittest.TestCase):
             proc.config['snrmin_processing_local'] = 5
             proc.config['dmmin'] = 20
             proc.config['dmmax'] = 5000
+            proc.config['pthresh_dmtime'] = 0
             # Add offline processing config to obs config (normally done in run method, but that is skipped)
             fullconfig = proc.config.copy()
             fullconfig.update(config)
@@ -174,6 +175,7 @@ class TestOfflineProcessing(unittest.TestCase):
             proc.config['snrmin_processing_local'] = 5
             proc.config['dmmin'] = 20
             proc.config['dmmax'] = 5000
+            proc.config['pthresh_dmtime'] = 0
             # Add offline processing config to obs config (normally done in run method, but that is skipped)
             fullconfig = proc.config.copy()
             fullconfig.update(config)

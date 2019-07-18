@@ -88,7 +88,8 @@ offline_processing:
     result_dir: "{home}/observations/results/"
     interval: 10
     timeout: 10
-    pthresh: 0.5
+    pthresh_freqtime: 0.5
+    pthresh_dmtime: 0.05
     cmap: 'viridis'
     ntime_plot: 64
     nfreq_plot: 64

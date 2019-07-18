@@ -508,7 +508,8 @@ class OfflineProcessing(threading.Thread):
 
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
               " {model_option} {sb_option} " \
-              " --pthresh {pthresh} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
+              " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
+              " --pthresh_dm {pthresh_dmtime} " \
               " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option,
                                                            model_option=model_option,
                                                            input_file=input_file, **obs_config)
