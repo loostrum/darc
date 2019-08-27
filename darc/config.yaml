@@ -9,7 +9,9 @@ darc_master:
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website"]
     services_worker_off: ["offline_processing"]
-    commands: ['start_observation', 'stop_observation', 'abort_observation', 'status', 'start', 'stop', 'restart', 'stop_master']
+    commands: ["start_observation", "stop_observation", "abort_observation", "status", "start",
+               "stop", "restart", "stop_master", "edit"]
+    editor: "vim"
 
 # Status website
 status_website:

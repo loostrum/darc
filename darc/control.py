@@ -108,7 +108,8 @@ def main():
         if ret != 0:
             logging.error("Editor did not exit properly")
         else:
-            logging.info("Reload config with 'darc reload' to apply new settings")
+            logging.info("Restart pipeline to apply new settings\n" \
+                         "WARNING: This aborts any running observation")
         sys.exit(ret)
 
     # Get payload
