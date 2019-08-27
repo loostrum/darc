@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import os
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 import yaml
 import ast
 import logging
 import socket
+import subprocess
 
 from darc.definitions import CONFIG_FILE
 
@@ -92,9 +94,22 @@ def main():
     if not args.cmd:
         logging.error("Add command to execute e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    elif not args.service and args.cmd not in ['stop_master', 'start_observation', 'stop_observation']:
+    elif not args.service and args.cmd not in ['stop_master', 'start_observation', 'stop_observation', 'edit']:
         logging.error("Argument --service is required unless calling stop_master or start/stop observation")
         sys.exit(1)
+
+    # If command is edit, open confing in an editor
+    if args.cmd == 'edit':
+        with open(CONFIG_FILE, 'r') as f:
+            master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
+        default_editor = master_config['editor']
+        editor = os.environ.get('EDITOR', default_editor)
+        ret = subprocess.Popen([editor, CONFIG_FILE]).wait()
+        if ret != 0:
+            logging.error("Editor did not exit properly")
+        else:
+            logging.info("Reload config with 'darc reload' to apply new settings")
+        sys.exit(ret)
 
     # Get payload
     if args.parset:
