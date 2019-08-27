@@ -1,6 +1,10 @@
 # DARC
 Data Analysis of Real-time Candidates from ARTS
 
+master: [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
+
+dev: [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=dev)](https://travis-ci.com/loostrum/darc)
+
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
 The main executable should only be run on the ARTS cluster.
 

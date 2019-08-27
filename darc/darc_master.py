@@ -165,6 +165,7 @@ class DARCMaster(object):
         self.logger.info("Received stop. Exiting")
         # close any connection
         try:
+            self.command_socket.shutdown()
             self.command_socket.close()
         except Exception as e:
             self.logger.warning("Failed to cleanly shutdown listening socket: {}".format(e))
