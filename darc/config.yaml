@@ -27,7 +27,7 @@ status_website:
         amber_triggering: "AMBER triggering"
         offline_processing: "Offline processing"
         dada_trigger: "DADA triggering"
-	processor: "Processor"
+        processor: "Processor"
 
 # AMBER trigger listener
 amber_listener:
