@@ -159,7 +159,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        cmd = "python {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
+        cmd = "python2 {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -368,7 +368,7 @@ class OfflineProcessing(threading.Thread):
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         time_limit = self.max_proc_time / self.numthread
         if self.process_sb:
-            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python2 {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
@@ -378,7 +378,7 @@ class OfflineProcessing(threading.Thread):
                                                                 sbmax=sbmax, prefix=prefix,
                                                                 time_limit=time_limit, **obs_config)
         else:
-            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python2 {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
