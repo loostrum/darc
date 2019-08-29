@@ -7,6 +7,7 @@ import os
 import ast
 import glob
 import yaml
+import codecs
 import multiprocessing as mp
 from multiprocessing import queues
 try:
@@ -143,7 +144,7 @@ class OfflineProcessing(threading.Thread):
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
         # decode the parset
-        raw_parset = obs_config['parset'].decode('hex').decode('bz2')
+        raw_parset = codecs.decode(codecs.decode(obs_config['parset'], 'hex'), 'bz2').decode()
         # convert to dict
         obs_config['parset'] = util.parse_parset(raw_parset)
 
