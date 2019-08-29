@@ -574,7 +574,7 @@ class OfflineProcessing(threading.Thread):
         # read classifier output (only the first file!)
         self.logger.info("Reading classifier output file")
         try:
-            fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
+            fname_classifier = glob.glob("{output_prefix}_*freq_time*.hdf5".format(**conf))[0]
         except IndexError:
             self.logger.info("No classifier output file found")
             ncand_classifier = 0
