@@ -267,9 +267,9 @@ class DARCMaster(object):
         thread = self.threads[service]
         self.logger.info("Checking status of {}".format(service))
         if thread is None:
-            status = 'Error'
-            reply = 'No thread found'
-            return status, reply
+            # no thread means the service is not running
+            self.logger.info("{} is stopped".format(service))
+            reply = 'stopped'
 
         if thread.isAlive():
             self.logger.info("{} is running".format(service))
