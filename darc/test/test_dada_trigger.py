@@ -4,8 +4,8 @@ import os
 import sys
 import unittest
 import multiprocessing as mp
-import threading
 from textwrap import dedent
+import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
@@ -19,8 +19,7 @@ from darc.dada_trigger import DADATrigger
 
 class TestDADATrigger(unittest.TestCase):
 
-    @staticmethod
-    def get_trigger(window_size, stokes):
+    def get_trigger(self, window_size, stokes):
         """
         Generate a trigger dict
         :param: window_size: event duration in seconds
@@ -29,7 +28,6 @@ class TestDADATrigger(unittest.TestCase):
         """
 
         utc_start = Time("2019-01-01 12:00:00")
-        utc_start_str = utc_start.iso
         time = 38.249
 
         # set network port (values from arts_survey_control.conf)
@@ -42,7 +40,7 @@ class TestDADATrigger(unittest.TestCase):
 
         # trigger
         trigger = {'dm': 56.791, 'snr': 15.2, 'width': 2, 'beam': 22, 'time': time,
-                   'utc_start': utc_start, 'stokes': stokes, 'port': port}
+                   'window_size': 10.24, 'utc_start': utc_start, 'stokes': stokes, 'port': port}
 
         # event parameters
         event_start_full = utc_start + TimeDelta(time, format='sec') - TimeDelta(window_size/2, format='sec')
@@ -54,9 +52,10 @@ class TestDADATrigger(unittest.TestCase):
         #event_end_frac = '.' + event_end_frac
 
         event_info = trigger.copy()
-        event_info['event_start'] = event_start
+        event_info['utc_start'] = trigger['utc_start'].iso.replace(' ', '-')
+        event_info['event_start'] = event_start.replace(' ', '-')
         event_info['event_start_frac'] = event_start_frac
-        event_info['event_end'] = event_end
+        event_info['event_end'] = event_end.replace(' ', '-')
         event_info['event_end_frac'] = event_end_frac
         
         event = dedent("""\
@@ -74,10 +73,8 @@ class TestDADATrigger(unittest.TestCase):
 
         # create input queue
         queue = mp.Queue()
-        # create stop event for DADA Trigger
-        stop_event = threading.Event()
         # init DADA Trigger
-        dadatrigger = DADATrigger(stop_event)
+        dadatrigger = DADATrigger()
         # set the queue
         dadatrigger.set_source_queue(queue)
         # start dadatrigger
@@ -96,7 +93,7 @@ class TestDADATrigger(unittest.TestCase):
             self.fail("Failed to set up listening socket for events: {}".format(e))
 
         # send the stokes I trigger
-        queue.put(trigger_i)
+        queue.put({'command': 'trigger', 'trigger': [trigger_i]})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -132,7 +129,7 @@ class TestDADATrigger(unittest.TestCase):
         except socket.error as e:
             self.fail("Failed to set up listening socket for events: {}".format(e))
         # send the stokes IQUV trigger
-        queue.put(trigger_iquv)
+        queue.put({'command': 'trigger', 'trigger': [trigger_iquv]})
         try:
             client, adr = sock.accept()
         except socket.timeout:
@@ -160,7 +157,7 @@ class TestDADATrigger(unittest.TestCase):
         self.assertListEqual(in_event_split, out_event_split)
 
         # stop dadatrigger
-        stop_event.set()
+        dadatrigger.stop()
 
 
 if __name__ == '__main__':

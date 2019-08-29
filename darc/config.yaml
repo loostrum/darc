@@ -4,9 +4,14 @@ darc_master:
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    services_master: ["offline_processing", "status_website"]
-    services_worker: ["offline_processing"]
-    commands: ['start_observation', 'stop_observation', 'abort_observation', 'status', 'start', 'stop', 'restart', 'stop_master']
+    real_time: True
+    services_master_rt: ["status_website", "voevent_generator"]
+    services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
+    services_master_off: ["offline_processing", "status_website"]
+    services_worker_off: ["offline_processing"]
+    commands: ["start_observation", "stop_observation", "abort_observation", "status", "start",
+               "stop", "restart", "stop_master", "edit"]
+    editor: "vim"
 
 # Status website
 status_website:
@@ -24,14 +29,13 @@ status_website:
         amber_triggering: "AMBER triggering"
         offline_processing: "Offline processing"
         dada_trigger: "DADA triggering"
+        processor: "Processor"
 
 # AMBER trigger listener
 amber_listener:
     log_file: "{home}/darc/log/amber_listener.{hostname}.log"
-    host: "localhost"
-    port: 50000  # NOTE: also hardcoded as default in stream_files_to_port
-    socket_timeout: 30
-    poll_time: 0.1
+    interval: .2
+    start_timeout: 30
 
 # Direct processing of AMBER triggers
 amber_triggering:
@@ -47,10 +51,10 @@ amber_triggering:
 # Clustering of AMBER triggers
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
-    interval: 10
+    interval: 2.0
     dm_min: 0
-    dm_max: 3000
-    snr_min: 80
+    dm_max: 99999
+    snr_min: 10
     age_max: 10
 
 # VOEvent generator
@@ -58,7 +62,9 @@ voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
     send_events: False
-    broker_host: "arts041.apertif"
+    server_port: 52000
+    server_auth: "9S5JNp9MgM"
+    broker_host: "arts041.apertif"  # ToDo: replace by phobos
     broker_port: 8098
 
 # DADA triggers
@@ -66,6 +72,8 @@ dada_trigger:
     log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
     window_size_i: 10.24
     window_size_iquv: 10.24
+    port_i: 30000
+    port_iquv: 30001
 
 # SB generator
 sb_generator:
@@ -79,6 +87,16 @@ sb_generator:
     numsb:
         sc3: 114
         sc4: 71
+
+# Trigger processor
+processor:
+    log_file: "{home}/darc/log/processor.{hostname}.log"
+    model_dir: "{home}/keras_models"
+    model_name_freqtime: '20190416freq_time.hdf5'
+    model_name_dmtime: 'heimdall_dm_time.hdf5'
+    nfreq: 32
+    ntime: 64
+    ndm: 64
 
 # Offline processing
 offline_processing:

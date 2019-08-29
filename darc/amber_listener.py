@@ -2,112 +2,107 @@
 #
 # AMBER Listener
 
+import os
 from time import sleep, time
-import socket
-import yaml
-import multiprocessing as mp
 import threading
-import socket
+import ast
 
-from darc.definitions import *
-from darc.logger import get_logger
+from darc.base import DARCBase
+from darc import util
 
 
 class AMBERListenerException(Exception):
     pass
 
 
-class AMBERListener(threading.Thread):
+class AMBERListener(DARCBase):
     """
-    Listens to AMBER triggers and puts them in a queue.
+    Listens to AMBER triggers and puts them on a queue.
     """
 
-    def __init__(self, stop_event):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = stop_event
+    def __init__(self):
+        super(AMBERListener, self).__init__()
+        self.needs_target_queue = True
 
-        self.queue = None
+        self.observation_threads = []
+        self.observation_events = []
 
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['amber_listener']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-        self.logger.info("AMBER Listener initialized")
-
-    def set_target_queue(self, queue):
+    def start_observation(self, obs_config):
         """
-        :param queue: Output queue
+        Start an observation
+        :param obs_config: observation config dict
+        :return:
         """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given target queue is not instance of Queue')
-            raise AMBERListenerException('Given target queue is not instance of Queue')
-        self.queue = queue
+        # Stop any running observation
+        if self.observation_events or self.observation_threads:
+            self.logger.info("Old observation found, stopping it first")
+            self.stop_observation()
 
-    def run(self):
-        """
-        Initalize socket and put incoming triggers on queue
-        """
-        if not self.queue:
-            self.logger.error('Queue not set')
-            raise AMBERListenerException('Queue not set')
+        self.logger.info("Reading AMBER settings")
+        # Read number of amber threads from amber config file
+        amber_conf_file = obs_config['amber_config']
+        with open(amber_conf_file, 'r') as f:
+            raw_amber_conf = f.read()
+        amber_conf = util.parse_parset(raw_amber_conf)
 
-        self.logger.info("Starting AMBER listener")
-        s = None
+        # get directory of amber trigger files
+        amber_dir = obs_config['amber_dir']
+        # get CB number
+        beam = obs_config['beam']
+
+        # start reader for each thread
+        num_amber = len(ast.literal_eval(amber_conf['opencl_device']))
+        self.logger.info("Expecting {} AMBER threads".format(num_amber))
+        for step in range(1, num_amber+1):
+            trigger_file = os.path.join(amber_dir, "CB{:02d}_step{}.trigger".format(beam, step))
+            # start thread for reading
+            event = threading.Event()
+            self.observation_events.append(event)
+            thread = threading.Thread(target=self._follow_file, args=[trigger_file, event], name="step{}".format(step))
+            thread.daemon = True
+            thread.start()
+            self.observation_threads.append(thread)
+
+        self.logger.info("Observation started")
+        # ToDo: Automatic stop? Careful not to overwrite a new observation
+
+    def stop_observation(self):
+        """
+        Stop any running observation
+        """
+        for event in self.observation_events:
+            event.set()
+        self.observation_events = []
+        for thread in self.observation_threads:
+            thread.join()
+        self.observation_threads = []
+
+    # only start and stop observation commands exist for amber listener
+    def process_command(self):
+        pass
+
+    def _follow_file(self, fname, event):
+        """
+        Tail a file an put lines on queue
+        :param fname: file to follow
+        :param event: stop event
+        """
+        # wait until the file exists, with a timeout
         start = time()
-        while not s and time() - start < self.socket_timeout:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.bind((self.host, self.port))
-            except socket.error as e:
-                self.logger.warning("Failed to create socket, will retry: {}".format(e))
+        while time() - start < self.start_timeout and not event.is_set():
+            if not os.path.isfile(fname):
+                self.logger.info("File not yet present: {}".format(fname))
                 sleep(1)
-
-        if not s:
-            self.logger.error("Failed to create socket")
-            raise AMBERListenerException("Failed to create socket")
-
-        s.listen(5)
-        s.settimeout(1)
-
-        while not self.stop_event.is_set():
-            self.logger.info("Waiting for client to connect")
-            # Use timeout to avoid hanging when stop of service is requested
-            client = None
-            adr = None
-            while not client and not self.stop_event.is_set():
-                try:
-                    client, adr = s.accept()
-                except socket.timeout:
-                    continue
-                # client may still not exist if stop is called some loop
-                if not client or not adr:
-                    continue
-                self.logger.info("Accepted connection from (host, port) = {}".format(adr))
-
-            # again client may still not exist if stop is called some loop
-            if not client or not adr:
-                continue
-            # keep listening until we receive a stop
-            client.settimeout(1)
-            while not self.stop_event.is_set():
-                try:
-                    output = client.recv(65536).decode()
-                except socket.timeout:
-                    continue
-                if output.strip() == 'EOF' or not output:
-                    self.logger.info("Disconnecting")
-                    client.close()
-                    break
-                else:
-                    self.queue.put(output.strip().split('\n'))
-
-        self.logger.info("Stopping AMBER Listener")
+            else:
+                break
+        if not os.path.isfile(fname):
+            # file still does not exist, error
+            self.logger.error("Giving up on following file: {}".format(fname))
+            return
+        # tail the file
+        self.logger.info("Following file: {}".format(fname))
+        with open(fname, 'r') as f:
+            for line in util.tail(f, event):
+                line = line.strip()
+                if line:
+                    self.target_queue.put({'command': 'trigger', 'trigger': line})

@@ -4,6 +4,9 @@
 # Controls all services
 
 import sys
+# ensure no bytecode is written, to make reload work
+sys.dont_write_bytecode = True
+import os
 import ast
 import yaml
 import multiprocessing as mp
@@ -15,15 +18,17 @@ try:
     from importlib import reload
 except ImportError:
     pass
-from darc.definitions import *
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
 import darc.amber_triggering
+import darc.amber_clustering
 import darc.voevent_generator
 import darc.status_website
 import darc.offline_processing
 import darc.dada_trigger
+import darc.processor
 
 
 class DARCMasterException(Exception):
@@ -42,10 +47,13 @@ class DARCMaster(object):
         self.hostname = socket.gethostname()
 
         # setup queues
-        self.amber_listener_queue = mp.Queue()
-        self.voevent_queue = mp.Queue()
-        self.processing_queue = mp.Queue()
-        self.dadatrigger_queue = mp.Queue()
+        self.amber_listener_queue = mp.Queue()  # only used for start observation commands
+        self.amber_trigger_queue = mp.Queue()  # for amber triggers
+        self.dadatrigger_queue = mp.Queue()  # for dada triggers
+        self.processor_queue = mp.Queue()  # for offline or real-time processing
+
+        self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
+                           self.processor_queue]
 
         # Load config file
         with open(CONFIG_FILE, 'r') as f:
@@ -62,9 +70,15 @@ class DARCMaster(object):
         self.hostname = socket.gethostname()
         # store services
         if self.hostname == MASTER:
-            self.services = self.services_master
+            if self.real_time:
+                self.services = self.services_master_rt
+            else:
+                self.services = self.services_master_off
         elif self.hostname in WORKERS:
-            self.services = self.services_worker
+            if self.real_time:
+                self.services = self.services_worker_rt
+            else:
+                self.services = self.services_worker_off
         else:
             self.services = []
         # service to class mapper
@@ -72,27 +86,26 @@ class DARCMaster(object):
                                 'status_website': darc.status_website.StatusWebsite,
                                 'amber_listener': darc.amber_listener.AMBERListener,
                                 'amber_triggering': darc.amber_triggering.AMBERTriggering,
-                                'offline_processing': darc.offline_processing.OfflineProcessing,
-                                'dada_trigger': darc.dada_trigger.DADATrigger}
+                                'amber_clustering': darc.amber_clustering.AMBERClustering,
+                                'dada_trigger': darc.dada_trigger.DADATrigger,
+                                'processor': darc.processor.Processor,
+                                'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # create main log dir
         log_dir = os.path.dirname(self.log_file)
         try:
             util.makedirs(log_dir)
         except Exception as e:
-            raise DARCMasterException("Cannot create log directory")
+            raise DARCMasterException("Cannot create log directory: {}".format(e))
 
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
 
-        # Initalize services. Log dir must exist at this point
-        self.events = {}
+        # Initialize services. Log dir must exist at this point
         self.threads = {}
         for service in self.services:
-            _event = threading.Event()
             _service_class = self.service_mapping[service]
-            self.events[service] = _event
-            self.threads[service] = _service_class(_event)
+            self.threads[service] = _service_class()
 
         # setup listening socket
         command_socket = None
@@ -128,7 +141,7 @@ class DARCMaster(object):
             try:
                 client, adr = self.command_socket.accept()
             except Exception as e:
-                self.logger.error('Caught exception while waiting for command: {}', e)
+                self.logger.error('Caught exception while waiting for command: {}'.format(e))
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
             raw_message = client.recv(1024).decode()
@@ -154,8 +167,8 @@ class DARCMaster(object):
         try:
             self.command_socket.shutdown()
             self.command_socket.close()
-        except Exception:
-            pass
+        except Exception as e:
+            self.logger.warning("Failed to cleanly shutdown listening socket: {}".format(e))
         sys.exit()
 
     def parse_message(self, raw_message):
@@ -201,6 +214,10 @@ class DARCMaster(object):
             else:
                 status, reply = self.start_observation(payload)
             return status, reply
+        # Stop observation
+        elif command == 'stop_observation':
+            status, reply = self.stop_observation()
+            return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
@@ -210,10 +227,10 @@ class DARCMaster(object):
         if service == 'all':
             services = self.services
         else:
-            if not service in self.services:
+            if service not in self.services:
                 self.logger.info("Invalid service for {}: {}".format(self.hostname, service))
                 status = 'Error'
-                reply =  {'error': 'Invalid service: {}'.format(service)}
+                reply = {'error': 'Invalid service: {}'.format(service)}
                 return status, reply
             services = [service]
 
@@ -227,7 +244,7 @@ class DARCMaster(object):
             elif command.lower() == 'restart':
                 _status, _reply = self.restart_service(service)
             elif command.lower() == 'status':
-                _status, _reply =  self.check_status(service)
+                _status, _reply = self.check_status(service)
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
                 status = 'Error'
@@ -250,9 +267,9 @@ class DARCMaster(object):
         thread = self.threads[service]
         self.logger.info("Checking status of {}".format(service))
         if thread is None:
-            status = 'Error'
-            reply = 'No thread found'
-            return status, reply
+            # no thread means the service is not running
+            self.logger.info("{} is stopped".format(service))
+            reply = 'stopped'
 
         if thread.isAlive():
             self.logger.info("{} is running".format(service))
@@ -271,35 +288,37 @@ class DARCMaster(object):
 
         # settings for specific services
         if service == 'amber_listener':
-            source_queue = None
-            target_queue = self.amber_listener_queue
-        elif service == 'amber_triggering':
             source_queue = self.amber_listener_queue
-            target_queue = self.voevent_queue
+            target_queue = self.amber_trigger_queue
+        elif service == 'amber_triggering':
+            source_queue = self.amber_trigger_queue
+            target_queue = None
+        elif service == 'amber_clustering':
+            source_queue = self.amber_trigger_queue
+            target_queue = self.dadatrigger_queue
         elif service == 'voevent_generator':
-            source_queue = self.voevent_queue
+            source_queue = None
             target_queue = None
         elif service == 'status_website':
             source_queue = None
             target_queue = None
         elif service == 'offline_processing':
-            source_queue = self.processing_queue
+            source_queue = self.processor_queue
             target_queue = None
         elif service == 'dada_trigger':
             source_queue = self.dadatrigger_queue
             target_queue = None
+        elif service == 'processor':
+            source_queue = self.processor_queue
+            target_queue = self.dadatrigger_queue
         else:
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
             reply = "Unknown service"
             return status, reply
 
-        # get thread and event
+        # get thread
         thread = self.threads[service]
-        event = self.events[service]
-
-        # set event to allow running
-        event.clear()
 
         # check if a new thread has to be generated
         if thread is None:
@@ -349,32 +368,30 @@ class DARCMaster(object):
 
         # get thread and event
         thread = self.threads[service]
-        event = self.events[service]
+
+        # check is it was running at all
+        if thread is None or not thread.isAlive():
+            self.logger.info("Service not running: {}".format(service))
+            reply = 'Success'
+            status = 'Stopped service'
+            return status, reply
 
         # stop the specified service
         self.logger.info("Stopping service: {}".format(service))
-
-        if not thread.isAlive():
-            status = 'Success'
-            reply = "Stopped service"
-            # this thread is done, create a new thread
-            self.create_thread(service)
-            self.logger.warning("Already stopped service: {}".format(service))
+        thread.stop()
+        tstart = time()
+        while thread.isAlive() and time()-tstart < self.stop_timeout:
+            sleep(.1)
+        if thread.isAlive():
+            status = 'error'
+            reply = "Failed to stop service before timeout"
+            self.logger.error("Failed to stop service before timeout: {}".format(service))
         else:
-            event.set()
-            tstart = time()
-            while thread.isAlive() and time()-tstart < self.stop_timeout:
-                sleep(.1)
-            if thread.isAlive():
-                status = 'error'
-                reply = "Failed to stop service before timeout"
-                self.logger.error("Failed to stop service before timeout: {}".format(service))
-            else:
-                status = 'Success'
-                reply = 'Stopped service'
-                # this thread is done, create a new thread
-                self.create_thread(service)
-                self.logger.info("Stopped service: {}".format(service))
+            status = 'Success'
+            reply = 'Stopped service'
+            self.logger.info("Stopped service: {}".format(service))
+        # remove thread
+        self.threads[service] = None
 
         return status, reply
 
@@ -398,10 +415,9 @@ class DARCMaster(object):
         """
         if service in self.service_mapping.keys():
             # Force reimport
-            self._reload(service)
-            module = self.service_mapping[service]
+            #self._reload(service)
             # Instantiate a new instance of the class
-            self.threads[service] = module(self.events[service])
+            self.threads[service] = self.service_mapping[service]()
         else:
             self.logger.error("Cannot create thread for {}".format(service))
 
@@ -420,7 +436,7 @@ class DARCMaster(object):
     def start_observation(self, config_file):
         """
         Start an observation
-        :param config: Path to observation config file
+        :param config_file: Path to observation config file
         """
 
         self.logger.info("Starting observation with config file {}".format(config_file))
@@ -440,37 +456,62 @@ class DARCMaster(object):
         if not config['proctrigger']:
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
-        # start the observation
 
-        # check if offline processing is running. If not, start it
-        _, offline_processing_status = self.check_status('offline_processing')
-        if not offline_processing_status == 'running':
-            self.logger.info('offline_processing not running - starting')
-            self.start_service('offline_processing')
-        
         # initialize observation
-        command = {}
-        if self.hostname == MASTER:
-            command['host_type'] = 'master'
-        elif self.hostname in WORKERS:
-            command['host_type'] = 'worker'
+        # Real-time procesing
+        if self.real_time:
+            if self.hostname == MASTER:
+                pass
+            elif self.hostname in WORKERS:
+                self.logger.info("Starting real-time processing on worker node")
+                # clear all queues
+                self.logger.info("Clearing queues")
+                for queue in self.all_queues:
+                    util.clear_queue(queue)
+                # ensure all services are running
+                self.logger.info("Making sure all services are running")
+                for service in self.services:
+                    self.start_service(service)
+                # start observation by feeding obs config to all queues
+                command = {'command': 'start_observation', 'obs_config': config}
+                for queue in self.all_queues:
+                    queue.put(command)
+            else:
+                self.logger.error("Running on unknown host: {}".format(self.hostname))
+                return "Error", "Failed: running on unknown host"
+
+            return "Success", "Observation started for real-time processing"
+        # Offline processing
         else:
-            self.logger.error("Running on unknown host: {}".format(self.hostname))
-            return "Error", "Failed: running on unknown host"
+            # ensure services are running
+            for service in self.services:
+                self.start_service(service)
+            # set host type and send config to offline processing
+            command = {}
+            if self.hostname == MASTER:
+                command['host_type'] = 'master'
+            elif self.hostname in WORKERS:
+                command['host_type'] = 'worker'
+            else:
+                self.logger.error("Running on unknown host: {}".format(self.hostname))
+                return "Error", "Failed: running on unknown host"
 
-        command['obs_config'] = config
-        self.processing_queue.put(command)
-        return "Success", "Observation started for offline processing"
+            command['obs_config'] = config
+            # put commands on queue
+            self.processor_queue.put(command)
+            return "Success", "Observation started for offline processing"
 
-    def stop_observation(self, taskid):
+    def stop_observation(self):
         """
         Stop an observation
-        :param taskid: task ID of observation to stop
-        :return:
+        :return: status, reply message
         """
-        self.logger.error("Stop not implemented yet")
-        status = "Error"
-        reply = {'error': "Stop is not implemented yet"}
+        # call stop_observation for all relevant services through their queues
+        for queue in self.all_queues:
+            queue.put({'command': 'stop_observation'})
+        status = 'Success'
+        reply = "Stopped observation"
+        self.logger.info("Stopped observation")
         return status, reply
 
     def _load_yaml(self, config_file):
@@ -515,16 +556,28 @@ class DARCMaster(object):
         """
         if service == 'amber_listener':
             reload(darc.amber_listener)
+            import darc.amber_listener
         elif service == 'amber_triggering':
             reload(darc.amber_triggering)
+            import darc.amber_triggering
+        elif service == 'amber_clustering':
+            reload(darc.amber_clustering)
+            import darc.amber_clustering
         elif service == 'voevent_generator':
             reload(darc.voevent_generator)
+            import darc.voevent_generator
         elif service == 'status_website':
             reload(darc.status_website)
+            import darc.status_website
         elif service == 'offline_processing':
             reload(darc.offline_processing)
+            import darc.offline_processing
         elif service == 'dada_trigger':
-            reload(darc.dada_trigge)
+            reload(darc.dada_trigger)
+            import darc.dada_trigger
+        elif service == 'processor':
+            reload(darc.processor)
+            import darc.processor
         else:
             self.logger.error("Unknown how to reimport class for {}".format(service))
 

@@ -2,128 +2,105 @@
 #
 # dada_dbevent triggers
 
-import yaml
-import multiprocessing as mp
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
 import threading
-from textwrap import dedent
 import socket
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import *
-from darc.logger import get_logger
+from darc.base import DARCBase
 
 
 class DADATriggerException(Exception):
     pass
 
 
-class DADATrigger(threading.Thread):
+class DADATrigger(DARCBase):
     """
     Generate and send dada_dbevent triggers
     """
 
-    def __init__(self, stop_event):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = stop_event
+    def __init__(self):
+        super(DADATrigger, self).__init__()
+        self.thread = None
 
-        self.event_queue = None
-
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['dada_trigger']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-        self.logger.info("DADA trigger initialized")
-
-    def set_source_queue(self, queue):
+    def process_command(self, command):
         """
-        :param queue: Source of amber clusters
+        Process command received from queue
+        :param command: command dict
         """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise DADATriggerException('Given source queue is not an instance of Queue')
-        self.event_queue = queue
+        if command['command'] == 'trigger':
+            # trigger received, send to dada_dbevent
+            self.thread = threading.Thread(target=self.send_event, args=[command['trigger']])
+            self.thread.daemon = True
+            self.thread.start()
+        else:
+            self.logger.error("Unknown command received: {}".format(command['command']))
 
-    def run(self):
-        if not self.event_queue:
-            self.logger.error('DADA trigger queue not set')
-            raise DADATriggerException('DADA trigger queue not set')
+    def cleanup(self):
+        """
+        Remove any remaining threads
+        """
+        if self.thread:
+            self.thread.join()
 
-        self.logger.info("Starting DADA trigger")
-        while not self.stop_event.is_set():
-            try:
-                trigger = self.event_queue.get(timeout=.1)
-            except Empty:
-                continue
-            else:
-                self.send_event(trigger)
-
-        self.logger.info("Stopping DADA trigger")
-
-    def send_event(self, trigger):
+    def send_event(self, triggers):
         """
         Send trigger to dada_dbevent
-        :param trigger: trigger dictionary
+        :param triggers: list of trigger dictionaries
         """
-        self.logger.info("Received trigger")
-        # event parameters
-        if trigger['stokes'] == 'I':
-            window_size = self.window_size_i
-        elif trigger['stokes'] == 'IQUV':
-            window_size = self.window_size_iquv
-        else:
-            self.logger.error("Unknown stokes type: {}".format(trigger['stokes']))
-            return
+        self.logger.info("Received {} trigger(s)".format(len(triggers)))
 
-        event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
-                                TimeDelta(window_size / 2, format='sec')
-        event_end_full = event_start_full + TimeDelta(window_size, format='sec')
+        # ToDo: move this to obs config
+        port = triggers[0]['port']
+        stokes = triggers[0]['stokes']
+        utc_start = triggers[0]['utc_start'].iso.replace(' ', '-')
 
-        event_start, event_start_frac = event_start_full.iso.split('.')
-        # event_start_frac = '.' + event_start_frac
-        event_end, event_end_frac = event_end_full.iso.split('.')
-        # event_end_frac = '.' + event_end_frac
+        events = ""
+        for trigger in triggers:
+            event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
+                                       TimeDelta(trigger['window_size'] / 2, format='sec')
+            # ensure start time is past start time of observation
+            if event_start_full < trigger['utc_start']:
+                self.logger.info("Event start before start of observation - adapting event start")
+                event_start_full = trigger['utc_start']
+            event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')
+            # ToDo: ensure end time is before end of observation
 
-        # Add utc start/end for event
-        trigger['event_start'] = event_start
-        trigger['event_start_frac'] = event_start_frac
-        trigger['event_end'] = event_end
-        trigger['event_end_frac'] = event_end_frac
+            event_start, event_start_frac = event_start_full.iso.split('.')
+            # event_start_frac = '.' + event_start_frac
+            event_end, event_end_frac = event_end_full.iso.split('.')
+            # event_end_frac = '.' + event_end_frac
 
-        # create event. the "\" ensures the string does not start with a newline
-        # the actual newline needs to be there to make dedent work properly
-        event = dedent("""\
-                       N_EVENTS 1
-                       {utc_start}
-                       {event_start} {event_start_frac} {event_end} {event_end_frac} {snr} {dm} {width} {beam}
-                       """.format(**trigger))
+            # Add utc start/end for event
+            trigger['event_start'] = event_start.replace(' ', '-')
+            trigger['event_start_frac'] = event_start_frac
+            trigger['event_end'] = event_end.replace(' ', '-')
+            trigger['event_end_frac'] = event_end_frac
+
+            # Add to the event
+            events += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {snr} "
+                       "{dm} {width} {beam}\n".format(**trigger))
+
+        # create event
+        full_event = {'num_event': len(triggers), 'utc_start': utc_start, 'events': events}
+        event = "N_EVENTS {num_event}\n{utc_start}\n{events}".format(**full_event)
 
         # open socket
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
-            sock.connect(("localhost", trigger['port']))
+            sock.connect(("localhost", port))
         except socket.error as e:
-            self.logger.error("Failed to connect to stokes {} dada_dbevent on port {}: {}".format(trigger['stokes'],
-                                                                                                  trigger['port'], e))
+            self.logger.error("Failed to connect to stokes {} dada_dbevent on port {}: {}".format(stokes,
+                                                                                                  port, e))
             return
 
         # send event
         try:
             sock.sendall(event.encode())
         except socket.timeout:
-            self.logger.error("Failed to send stokes {} event".format(trigger['stokes']))
+            self.logger.error("Failed to send stokes {} event".format(stokes))
             return
-        self.logger.info("Successfully sent stokes {} event".format(trigger['stokes']))
+        self.logger.info("Successfully sent stokes {} event".format(stokes))
+
+        # close socket
+        sock.close()

@@ -4,11 +4,12 @@
 # Controls all services
 
 import os
-import sys
 import ast
 import glob
 import yaml
+import codecs
 import multiprocessing as mp
+from multiprocessing import queues
 try:
     from queue import Empty
 except ImportError:
@@ -17,9 +18,9 @@ import threading
 import socket
 import subprocess
 from shutil import copyfile
-import ast
 import random
 import string
+import astropy.units as u
 
 import h5py
 import numpy as np
@@ -27,7 +28,7 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE, WSRT_LON, NUMCB
 from darc.logger import get_logger
 from darc import util
 
@@ -37,10 +38,10 @@ class OfflineProcessingException(Exception):
 
 
 class OfflineProcessing(threading.Thread):
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
 
         self.observation_queue = None
         self.threads = {}
@@ -72,10 +73,16 @@ class OfflineProcessing(threading.Thread):
         """ 
         :param queue: Source of start_observation commands
         """
-        if not isinstance(queue, mp.queues.Queue):
+        if not isinstance(queue, queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise OfflineProcessingException('Given source queue is not an instance of Queue')
         self.observation_queue = queue
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def run(self):
         """
@@ -137,7 +144,7 @@ class OfflineProcessing(threading.Thread):
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
         # decode the parset
-        raw_parset = obs_config['parset'].decode('hex').decode('bz2')
+        raw_parset = codecs.decode(codecs.decode(obs_config['parset'], 'hex'), 'bz2').decode()
         # convert to dict
         obs_config['parset'] = util.parse_parset(raw_parset)
 
@@ -153,7 +160,7 @@ class OfflineProcessing(threading.Thread):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        cmd = "python {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
+        cmd = "python2 {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
@@ -362,7 +369,7 @@ class OfflineProcessing(threading.Thread):
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         time_limit = self.max_proc_time / self.numthread
         if self.process_sb:
-            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python2 {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
@@ -372,7 +379,7 @@ class OfflineProcessing(threading.Thread):
                                                                 sbmax=sbmax, prefix=prefix,
                                                                 time_limit=time_limit, **obs_config)
         else:
-            cmd = "nice python {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
+            cmd = "nice python2 {triggering} --rficlean --sig_thresh_local {snrmin_processing_local} " \
                   "--time_limit {time_limit} --descending_snr " \
                   "--beamno {beam:02d} --dm_min {dmmin} --dm_max {dmmax} --sig_thresh {snrmin_processing} " \
                   "--ndm {ndm} --save_data concat --nfreq_plot {nfreq_plot} --ntime_plot {ntime_plot} " \
@@ -568,7 +575,7 @@ class OfflineProcessing(threading.Thread):
         # read classifier output (only the first file!)
         self.logger.info("Reading classifier output file")
         try:
-            fname_classifier = glob.glob("{output_prefix}_freq_time*.hdf5".format(**conf))[0]
+            fname_classifier = glob.glob("{output_prefix}_*freq_time*.hdf5".format(**conf))[0]
         except IndexError:
             self.logger.info("No classifier output file found")
             ncand_classifier = 0

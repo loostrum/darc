@@ -5,6 +5,19 @@
 port=51000
 timeout=30
 
+trap clean INT
+
+clean () {
+    pkill -P $$
+    if ps ax | grep "[d]arc_service" > /dev/null; then
+        running="running"
+    else
+        running="NOT running"
+    fi
+    echo "Interrupted - DARC master service is $running."
+    exit 2
+}
+
 wait_until_up () {
     port=51000
     while [ -z "$(netstat -tln | grep $port)" ]; do
@@ -27,7 +40,8 @@ else
     fi
     # Wait until online 
     echo "Waiting for DARC master to be online"
-    timeout $timeout bash -c wait_until_up
+    timeout $timeout bash -c wait_until_up &
+    wait $!
     if [ $? -ne 0 ]; then
         echo "Failed to start DARC master - check logs"
     else

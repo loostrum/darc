@@ -2,13 +2,14 @@
 #
 # Website 
 
+import os
 import yaml
 import threading
 import socket
 from textwrap import dedent
 from astropy.time import Time
 
-from darc.definitions import *
+from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
 from darc.logger import get_logger
 from darc.control import send_command
@@ -19,9 +20,9 @@ class StatusWebsiteException(Exception):
 
 
 class StatusWebsite(threading.Thread):
-    def __init__(self, stop_event):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.stop_event = stop_event
+        self.stop_event = threading.Event()
         self.daemon = True
 
         # load config, including master for list of services
@@ -39,8 +40,12 @@ class StatusWebsite(threading.Thread):
             setattr(self, key, value)
 
         # set services
-        self.services_master = config_master['services_master']
-        self.services_worker = config_master['services_worker']
+        if config_master['real_time']:
+            self.services_master = config_master['services_master_rt']
+            self.services_worker = config_master['services_worker_rt']
+        else:
+            self.services_master = config_master['services_master_off']
+            self.services_worker = config_master['services_worker_off']
 
         # store all node names
         self.all_nodes = [MASTER] + WORKERS
@@ -73,6 +78,9 @@ class StatusWebsite(threading.Thread):
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
                 statuses[node] = status
+                # break immediately if stop event is set
+                if self.stop_event.is_set():
+                    break
             self.logger.info("Publishing status")
             try:
                 self.publish_status(statuses)
@@ -81,6 +89,12 @@ class StatusWebsite(threading.Thread):
             self.stop_event.wait(self.interval)
         # Create website for non-running status website
         self.make_offline_page()
+
+    def stop(self):
+        """
+        Stop the service
+        """
+        self.stop_event.set()
 
     def publish_status(self, statuses):
         """
