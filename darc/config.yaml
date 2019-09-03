@@ -104,6 +104,7 @@ offline_processing:
     process_sb: True
     numthread: 2
     result_dir: "{home}/observations/results/"
+    header_dir: "{home}/.controller/nodes"
     interval: 10
     timeout: 10
     pthresh_freqtime: 0.5
@@ -116,6 +117,7 @@ offline_processing:
     snrmin_processing_local: 5
     dmmin: 20
     dmmax: 5000
+    dmgal_frac: 0.8
     clean_type: "perchannel"
     max_proc_time: 18000
     ml_gpus: 0

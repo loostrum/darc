@@ -100,14 +100,17 @@ class OfflineProcessing(threading.Thread):
 
             # load observation config
             host_type = data['host_type']
+            self.host_type = host_type
             obs_config = data['obs_config']
             # add general config to obs config
             obs_config.update(self.config)
             # format result dir
             obs_config['result_dir'] = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
+            # get parset
+            obs_config['parset'] = self._load_parset(obs_config)
             # get taskid
             try:
-                taskid = obs_config['taskid']
+                taskid = obs_config['parset']['task.taskID']
             except Exception as e:
                 self.logger.warning("Cannot find task ID in parset - using random number thread")
                 # taskid length is 8
@@ -142,11 +145,6 @@ class OfflineProcessing(threading.Thread):
             self.logger.error("Failed to create results directory")
             raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
-        # decode the parset
-        raw_parset = obs_config['parset'].decode('hex').decode('bz2')
-        # convert to dict
-        obs_config['parset'] = util.parse_parset(raw_parset)
-
         # create general info file
         self._get_overview(obs_config)
 
@@ -154,8 +152,7 @@ class OfflineProcessing(threading.Thread):
         self._get_coordinates(obs_config)
 
         # wait until end time + 10s
-        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        start_processing_time = Time(obs_config['parset']['task.stopTime'])
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -186,16 +183,17 @@ class OfflineProcessing(threading.Thread):
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + 10s
-        #start_processing_time = Time(obs_config['endtime']) + TimeDelta(10, format='sec')
-        start_processing_time = Time(obs_config['startpacket']/781250., format='unix') + TimeDelta(10+obs_config['duration'], format='sec')
+        start_processing_time = Time(obs_config['parset']['task.stopTime'])
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
         # fold pulsar if this is beam 0 and a test pulsar is being observed
         # get source name from datetimesource, which is like 2019-05-18-23:51:13.B1933+16
         try:
-            source = obs_config['datetimesource'].split('.')[-1]
-            if source in self.test_pulsars and (obs_config['beam'] == 0):
+            source = obs_config['parset']['task.source.name']
+            ref_beam = int(obs_config['parset']['task.source.beam'])
+            # Requires access to parset
+            if source in self.test_pulsars and (obs_config['beam'] == ref_beam):
                 self.logger.info("Test pulsar detected: {}".format(source))
                 self._fold_pulsar(source, obs_config)
         except Exception as e:
@@ -364,7 +362,16 @@ class OfflineProcessing(threading.Thread):
         # in TAB processing mode, out index is TAB number
         if ind is None:
             ind = tab
-        
+
+        # Minimum DM: highest of dmmin, fraction of galactic (normal observation) or
+        # dmmin (pulsar observation)
+        source = obs_config['parset']['task.source.name']
+        if source in self.test_pulsars:
+            obs_config['dmmin'] = self.dmmin
+        else:
+            dmmin_gal = self.dmgal_frac * self._get_ymw16(obs_config)
+            obs_config['dmmin'] = max(dmmin_gal, self.dmmin)
+
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         time_limit = self.max_proc_time / self.numthread
         if self.process_sb:
@@ -500,10 +507,14 @@ class OfflineProcessing(threading.Thread):
 
         output_prefix = "{output_dir}/triggers/ranked_CB{beam:02d}".format(**obs_config)
 
+        # Synthesized beams
         if self.process_sb:
             sb_option = '--synthesized_beams'
         else:
             sb_option = ''
+
+        # Galactic DM
+        dmgal = self._get_ymw16(obs_config)
 
         # Add optional classifier models (1D time and DM-time)
         model_option = ''
@@ -515,9 +526,9 @@ class OfflineProcessing(threading.Thread):
         cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
               " {model_option} {sb_option} " \
               " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
-              " --pthresh_dm {pthresh_dmtime} " \
+              " --pthresh_dm {pthresh_dmtime} --DMgal {dmgal} " \
               " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option,
-                                                           model_option=model_option,
+                                                           model_option=model_option, dmgal=dmgal,
                                                            input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
@@ -713,13 +724,17 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         :return: YMW16 DM
         """
-        # get pointing of CB00
+        # get pointing
         parset = obs_config['parset']
+        if self.host_type == 'master':
+            beam = 0
+        else:
+            beam = obs_config['beam']
         try:
-            key = "task.beamSet.0.compoundBeam.0.phaseCenter"
+            key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
             c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
         except Exception as e:
-            self.logger.error("Could not parse pointing for CB00, setting YMW16 DM to zero ({})".format(e))
+            self.logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
             return 0
         # convert HA to RA if HADEC is used
         if parset['task.directionReferenceFrame'].upper() == 'HADEC':
@@ -777,3 +792,33 @@ class OfflineProcessing(threading.Thread):
         full_cmd = prepfold_cmd + " && " + convert_cmd + ' &'
         self.logger.info("Running {}".format(full_cmd))
         os.system(full_cmd)
+
+    def _load_parset(self, obs_config):
+        """
+        Load the observation parset
+        :param obs_config: Observation config
+        :return: parset as dict
+        """
+        if self.host_type == 'master':
+            # encoded parset is already in config on master node
+            # decode the parset
+            raw_parset = util.decode_parset(obs_config['parset'])
+            # convert to dict and store
+            parset = util.parse_parset(raw_parset)
+        else:
+            # Load the parset from the header file
+            header_file = os.path.join(self.header_dir, 'CB{beam:02d}_header_i.txt'.format(**obs_config))
+            try:
+                # load the header file
+                with open(header_file, 'r') as f:
+                    raw_header = f.readlines()
+                header = dict([line.strip('\n').split() for line in raw_header])
+                # decode the parset
+                raw_parset = util.decode_parset(header['PARSET'])
+                # convert to dict and store
+                parset = util.parse_parset(raw_parset)
+            except Exception as e:
+                self.logger.warning(
+                    "Failed to load parset from header file {}, setting parset to None: {}".format(header_file, e))
+                parset = None
+        return parset
