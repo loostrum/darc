@@ -7,6 +7,7 @@ import errno
 import datetime
 import time
 import json
+import codecs
 from astropy.time import Time
 try:
     from queue import Empty
@@ -54,6 +55,15 @@ def makedirs(path):
             pass
         else:
             raise
+
+
+def decode_parset(parset_bytes):
+    """
+    Decode parset into string
+    :param parset_bytes: raw parset bytes
+    :return: parset as string
+    """
+    return codecs.decode(codecs.decode(codecs.decode(parset_bytes, 'hex'), 'bz2'), 'utf-8')
 
 
 def parse_parset(parset_str):
