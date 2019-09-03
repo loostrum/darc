@@ -4,7 +4,7 @@ darc_master:
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    real_time: True
+    real_time: False
     services_master_rt: ["status_website", "voevent_generator"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website"]
