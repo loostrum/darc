@@ -56,15 +56,7 @@ class DARCMaster(object):
                            self.processor_queue]
 
         # Load config file
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
+        self._load_config()
 
         # store hostname
         self.hostname = socket.gethostname()
@@ -126,6 +118,20 @@ class DARCMaster(object):
         self.command_socket = command_socket
 
         self.logger.info('DARC Master initialized')
+
+    def _load_config(self):
+        """
+        Load configuration file
+        """
+        with open(CONFIG_FILE, 'r') as f:
+            config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
+
+        # set config, expanding strings
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
+        for key, value in config.items():
+            if isinstance(value, str):
+                value = value.format(**kwargs)
+            setattr(self, key, value)
 
     def run(self):
         """
@@ -215,6 +221,7 @@ class DARCMaster(object):
                 status, reply = self.start_observation(payload)
             return status, reply
         # Stop observation
+        # only stop in real-time mode, as offline processing runs after the observation
         elif command == 'stop_observation':
             if self.real_time:
                 status, reply = self.stop_observation()
@@ -223,10 +230,17 @@ class DARCMaster(object):
                 status = 'Succes'
                 reply = 'Ignoring stop in offline processing mode'
             return status, reply
+        # Abort observation
+        # always stop if aborted
+        elif command == 'abort_observation':
+            status, reply = self.stop_observation()
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
             return status, reply
+        # master config reload
+        elif command == 'reload':
+            self._load_config()
 
         # Service interaction
         if service == 'all':

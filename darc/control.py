@@ -74,7 +74,9 @@ def main():
         services = config['services_master_rt'] + config['services_worker_rt']
     else:
         services = config['services_master_off'] + config['services_worker_off']
-    commands = config['commands']
+    master_commands = config['master_commands']
+    service_commands = config['service_commands']
+    commands = master_commands + service_commands
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -94,11 +96,14 @@ def main():
     if not args.cmd:
         logging.error("Add command to execute e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    elif not args.service and args.cmd not in ['stop_master', 'start_observation', 'stop_observation', 'edit']:
-        logging.error("Argument --service is required unless calling stop_master or start/stop observation")
+    elif args.cmd not in commands:
+        logging.error("Unknown command: {}. Run darc -h to see available commands".format(args.cmd))
+        sys.exit(1)
+    elif not args.service and args.cmd not in master_commands:
+        logging.error("Argument --service is required for given command")
         sys.exit(1)
 
-    # If command is edit, open confing in an editor
+    # If command is edit, open config in an editor
     if args.cmd == 'edit':
         with open(CONFIG_FILE, 'r') as f:
             master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
@@ -108,8 +113,8 @@ def main():
         if ret != 0:
             logging.error("Editor did not exit properly")
         else:
-            logging.info("Restart pipeline to apply new settings\n" \
-                         "WARNING: This aborts any running observation")
+            logging.info("Restart services to apply new settings, or run 'darc reload' to reload the master config\n"
+                         "WARNING: Restarting services aborts any running observation")
         sys.exit(ret)
 
     # Get payload
