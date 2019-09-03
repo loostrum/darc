@@ -216,7 +216,12 @@ class DARCMaster(object):
             return status, reply
         # Stop observation
         elif command == 'stop_observation':
-            status, reply = self.stop_observation()
+            if self.real_time:
+                status, reply = self.stop_observation()
+            else:
+                self.logger.info("Ignoring stop observation command in offline processing mode")
+                status = 'Succes'
+                reply = 'Ignoring stop in offline processing mode'
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -270,8 +275,7 @@ class DARCMaster(object):
             # no thread means the service is not running
             self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
-
-        if thread.isAlive():
+        elif thread.isAlive():
             self.logger.info("{} is running".format(service))
             reply = 'running'
         else:
@@ -331,8 +335,8 @@ class DARCMaster(object):
         # check if already running
         if thread.isAlive():
             status = 'Success'
-            reply = "Service already running: {}".format(service)
-            self.logger.warning(status)
+            reply = 'already running'
+            self.logger.warning("Service already running: {}".format(service))
         else:
             # set queues
             if source_queue:
@@ -344,11 +348,11 @@ class DARCMaster(object):
             # check status
             if not thread.isAlive():
                 status = 'Error'
-                reply = "Failed to start service"
+                reply = "failed"
                 self.logger.error("Failed to start service: {}".format(service))
             else:
                 status = 'Success'
-                reply = "Started service"
+                reply = "started"
                 self.logger.info("Started service: {}".format(service))
 
         return status, reply
@@ -388,7 +392,7 @@ class DARCMaster(object):
             self.logger.error("Failed to stop service before timeout: {}".format(service))
         else:
             status = 'Success'
-            reply = 'Stopped service'
+            reply = 'stopped'
             self.logger.info("Stopped service: {}".format(service))
         # remove thread
         self.threads[service] = None
@@ -430,7 +434,7 @@ class DARCMaster(object):
             self.stop_service(service)
         self.stop_event.set()
         status = 'Success'
-        reply = "Master stop event set"
+        reply = "Stopping master"
         return status, reply
 
     def start_observation(self, config_file):
@@ -461,7 +465,7 @@ class DARCMaster(object):
         # Real-time procesing
         if self.real_time:
             if self.hostname == MASTER:
-                pass
+                self.logger.info("Nothing to start yet for real-time processing on master node")
             elif self.hostname in WORKERS:
                 self.logger.info("Starting real-time processing on worker node")
                 # clear all queues
@@ -506,6 +510,7 @@ class DARCMaster(object):
         Stop an observation
         :return: status, reply message
         """
+        # offline processing runs after an observation, so ignore stop
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
             queue.put({'command': 'stop_observation'})
