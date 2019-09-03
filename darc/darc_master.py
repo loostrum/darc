@@ -73,7 +73,7 @@ class DARCMaster(object):
             if self.real_time:
                 self.services = self.services_master_rt
             else:
-                self.services = self.service_master_off
+                self.services = self.services_master_off
         elif self.hostname in WORKERS:
             if self.real_time:
                 self.services = self.services_worker_rt
@@ -267,9 +267,9 @@ class DARCMaster(object):
         thread = self.threads[service]
         self.logger.info("Checking status of {}".format(service))
         if thread is None:
-            status = 'Error'
-            reply = 'No thread found'
-            return status, reply
+            # no thread means the service is not running
+            self.logger.info("{} is stopped".format(service))
+            reply = 'stopped'
 
         if thread.isAlive():
             self.logger.info("{} is running".format(service))

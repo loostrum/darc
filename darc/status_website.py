@@ -78,6 +78,9 @@ class StatusWebsite(threading.Thread):
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
                 statuses[node] = status
+                # break immediately if stop event is set
+                if self.stop_event.is_set():
+                    break
             self.logger.info("Publishing status")
             try:
                 self.publish_status(statuses)
