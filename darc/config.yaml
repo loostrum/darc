@@ -129,5 +129,4 @@ offline_processing:
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
-    trigger_to_master: "{home}/ARTS-obs/trigger_to_master.py"
     venv_dir: "{home}/python34"
