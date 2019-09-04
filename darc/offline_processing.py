@@ -524,7 +524,7 @@ class OfflineProcessing(threading.Thread):
         if self.model_1dtime:
             model_option += ' --fn_model_time {model_dir}/{model_1dtime}'.format(**obs_config)
 
-        cmd = "source {venv_dir}/bin/activate; export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
+        cmd = "export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
               " {model_option} {sb_option} " \
               " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
               " --pthresh_dm {pthresh_dmtime} --DMgal {dmgal} " \
