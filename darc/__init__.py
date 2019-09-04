@@ -10,8 +10,3 @@ from status_website import StatusWebsite
 from voevent_generator import VOEventGenerator
 
 from logger import get_logger
-
-
-__all__ = ['AMBERListener', 'AMBERClustering', 'AMBERTriggering', 'DADATrigger',
-           'OfflineProcessing', 'Processor', 'SBGenerator', 'StatusWebsite',
-           'VOEventGenerator', 'get_logger']

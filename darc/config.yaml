@@ -1,6 +1,7 @@
 # DARC Master config
 darc_master:
     log_file: "{home}/darc/log/darc_master.{hostname}.log"
+    parset_dir: "{home}/darc/parsets"
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services

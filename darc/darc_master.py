@@ -13,6 +13,7 @@ import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
+from shutil import copy2
 # reload is only built-in in python <=3.3
 try:
     from importlib import reload
@@ -233,6 +234,7 @@ class DARCMaster(object):
         # always stop if aborted
         elif command == 'abort_observation':
             status, reply = self.stop_observation()
+            return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
@@ -240,6 +242,7 @@ class DARCMaster(object):
         # master config reload
         elif command == 'reload':
             self._load_config()
+            return 'Success', ''
 
         # Service interaction
         if service == 'all':
@@ -473,6 +476,17 @@ class DARCMaster(object):
         if not config['proctrigger']:
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
+
+        # store the config for future reference
+        config_output_dir = os.path.join(self.parset_dir, config['datetimesource'])
+        try:
+            util.makedirs(config_output_dir)
+        except Exception as e:
+            raise DARCMasterException("Cannot create config output directory: {}".format(e))
+        try:
+            copy2(config_file, config_output_dir)
+        except Exception as e:
+            self.logger.error("Could not store config file: {}".format(e))
 
         # initialize observation
         # Real-time procesing
