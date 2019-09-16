@@ -4,8 +4,6 @@
 # Controls all services
 
 import sys
-# ensure no bytecode is written, to make reload work
-sys.dont_write_bytecode = True
 import os
 import ast
 import yaml
@@ -14,11 +12,6 @@ import threading
 import socket
 from time import sleep, time
 from shutil import copy2
-# reload is only built-in in python <=3.3
-try:
-    from importlib import reload
-except ImportError:
-    pass
 from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
@@ -434,8 +427,6 @@ class DARCMaster(object):
         :param service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
-            # Force reimport
-            #self._reload(service)
             # Instantiate a new instance of the class
             self.threads[service] = self.service_mapping[service]()
         else:
@@ -570,7 +561,7 @@ class DARCMaster(object):
         self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
             self.logger.error("Parset not found: {}".format(config_file))
-            # not parset - do not process this observation
+            # no parset - do not process this observation
             return {'proctrigger': False}
 
         # Read raw parset
@@ -579,41 +570,6 @@ class DARCMaster(object):
         # Convert to dict
         config = util.parse_parset(parset)
         return config
-
-    def _reload(self, service):
-        """
-        Reimport service from .py file
-        :param service: which service to reload
-        :return:
-        """
-        if service == 'amber_listener':
-            reload(darc.amber_listener)
-            import darc.amber_listener
-        elif service == 'amber_triggering':
-            reload(darc.amber_triggering)
-            import darc.amber_triggering
-        elif service == 'amber_clustering':
-            reload(darc.amber_clustering)
-            import darc.amber_clustering
-        elif service == 'voevent_generator':
-            reload(darc.voevent_generator)
-            import darc.voevent_generator
-        elif service == 'status_website':
-            reload(darc.status_website)
-            import darc.status_website
-        elif service == 'offline_processing':
-            reload(darc.offline_processing)
-            import darc.offline_processing
-        elif service == 'dada_trigger':
-            reload(darc.dada_trigger)
-            import darc.dada_trigger
-        elif service == 'processor':
-            reload(darc.processor)
-            import darc.processor
-        else:
-            self.logger.error("Unknown how to reimport class for {}".format(service))
-
-        return
 
 
 def main():
