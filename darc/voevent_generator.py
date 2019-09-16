@@ -137,7 +137,7 @@ class VOEventGenerator(threading.Thread):
             if not os.path.isfile(filename):
                 self.logger.error("Cannot find XML file to send")
                 return
-            cmd = "comet-sendfo -f {xmlfile} --host={host} " \
+            cmd = "comet-sendvo -f {xmlfile} --host={host} " \
                   "--port={port}".format(xmlfile=filename, host=self.broker_host,
                                          port=self.broker_port)
             # to be replaced by subprocess
@@ -166,6 +166,7 @@ class VOEventGenerator(threading.Thread):
 
         ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd_now)])
 
+        # for now use test role, not actual observation
         # v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
         #                role=vp.definitions.roles.observation)
         v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
@@ -174,7 +175,7 @@ class VOEventGenerator(threading.Thread):
         vp.set_who(v, date=datetime.datetime.utcnow(), author_ivorn="nl.astron")
         # Author contact information
         vp.set_author(v, title="ASTRON ALERT FRB Detector", contactName="Leon Oostrum",
-                      contactEmail="leonoostrum@gmail.com", shortName="ALERT")
+                      contactEmail="oostrum@astron.nl", shortName="ALERT")
         # Parameter definitions
 
         # Apertif-specific observing configuration %%TODO: update parameters as necessary for new obs config
@@ -188,7 +189,7 @@ class VOEventGenerator(threading.Thread):
         bw = vp.Param(name="bandwidth", value=300.0, unit="MHz", ucd="instr.bandwidth", ac=True)
         nchan = vp.Param(name="nchan", value="1536", dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
-        cf = vp.Param(name="centre_frequency", value=1400.0, unit="MHz", ucd="em.freq;instr", ac=True)
+        cf = vp.Param(name="centre_frequency", value=1370.0, unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
         gain = vp.Param(name="gain", value=1.0, unit="K/Jy", ac=True)
