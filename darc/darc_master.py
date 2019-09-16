@@ -54,19 +54,7 @@ class DARCMaster(object):
 
         # store hostname
         self.hostname = socket.gethostname()
-        # store services
-        if self.hostname == MASTER:
-            if self.real_time:
-                self.services = self.services_master_rt
-            else:
-                self.services = self.services_master_off
-        elif self.hostname in WORKERS:
-            if self.real_time:
-                self.services = self.services_worker_rt
-            else:
-                self.services = self.services_worker_off
-        else:
-            self.services = []
+
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
                                 'status_website': darc.status_website.StatusWebsite,
@@ -126,6 +114,20 @@ class DARCMaster(object):
             if isinstance(value, str):
                 value = value.format(**kwargs)
             setattr(self, key, value)
+
+        # store services
+        if self.hostname == MASTER:
+            if self.real_time:
+                self.services = self.services_master_rt
+            else:
+                self.services = self.services_master_off
+        elif self.hostname in WORKERS:
+            if self.real_time:
+                self.services = self.services_worker_rt
+            else:
+                self.services = self.services_worker_off
+        else:
+            self.services = []
 
     def run(self):
         """
