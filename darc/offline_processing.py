@@ -153,7 +153,7 @@ class OfflineProcessing(threading.Thread):
         self._get_coordinates(obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime'])
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -184,12 +184,11 @@ class OfflineProcessing(threading.Thread):
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime'])
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
         # fold pulsar if this is beam 0 and a test pulsar is being observed
-        # get source name from datetimesource, which is like 2019-05-18-23:51:13.B1933+16
         try:
             source = obs_config['parset']['task.source.name']
             ref_beam = int(obs_config['parset']['task.source.beam'])
@@ -807,19 +806,20 @@ class OfflineProcessing(threading.Thread):
             # convert to dict and store
             parset = util.parse_parset(raw_parset)
         else:
-            # Load the parset from the header file
-            header_file = os.path.join(self.header_dir, 'CB{beam:02d}_header_i.txt'.format(**obs_config))
+            # Load the parset from the master parset file
+            master_config_file = os.path.join(obs_config['master_dir'], 'parset', 'darc_master.parset')
             try:
-                # load the header file
-                with open(header_file, 'r') as f:
-                    raw_header = f.readlines()
-                header = dict([line.strip('\n').split() for line in raw_header])
-                # decode the parset
-                raw_parset = util.decode_parset(header['PARSET'])
-                # convert to dict and store
+                # Read raw config
+                with open(master_config_file) as f:
+                    master_config = f.read().strip()
+                # Convert to dict
+                master_config = util.parse_parset(master_config)
+                # extract obs parset and decode
+                raw_parset = util.decode_parset(master_config['parset'])
                 parset = util.parse_parset(raw_parset)
             except Exception as e:
                 self.logger.warning(
-                    "Failed to load parset from header file {}, setting parset to None: {}".format(header_file, e))
+                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
                 parset = None
+
         return parset

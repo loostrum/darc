@@ -528,7 +528,6 @@ class DARCMaster(object):
         Stop an observation
         :return: status, reply message
         """
-        # offline processing runs after an observation, so ignore stop
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
             queue.put({'command': 'stop_observation'})

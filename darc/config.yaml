@@ -105,7 +105,6 @@ offline_processing:
     process_sb: True
     numthread: 2
     result_dir: "{home}/observations/results/"
-    header_dir: "{home}/.controller/nodes"
     interval: 10
     timeout: 10
     pthresh_freqtime: 0.5
