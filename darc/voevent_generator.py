@@ -142,6 +142,7 @@ class VOEventGenerator(threading.Thread):
                                          port=self.broker_port)
             # to be replaced by subprocess
             # and check if sent successfully
+            self.logger.info(cmd)
             os.system(cmd)
 
     def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
