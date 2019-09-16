@@ -49,12 +49,6 @@ class DARCMaster(object):
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue]
 
-        # Load config file
-        self._load_config()
-
-        # store hostname
-        self.hostname = socket.gethostname()
-
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
                                 'status_website': darc.status_website.StatusWebsite,
@@ -64,6 +58,13 @@ class DARCMaster(object):
                                 'dada_trigger': darc.dada_trigger.DADATrigger,
                                 'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
+
+        # Load config file
+        self._load_config()
+
+        # store hostname
+        self.hostname = socket.gethostname()
+
 
         # setup listening socket
         command_socket = None
