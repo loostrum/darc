@@ -65,22 +65,6 @@ class DARCMaster(object):
                                 'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
-        # create main log dir
-        log_dir = os.path.dirname(self.log_file)
-        try:
-            util.makedirs(log_dir)
-        except Exception as e:
-            raise DARCMasterException("Cannot create log directory: {}".format(e))
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-
-        # Initialize services. Log dir must exist at this point
-        self.threads = {}
-        for service in self.services:
-            _service_class = self.service_mapping[service]
-            self.threads[service] = _service_class()
-
         # setup listening socket
         command_socket = None
         start = time()
@@ -115,6 +99,16 @@ class DARCMaster(object):
                 value = value.format(**kwargs)
             setattr(self, key, value)
 
+        # create main log dir
+        log_dir = os.path.dirname(self.log_file)
+        try:
+            util.makedirs(log_dir)
+        except Exception as e:
+            raise DARCMasterException("Cannot create log directory: {}".format(e))
+
+        # setup logger
+        self.logger = get_logger(__name__, self.log_file)
+
         # store services
         if self.hostname == MASTER:
             if self.real_time:
@@ -128,6 +122,12 @@ class DARCMaster(object):
                 self.services = self.services_worker_off
         else:
             self.services = []
+
+        # Initialize services. Log dir must exist at this point
+        self.threads = {}
+        for service in self.services:
+            _service_class = self.service_mapping[service]
+            self.threads[service] = _service_class()
 
     def run(self):
         """
