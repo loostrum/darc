@@ -5,6 +5,7 @@
 import os
 import yaml
 import multiprocessing as mp
+import subprocess
 try:
     from queue import Empty
 except ImportError:
@@ -140,9 +141,11 @@ class VOEventGenerator(threading.Thread):
             cmd = "comet-sendvo -f {xmlfile} --host={host} " \
                   "--port={port}".format(xmlfile=filename, host=self.broker_host,
                                          port=self.broker_port)
-            # to be replaced by subprocess
-            # and check if sent successfully
-            self.logger.info(cmd)
+            self.logger.info("Running {}".format(cmd))
+            try:
+                subprocess.check_output(cmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                self.logger.error("Failed to send VOEvent: {}".format(e.output))
             os.system(cmd)
 
     def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
