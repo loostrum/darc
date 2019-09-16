@@ -65,7 +65,6 @@ class DARCMaster(object):
         # store hostname
         self.hostname = socket.gethostname()
 
-
         # setup listening socket
         command_socket = None
         start = time()
@@ -125,10 +124,15 @@ class DARCMaster(object):
             self.services = []
 
         # Initialize services. Log dir must exist at this point
-        self.threads = {}
+        if not hasattr(self, 'threads'):
+            self.threads = {}
         for service in self.services:
-            _service_class = self.service_mapping[service]
-            self.threads[service] = _service_class()
+            # only create thread if it did not exist yet (required to allow reloading of config)
+            try:
+                _ = self.threads[service]
+            except KeyError:
+                _service_class = self.service_mapping[service]
+                self.threads[service] = _service_class()
 
     def run(self):
         """
