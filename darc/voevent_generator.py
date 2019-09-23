@@ -149,7 +149,7 @@ class VOEventGenerator(threading.Thread):
             os.system(cmd)
 
     def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
-                   ymw16, name, importance, utc, gl, gb):
+                   ymw16, name, importance, utc, gl, gb, test=True):
 
         z = dm/1200.0  #May change
         errDeg = semiMaj/60.0
@@ -170,14 +170,16 @@ class VOEventGenerator(threading.Thread):
         ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd_now)])
 
         # for now use test role, not actual observation
-        # v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
-        #                role=vp.definitions.roles.observation)
-        v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
-                       role=vp.definitions.roles.test)
+        if test:
+            v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
+                           role=vp.definitions.roles.test)
+        else:
+            v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
+                           role=vp.definitions.roles.observation)
         # Author origin information
         vp.set_who(v, date=datetime.datetime.utcnow(), author_ivorn="nl.astron")
         # Author contact information
-        vp.set_author(v, title="ASTRON ALERT FRB Detector", contactName="Leon Oostrum",
+        vp.set_author(v, title="ASTRON FRB alert system", contactName="Leon Oostrum",
                       contactEmail="oostrum@astron.nl", shortName="ALERT")
         # Parameter definitions
 

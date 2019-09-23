@@ -8,7 +8,7 @@ darc_master:
     real_time: False
     services_master_rt: ["status_website", "voevent_generator"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
-    services_master_off: ["offline_processing", "status_website"]
+    services_master_off: ["offline_processing", "status_website", "voevent_generator"]
     services_worker_off: ["offline_processing"]
     master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload"]
     service_commands: ["status", "start", "stop", "restart"]
@@ -62,10 +62,10 @@ amber_clustering:
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
-    send_events: False
+    send_events: True
     server_port: 52000
     server_auth: "9S5JNp9MgM"
-    broker_host: "arts041.apertif"  # ToDo: replace by phobos
+    broker_host: "phobos.astron.nl"
     broker_port: 8098
 
 # DADA triggers
