@@ -1,16 +1,17 @@
 # DARC Master config
 darc_master:
     log_file: "{home}/darc/log/darc_master.{hostname}.log"
+    parset_dir: "{home}/darc/parsets"
     port: 51000  # NOTE: also hardcoded in darc_start_all_services
     socket_timeout: 30  # for creating socket
     stop_timeout: 5  # for stopping services
-    real_time: True
+    real_time: False
     services_master_rt: ["status_website", "voevent_generator"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
-    services_master_off: ["offline_processing", "status_website"]
+    services_master_off: ["offline_processing", "status_website", "voevent_generator"]
     services_worker_off: ["offline_processing"]
-    commands: ["start_observation", "stop_observation", "abort_observation", "status", "start",
-               "stop", "restart", "stop_master", "edit"]
+    master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload"]
+    service_commands: ["status", "start", "stop", "restart"]
     editor: "vim"
 
 # Status website
@@ -61,10 +62,10 @@ amber_clustering:
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
-    send_events: False
+    send_events: True
     server_port: 52000
     server_auth: "9S5JNp9MgM"
-    broker_host: "arts041.apertif"  # ToDo: replace by phobos
+    broker_host: "phobos.astron.nl"
     broker_port: 8098
 
 # DADA triggers
@@ -116,8 +117,9 @@ offline_processing:
     snrmin_processing_local: 5
     dmmin: 20
     dmmax: 5000
+    dmgal_frac: 0.8
     clean_type: "perchannel"
-    max_proc_time: 36000
+    max_proc_time: 18000
     ml_gpus: 0
     test_pulsars: ["B0329+54", "B1933+16", "B0531+21", "B0950+08"]
     key_ntriggers_skipped: "ntriggers_skipped"
@@ -129,5 +131,3 @@ offline_processing:
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
-    trigger_to_master: "{home}/ARTS-obs/trigger_to_master.py"
-    venv_dir: "{home}/python34"

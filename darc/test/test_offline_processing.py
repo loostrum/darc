@@ -27,9 +27,11 @@ class TestOfflineProcessing(unittest.TestCase):
         if sb:
             output_dir = '/tank/users/oostrum/test_darc/output'
             min_freq = 1219.70092773
+            freq = 1370
         else:
             output_dir = '/tank/users/oostrum/iquv/B0531/output_I'
             min_freq = 1249.70092773
+            freq = 1400
         # SB AMBER
         amber_dir = os.path.join(output_dir, 'amber')
         result_dir = os.path.join(output_dir, 'results')
@@ -41,7 +43,9 @@ class TestOfflineProcessing(unittest.TestCase):
         config = {'ntabs': 12, 'nsynbeams': 71, 'beam': 0, 'mode': 'TAB',
                   'amber_dir': amber_dir, 'output_dir': output_dir,
                   'duration': 300.032, 'startpacket': startpacket, 
-                  'result_dir': result_dir, 'min_freq': min_freq}
+                  'result_dir': result_dir, 'min_freq': min_freq,
+                  'datetimesource': '2019-01-01-00:00:00.FAKE',
+                  'freq': freq}
         return config
 
     def test_worker_processing_tab(self):
@@ -82,8 +86,7 @@ class TestOfflineProcessing(unittest.TestCase):
         except Exception as e:
             self.fail('Cannot create result dir {}: {}'.format(config['result_dir'], e))
         else:
-            event = threading.Event()
-            proc = OfflineProcessing(event)
+            proc = OfflineProcessing()
             # override logger (first initalized message still goes to normal logger)
             proc.logger = logger
             # override sb processing mode

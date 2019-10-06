@@ -5,6 +5,7 @@
 import os
 import yaml
 import multiprocessing as mp
+import subprocess
 try:
     from queue import Empty
 except ImportError:
@@ -137,15 +138,18 @@ class VOEventGenerator(threading.Thread):
             if not os.path.isfile(filename):
                 self.logger.error("Cannot find XML file to send")
                 return
-            cmd = "comet-sendfo -f {xmlfile} --host={host} " \
+            cmd = "comet-sendvo -f {xmlfile} --host={host} " \
                   "--port={port}".format(xmlfile=filename, host=self.broker_host,
                                          port=self.broker_port)
-            # to be replaced by subprocess
-            # and check if sent successfully
+            self.logger.info("Running {}".format(cmd))
+            try:
+                subprocess.check_output(cmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                self.logger.error("Failed to send VOEvent: {}".format(e.output))
             os.system(cmd)
 
     def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
-                   ymw16, name, importance, utc, gl, gb):
+                   ymw16, name, importance, utc, gl, gb, test=True):
 
         z = dm/1200.0  #May change
         errDeg = semiMaj/60.0
@@ -165,15 +169,18 @@ class VOEventGenerator(threading.Thread):
 
         ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd_now)])
 
-        # v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
-        #                role=vp.definitions.roles.observation)
-        v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
-                       role=vp.definitions.roles.test)
+        # for now use test role, not actual observation
+        if test:
+            v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
+                           role=vp.definitions.roles.test)
+        else:
+            v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
+                           role=vp.definitions.roles.observation)
         # Author origin information
         vp.set_who(v, date=datetime.datetime.utcnow(), author_ivorn="nl.astron")
         # Author contact information
-        vp.set_author(v, title="ASTRON ALERT FRB Detector", contactName="Leon Oostrum",
-                      contactEmail="leonoostrum@gmail.com", shortName="ALERT")
+        vp.set_author(v, title="ASTRON FRB alert system", contactName="Leon Oostrum",
+                      contactEmail="oostrum@astron.nl", shortName="ALERT")
         # Parameter definitions
 
         # Apertif-specific observing configuration %%TODO: update parameters as necessary for new obs config
@@ -187,7 +194,7 @@ class VOEventGenerator(threading.Thread):
         bw = vp.Param(name="bandwidth", value=300.0, unit="MHz", ucd="instr.bandwidth", ac=True)
         nchan = vp.Param(name="nchan", value="1536", dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
-        cf = vp.Param(name="centre_frequency", value=1400.0, unit="MHz", ucd="em.freq;instr", ac=True)
+        cf = vp.Param(name="centre_frequency", value=1370.0, unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
         gain = vp.Param(name="gain", value=1.0, unit="K/Jy", ac=True)

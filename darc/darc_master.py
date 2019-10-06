@@ -4,8 +4,6 @@
 # Controls all services
 
 import sys
-# ensure no bytecode is written, to make reload work
-sys.dont_write_bytecode = True
 import os
 import ast
 import yaml
@@ -13,11 +11,7 @@ import multiprocessing as mp
 import threading
 import socket
 from time import sleep, time
-# reload is only built-in in python <=3.3
-try:
-    from importlib import reload
-except ImportError:
-    pass
+from shutil import copy2
 from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
@@ -55,32 +49,6 @@ class DARCMaster(object):
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue]
 
-        # Load config file
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
-
-        # store hostname
-        self.hostname = socket.gethostname()
-        # store services
-        if self.hostname == MASTER:
-            if self.real_time:
-                self.services = self.services_master_rt
-            else:
-                self.services = self.services_master_off
-        elif self.hostname in WORKERS:
-            if self.real_time:
-                self.services = self.services_worker_rt
-            else:
-                self.services = self.services_worker_off
-        else:
-            self.services = []
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
                                 'status_website': darc.status_website.StatusWebsite,
@@ -91,21 +59,11 @@ class DARCMaster(object):
                                 'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
-        # create main log dir
-        log_dir = os.path.dirname(self.log_file)
-        try:
-            util.makedirs(log_dir)
-        except Exception as e:
-            raise DARCMasterException("Cannot create log directory: {}".format(e))
+        # Load config file
+        self._load_config()
 
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-
-        # Initialize services. Log dir must exist at this point
-        self.threads = {}
-        for service in self.services:
-            _service_class = self.service_mapping[service]
-            self.threads[service] = _service_class()
+        # store hostname
+        self.hostname = socket.gethostname()
 
         # setup listening socket
         command_socket = None
@@ -126,6 +84,55 @@ class DARCMaster(object):
         self.command_socket = command_socket
 
         self.logger.info('DARC Master initialized')
+
+    def _load_config(self):
+        """
+        Load configuration file
+        """
+        with open(CONFIG_FILE, 'r') as f:
+            config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
+
+        # set config, expanding strings
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': self.hostname}
+        for key, value in config.items():
+            if isinstance(value, str):
+                value = value.format(**kwargs)
+            setattr(self, key, value)
+
+        # create main log dir
+        log_dir = os.path.dirname(self.log_file)
+        try:
+            util.makedirs(log_dir)
+        except Exception as e:
+            raise DARCMasterException("Cannot create log directory: {}".format(e))
+
+        # setup logger
+        self.logger = get_logger(__name__, self.log_file)
+
+        # store services
+        if self.hostname == MASTER:
+            if self.real_time:
+                self.services = self.services_master_rt
+            else:
+                self.services = self.services_master_off
+        elif self.hostname in WORKERS:
+            if self.real_time:
+                self.services = self.services_worker_rt
+            else:
+                self.services = self.services_worker_off
+        else:
+            self.services = []
+
+        # Initialize services. Log dir must exist at this point
+        if not hasattr(self, 'threads'):
+            self.threads = {}
+        for service in self.services:
+            # only create thread if it did not exist yet (required to allow reloading of config)
+            try:
+                _ = self.threads[service]
+            except KeyError:
+                _service_class = self.service_mapping[service]
+                self.threads[service] = _service_class()
 
     def run(self):
         """
@@ -165,7 +172,6 @@ class DARCMaster(object):
         self.logger.info("Received stop. Exiting")
         # close any connection
         try:
-            self.command_socket.shutdown()
             self.command_socket.close()
         except Exception as e:
             self.logger.warning("Failed to cleanly shutdown listening socket: {}".format(e))
@@ -215,13 +221,28 @@ class DARCMaster(object):
                 status, reply = self.start_observation(payload)
             return status, reply
         # Stop observation
+        # only stop in real-time mode, as offline processing runs after the observation
         elif command == 'stop_observation':
+            if self.real_time:
+                status, reply = self.stop_observation()
+            else:
+                self.logger.info("Ignoring stop observation command in offline processing mode")
+                status = 'Succes'
+                reply = 'Ignoring stop in offline processing mode'
+            return status, reply
+        # Abort observation
+        # always stop if aborted
+        elif command == 'abort_observation':
             status, reply = self.stop_observation()
             return status, reply
         # Stop master
         elif command == 'stop_master':
             status, reply = self.stop()
             return status, reply
+        # master config reload
+        elif command == 'reload':
+            self._load_config()
+            return 'Success', ''
 
         # Service interaction
         if service == 'all':
@@ -270,8 +291,7 @@ class DARCMaster(object):
             # no thread means the service is not running
             self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
-
-        if thread.isAlive():
+        elif thread.isAlive():
             self.logger.info("{} is running".format(service))
             reply = 'running'
         else:
@@ -331,8 +351,8 @@ class DARCMaster(object):
         # check if already running
         if thread.isAlive():
             status = 'Success'
-            reply = "Service already running: {}".format(service)
-            self.logger.warning(status)
+            reply = 'already running'
+            self.logger.warning("Service already running: {}".format(service))
         else:
             # set queues
             if source_queue:
@@ -344,11 +364,11 @@ class DARCMaster(object):
             # check status
             if not thread.isAlive():
                 status = 'Error'
-                reply = "Failed to start service"
+                reply = "failed"
                 self.logger.error("Failed to start service: {}".format(service))
             else:
                 status = 'Success'
-                reply = "Started service"
+                reply = "started"
                 self.logger.info("Started service: {}".format(service))
 
         return status, reply
@@ -388,7 +408,7 @@ class DARCMaster(object):
             self.logger.error("Failed to stop service before timeout: {}".format(service))
         else:
             status = 'Success'
-            reply = 'Stopped service'
+            reply = 'stopped'
             self.logger.info("Stopped service: {}".format(service))
         # remove thread
         self.threads[service] = None
@@ -414,8 +434,6 @@ class DARCMaster(object):
         :param service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
-            # Force reimport
-            #self._reload(service)
             # Instantiate a new instance of the class
             self.threads[service] = self.service_mapping[service]()
         else:
@@ -430,7 +448,7 @@ class DARCMaster(object):
             self.stop_service(service)
         self.stop_event.set()
         status = 'Success'
-        reply = "Master stop event set"
+        reply = "Stopping master"
         return status, reply
 
     def start_observation(self, config_file):
@@ -457,11 +475,22 @@ class DARCMaster(object):
             self.logger.info("Process triggers is disabled; not starting observation")
             return "Success", "Process triggers disabled - not starting"
 
+        # store the config for future reference
+        config_output_dir = os.path.join(self.parset_dir, config['datetimesource'])
+        try:
+            util.makedirs(config_output_dir)
+        except Exception as e:
+            raise DARCMasterException("Cannot create config output directory: {}".format(e))
+        try:
+            copy2(config_file, config_output_dir)
+        except Exception as e:
+            self.logger.error("Could not store config file: {}".format(e))
+
         # initialize observation
         # Real-time procesing
         if self.real_time:
             if self.hostname == MASTER:
-                pass
+                self.logger.info("Nothing to start yet for real-time processing on master node")
             elif self.hostname in WORKERS:
                 self.logger.info("Starting real-time processing on worker node")
                 # clear all queues
@@ -538,7 +567,7 @@ class DARCMaster(object):
         self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
             self.logger.error("Parset not found: {}".format(config_file))
-            # not parset - do not process this observation
+            # no parset - do not process this observation
             return {'proctrigger': False}
 
         # Read raw parset
@@ -547,41 +576,6 @@ class DARCMaster(object):
         # Convert to dict
         config = util.parse_parset(parset)
         return config
-
-    def _reload(self, service):
-        """
-        Reimport service from .py file
-        :param service: which service to reload
-        :return:
-        """
-        if service == 'amber_listener':
-            reload(darc.amber_listener)
-            import darc.amber_listener
-        elif service == 'amber_triggering':
-            reload(darc.amber_triggering)
-            import darc.amber_triggering
-        elif service == 'amber_clustering':
-            reload(darc.amber_clustering)
-            import darc.amber_clustering
-        elif service == 'voevent_generator':
-            reload(darc.voevent_generator)
-            import darc.voevent_generator
-        elif service == 'status_website':
-            reload(darc.status_website)
-            import darc.status_website
-        elif service == 'offline_processing':
-            reload(darc.offline_processing)
-            import darc.offline_processing
-        elif service == 'dada_trigger':
-            reload(darc.dada_trigger)
-            import darc.dada_trigger
-        elif service == 'processor':
-            reload(darc.processor)
-            import darc.processor
-        else:
-            self.logger.error("Unknown how to reimport class for {}".format(service))
-
-        return
 
 
 def main():
