@@ -8,19 +8,12 @@ dev: [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=dev)](https
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
 The main executable should only be run on the ARTS cluster.
 
-### Branches
-Note: IAB modes also support processing the central TAB.
-* master: Offline, TAB mode processing.
-* dev: Development of real-time processing
-* test_trigger: Directly apply thresholds to AMBER triggers to test IQUV triggering (IAB).
-
 ### Overview
 DARC comprises several parts that communicate through either queues or sockets. The availability of different services depends on which branch is active.
 
 * DARCMaster: Master service. Handles communication with user, controls all other services.
 * AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue (for clustering or direct triggering).
 * AMBERClustering: Clusters AMBER triggers together and puts them on DADA trigger queue.
-* AMBERTriggering: Directly applies thresholds to AMBER triggers and puts triggers on VOEvent queue.
 * DADATrigger: Generates and send dada_dbevent triggers for stokes I and IQUV
 * VOEventGenerator: Converts incoming trigger to VOEvent and sends it.
 * StatusWebsite: Queries status of all services and generates status webpage.
