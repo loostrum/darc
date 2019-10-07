@@ -60,8 +60,8 @@ class DARCBase(threading.Thread):
         Set the stop event
         """
         self.logger.info("Stopping {}".format(self.log_name))
-        self.stop_event.set()
         self.cleanup()
+        self.stop_event.set()
 
     def set_source_queue(self, queue):
         """
@@ -116,7 +116,13 @@ class DARCBase(threading.Thread):
                     self.stop_observation()
                 else:
                     self.process_command(command)
+        # EOFError can occur due to usage of queues
+        # Can be ignored
+        except EOFError:
+            pass
         except Exception as e:
+            if isinstance(e, EOFError):
+                self.logger.info("Found EOF ERror")
             self.logger.error("Caught exception in main loop: {}".format(e))
             self.stop()
 
