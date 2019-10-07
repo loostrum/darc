@@ -123,7 +123,6 @@ class TestAMBERListener(unittest.TestCase):
                                         'CB00_step{}.trigger'.format(step))
             with open(trigger_file, 'r') as f:
                 triggers = f.readlines()
-                print(len(triggers))
             for line in triggers:
                 line = line.strip()
                 if line.startswith('#'):
