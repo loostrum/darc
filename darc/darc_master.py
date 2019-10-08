@@ -16,7 +16,6 @@ from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
-import darc.amber_triggering
 import darc.amber_clustering
 import darc.voevent_generator
 import darc.status_website
@@ -53,7 +52,6 @@ class DARCMaster(object):
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
                                 'status_website': darc.status_website.StatusWebsite,
                                 'amber_listener': darc.amber_listener.AMBERListener,
-                                'amber_triggering': darc.amber_triggering.AMBERTriggering,
                                 'amber_clustering': darc.amber_clustering.AMBERClustering,
                                 'dada_trigger': darc.dada_trigger.DADATrigger,
                                 'processor': darc.processor.Processor,
@@ -310,9 +308,6 @@ class DARCMaster(object):
         if service == 'amber_listener':
             source_queue = self.amber_listener_queue
             target_queue = self.amber_trigger_queue
-        elif service == 'amber_triggering':
-            source_queue = self.amber_trigger_queue
-            target_queue = None
         elif service == 'amber_clustering':
             source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue
