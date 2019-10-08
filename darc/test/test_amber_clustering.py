@@ -6,10 +6,7 @@ import multiprocessing as mp
 from time import sleep
 import numpy as np
 from astropy.time import Time
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 
 from darc.amber_clustering import AMBERClustering
 

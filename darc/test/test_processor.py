@@ -6,10 +6,7 @@ import multiprocessing as mp
 import threading
 from shutil import which
 from time import sleep
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 import numpy as np
 try:
     import psrdada

@@ -9,10 +9,7 @@ import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 
 from darc.dada_trigger import DADATrigger
 

@@ -7,10 +7,7 @@ import unittest
 import multiprocessing as mp
 import threading
 from time import sleep
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 
 from darc.amber_listener import AMBERListener
 
