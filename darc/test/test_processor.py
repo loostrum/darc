@@ -13,23 +13,17 @@ try:
 except ImportError:
     psrdada = None
 
-from darc.amber_listener import AMBERListener
-try:
-    from darc.processor import Processor
-except ImportError:
-    Processor = None
 
-
+# skip if not running on arts041
+@unittest.skipUnless(socket.gethostname() == 'arts041', "Test can only run on arts041")
+# Skip if psrdada not available
+@unittest.skipIf(psrdada is None or which('dada_db') is None, "psrdada not available")
 class TestProcessor(unittest.TestCase):
 
     def test_psrdada(self):
         """
         Check whether we can connect to and read from a psrdada buffer
         """
-
-        # Skip if we don't have psrdada in python or on system
-        if psrdada is None or which('dada_db') is None:
-            self.skipTest("PSRDADA not available")
         
 
         # remove any old buffer

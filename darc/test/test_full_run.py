@@ -5,6 +5,7 @@ import numpy as np
 import glob
 import unittest
 import socket
+from shutil import which
 import multiprocessing as mp
 import threading
 from time import sleep
@@ -12,11 +13,10 @@ import yaml
 from astropy.time import Time, TimeDelta
 from queue import Empty
 
-have_psrdada = True
 try:
-    from psrdada import Writer
+    import psrdada
 except ImportError:
-    have_psrdada=False
+    psrdada = None
 
 from darc.darc_master import DARCMaster
 from darc.control import send_command
@@ -24,12 +24,12 @@ from darc import util
 
 
 @unittest.skip("This test is not fully implemented yet")
-# Skip if psrdada not available
-@unittest.skipUnless(have_psrdada, "psrdada-python not available")
 # only run this test if this script is run directly, _not_ in automated testing (pytest etc)
 @unittest.skipUnless(__name__ == '__main__', "Skipping full test run in automated testing")
 # skip if not running on arts041
 @unittest.skipUnless(socket.gethostname() == 'arts041', "Test can only run on arts041")
+# Skip if psrdada not available
+@unittest.skipIf(psrdada is None or which('dada_db') is None, "psrdada not available")
 class TestFullRun(unittest.TestCase):
 
     def setUp(self):
@@ -83,7 +83,7 @@ class TestFullRun(unittest.TestCase):
         """
         # connect to the buffer
         print("Writer start")
-        dada_writer = Writer()
+        dada_writer = psrdada.Writer()
         hex_key = int('0x{key_i}'.format(**self.settings), 16)
         dada_writer.connect(hex_key)
 
