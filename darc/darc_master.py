@@ -110,13 +110,17 @@ class DARCMaster(object):
 
         # store services
         if self.hostname == MASTER:
-            if self.real_time:
+            if self.mode == 'real-time':
                 self.services = self.services_master_rt
+            elif self.mode == 'mixed':
+                self.services = self.services_master_mix
             else:
                 self.services = self.services_master_off
         elif self.hostname in WORKERS:
-            if self.real_time:
+            if self.mode == 'real-time':
                 self.services = self.services_worker_rt
+            elif self.mode == 'mixed':
+                self.services = self.services_worker_mix
             else:
                 self.services = self.services_worker_off
         else:
@@ -220,9 +224,9 @@ class DARCMaster(object):
                 status, reply = self.start_observation(payload)
             return status, reply
         # Stop observation
-        # only stop in real-time mode, as offline processing runs after the observation
+        # only stop in real-time modes, as offline processing runs after the observation
         elif command == 'stop_observation':
-            if self.real_time:
+            if self.mode in ['real-time', 'mixed']:
                 status, reply = self.stop_observation()
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
@@ -232,7 +236,7 @@ class DARCMaster(object):
         # Abort observation
         # always stop if aborted
         elif command == 'abort_observation':
-            status, reply = self.stop_observation()
+            status, reply = self.stop_observation(abort=True)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -484,7 +488,7 @@ class DARCMaster(object):
 
         # initialize observation
         # Real-time procesing
-        if self.real_time:
+        if self.mode == 'real-time':
             if self.hostname == MASTER:
                 self.logger.info("Nothing to start yet for real-time processing on master node")
             elif self.hostname in WORKERS:
@@ -506,6 +510,8 @@ class DARCMaster(object):
                 return "Error", "Failed: running on unknown host"
 
             return "Success", "Observation started for real-time processing"
+        elif self.mode == 'mixed':
+            pass
         # Offline processing
         else:
             # ensure services are running
@@ -526,14 +532,20 @@ class DARCMaster(object):
             self.processor_queue.put(command)
             return "Success", "Observation started for offline processing"
 
-    def stop_observation(self):
+    def stop_observation(self, abort=False):
         """
         Stop an observation
+        :param abort: whether to abort the observation
         :return: status, reply message
         """
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
+            # in mixed mode, skip stopping offline_procssing, unless abort is True
+            if (self.mode == 'mixed') and (queue == self.processor_queue) and not abort:
+                self.logger.info("Skipping stopping offline processing in mixed mode")
+                continue
             queue.put({'command': 'stop_observation'})
+
         status = 'Success'
         reply = "Stopped observation"
         self.logger.info("Stopped observation")

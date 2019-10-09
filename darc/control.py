@@ -71,8 +71,10 @@ def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-    if config['real_time']:
+    if config['mode'] == 'real-time':
         services = config['services_master_rt'] + config['services_worker_rt']
+    elif config['mode'] == 'mixed':
+        services = config['services_master_mix'] + config['services_worker_mix']
     else:
         services = config['services_master_off'] + config['services_worker_off']
     master_commands = config['master_commands']
