@@ -1,0 +1,133 @@
+# DARC Master config
+darc_master:
+    log_file: "{home}/darc/log/darc_master.{hostname}.log"
+    parset_dir: "{home}/darc/parsets"
+    port: 61000  # NOTE: also hardcoded in darc_start_all_services
+    socket_timeout: 30  # for creating socket
+    stop_timeout: 5  # for stopping services
+    real_time: False
+    services_master_rt: ["status_website", "voevent_generator"]
+    services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
+    services_master_off: ["offline_processing", "status_website", "voevent_generator"]
+    services_worker_off: ["offline_processing"]
+    master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload"]
+    service_commands: ["status", "start", "stop", "restart"]
+    editor: "vim"
+
+# Status website
+status_website:
+    log_file: "{home}/darc/log/status_website.{hostname}.log"
+    web_dir: "{home}/public_html/darc/status"
+    interval: 10
+    timeout: 10
+    colour_good: "green"
+    colour_bad: "red"
+    colour_unknown: "grey"
+    service_to_name:
+        voevent_generator: "VOEvent generator"
+        status_website: "Status website"
+        amber_listener: "AMBER listener"
+        amber_triggering: "AMBER triggering"
+        offline_processing: "Offline processing"
+        dada_trigger: "DADA triggering"
+        processor: "Processor"
+
+# AMBER trigger listener
+amber_listener:
+    log_file: "{home}/darc/log/amber_listener.{hostname}.log"
+    interval: .2
+    start_timeout: 30
+
+# Direct processing of AMBER triggers
+amber_triggering:
+    log_file: "{home}/darc/log/amber_triggering.{hostname}.log"
+    interval: 10
+    #dm_min: 55
+    #dm_max: 60
+    dm_min: 0
+    dm_max: 3000
+    snr_min: 80
+    age_max: 10
+
+# Clustering of AMBER triggers
+amber_clustering:
+    log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
+    interval: 2.0
+    dm_min: 0
+    dm_max: 99999
+    snr_min: 10
+    age_max: 10
+
+# VOEvent generator
+voevent_generator:
+    log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
+    voevent_dir: "{home}/darc/voevents"
+    send_events: True
+    server_port: 52000
+    server_auth: "9S5JNp9MgM"
+    broker_host: "phobos.astron.nl"
+    broker_port: 8098
+
+# DADA triggers
+dada_trigger:
+    log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
+    window_size_i: 10.24
+    window_size_iquv: 10.24
+    port_i: 30000
+    port_iquv: 30001
+
+# SB generator
+sb_generator:
+    table_folder: "{home}/.controller/synthesized_beam_tables/"
+    table:
+        sc3: "sbtable-9tabs-114sbs-f1370.txt"
+        sc4: "sbtable-sc4-12tabs-71sbs.txt"
+    numtab:
+        sc3: 9
+        sc4: 12
+    numsb:
+        sc3: 114
+        sc4: 71
+
+# Trigger processor
+processor:
+    log_file: "{home}/darc/log/processor.{hostname}.log"
+    model_dir: "{home}/keras_models"
+    model_name_freqtime: '20190416freq_time.hdf5'
+    model_name_dmtime: 'heimdall_dm_time.hdf5'
+    nfreq: 32
+    ntime: 64
+    ndm: 64
+
+# Offline processing
+offline_processing:
+    log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    process_sb: True
+    numthread: 2
+    result_dir: "{home}/observations/results/"
+    interval: 10
+    timeout: 10
+    pthresh_freqtime: 0.5
+    pthresh_dmtime: 0.05
+    cmap: 'viridis'
+    ntime_plot: 64
+    nfreq_plot: 64
+    ndm: 64
+    snrmin_processing: 10
+    snrmin_processing_local: 5
+    dmmin: 20
+    dmmax: 5000
+    dmgal_frac: 0.8
+    clean_type: "perchannel"
+    max_proc_time: 18000
+    ml_gpus: 0
+    test_pulsars: ["B0329+54", "B1933+16", "B0531+21", "B0950+08"]
+    key_ntriggers_skipped: "ntriggers_skipped"
+    keys_data: ["data_freq_time", "data_dm_time", "params"]
+    model_dir: "{home}/keras_models"
+    model_1dtime: "heimdall_b0329_mix_147411d_time.hdf5"
+    model_dmtime: "heimdall_dm_time.hdf5"
+    model_freqtime: "20190501freq_time.hdf5"
+    emailer: "{home}/ARTS-obs/emailer.py"
+    triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
+    classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
