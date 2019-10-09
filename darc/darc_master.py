@@ -230,7 +230,7 @@ class DARCMaster(object):
                 status, reply = self.stop_observation()
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
-                status = 'Succes'
+                status = 'Success'
                 reply = 'Ignoring stop in offline processing mode'
             return status, reply
         # Abort observation

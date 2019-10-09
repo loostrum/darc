@@ -108,3 +108,4 @@ venv.bak/
 # PyCharm
 .idea/
 
+darc/source_list.yaml
