@@ -4,6 +4,7 @@ import os
 import unittest
 import multiprocessing as mp
 import threading
+import socket
 from shutil import which
 from time import sleep
 from queue import Empty
