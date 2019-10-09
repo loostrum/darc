@@ -24,6 +24,8 @@ except ImportError:
 @unittest.skipUnless(socket.gethostname() == 'arts041', "Test can only run on arts041")
 # Skip if psrdada not available
 @unittest.skipIf(psrdada is None or which('dada_db') is None, "psrdada not available")
+# Skip if Processor
+@unittest.skipIf(Processor is None, "Processor failed to import, missing packages?")
 class TestProcessor(unittest.TestCase):
 
     def test_psrdada(self):

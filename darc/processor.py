@@ -7,8 +7,15 @@ import threading
 from time import sleep
 
 import numpy as np
-from single_pulse_ml import frbkeras, realtime_tools
-import psrdada
+try:
+    from single_pulse_ml import frbkeras, realtime_tools
+except ImportError:
+    frbkeras = None
+    realtime_tools = None
+try:
+    import psrdada
+except ImportError:
+    psrdada = None
 
 from darc.base import DARCBase
 
