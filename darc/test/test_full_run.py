@@ -12,7 +12,11 @@ import yaml
 from astropy.time import Time, TimeDelta
 from queue import Empty
 
-from psrdada import Writer
+have_psrdada = True
+try:
+    from psrdada import Writer
+except ImportError:
+    have_psrdada=False
 
 from darc.darc_master import DARCMaster
 from darc.control import send_command
@@ -20,6 +24,8 @@ from darc import util
 
 
 @unittest.skip("This test is not fully implemented yet")
+# Skip if psrdada not available
+@unittest.skipUnless(have_psrdada, "psrdada-python not available")
 # only run this test if this script is run directly, _not_ in automated testing (pytest etc)
 @unittest.skipUnless(__name__ == '__main__', "Skipping full test run in automated testing")
 # skip if not running on arts041
