@@ -29,7 +29,7 @@ class DARCMasterException(Exception):
 
 
 class DARCMaster(object):
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
         Setup queues, config, logging
         """
@@ -58,6 +58,7 @@ class DARCMaster(object):
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # Load config file
+        self.config_file = config_file
         self._load_config()
 
         # store hostname
@@ -87,7 +88,7 @@ class DARCMaster(object):
         """
         Load configuration file
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
         # set config, expanding strings
