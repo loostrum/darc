@@ -14,6 +14,11 @@ try:
 except ImportError:
     psrdada = None
 
+try:
+    from darc.processor import Processor
+except ImportError:
+    Processor = None
+
 
 # skip if not running on arts041
 @unittest.skipUnless(socket.gethostname() == 'arts041', "Test can only run on arts041")
