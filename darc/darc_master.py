@@ -487,50 +487,26 @@ class DARCMaster(object):
             self.logger.error("Could not store config file: {}".format(e))
 
         # initialize observation
-        # Real-time procesing
-        if self.mode == 'real-time':
-            if self.hostname == MASTER:
-                self.logger.info("Nothing to start yet for real-time processing on master node")
-            elif self.hostname in WORKERS:
-                self.logger.info("Starting real-time processing on worker node")
-                # clear all queues
-                self.logger.info("Clearing queues")
-                for queue in self.all_queues:
-                    util.clear_queue(queue)
-                # ensure all services are running
-                self.logger.info("Making sure all services are running")
-                for service in self.services:
-                    self.start_service(service)
-                # start observation by feeding obs config to all queues
-                command = {'command': 'start_observation', 'obs_config': config}
-                for queue in self.all_queues:
-                    queue.put(command)
-            else:
-                self.logger.error("Running on unknown host: {}".format(self.hostname))
-                return "Error", "Failed: running on unknown host"
+        # ensure services are running
+        for service in self.services:
+            self.start_service(service)
 
-            return "Success", "Observation started for real-time processing"
-        elif self.mode == 'mixed':
-            pass
-        # Offline processing
+        # check host type
+        if self.hostname == MASTER:
+            host_type = 'master'
+        elif self.hostname in WORKERS:
+            host_type = 'worker'
         else:
-            # ensure services are running
-            for service in self.services:
-                self.start_service(service)
-            # set host type and send config to offline processing
-            command = {}
-            if self.hostname == MASTER:
-                command['host_type'] = 'master'
-            elif self.hostname in WORKERS:
-                command['host_type'] = 'worker'
-            else:
-                self.logger.error("Running on unknown host: {}".format(self.hostname))
-                return "Error", "Failed: running on unknown host"
+            self.logger.error("Running on unknown host: {}".format(self.hostname))
+            return "Error", "Failed: running on unknown host"
 
-            command['obs_config'] = config
-            # put commands on queue
-            self.processor_queue.put(command)
-            return "Success", "Observation started for offline processing"
+        # create command
+        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
+        # clear queues, then send command
+        for queue in self.all_queues:
+            util.clear_queue(queue)
+        for queue in self.all_queues:
+            queue.put(command)
 
     def stop_observation(self, abort=False):
         """
