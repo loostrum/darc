@@ -38,17 +38,6 @@ amber_listener:
     interval: .2
     start_timeout: 30
 
-# Direct processing of AMBER triggers
-amber_triggering:
-    log_file: "{home}/darc/log/amber_triggering.{hostname}.log"
-    interval: 10
-    #dm_min: 55
-    #dm_max: 60
-    dm_min: 0
-    dm_max: 3000
-    snr_min: 80
-    age_max: 10
-
 # Clustering of AMBER triggers
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
