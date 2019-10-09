@@ -29,7 +29,6 @@ status_website:
         voevent_generator: "VOEvent generator"
         status_website: "Status website"
         amber_listener: "AMBER listener"
-        amber_triggering: "AMBER triggering"
         offline_processing: "Offline processing"
         dada_trigger: "DADA triggering"
         processor: "Processor"
