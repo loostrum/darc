@@ -7,6 +7,7 @@ import yaml
 import ast
 import subprocess
 import threading
+import multiprocessing as mp
 import numpy as np
 from astropy.time import Time, TimeDelta
 import astropy.units as u
@@ -28,7 +29,7 @@ class AMBERClustering(DARCBase):
     Cluster AMBER clusters
     """
 
-    def __init__(self):
+    def __init__(self, connect_vo=True):
         super(AMBERClustering, self).__init__()
         self.needs_source_queue = True
         self.needs_target_queue = True
@@ -41,10 +42,12 @@ class AMBERClustering(DARCBase):
 
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
-        self.time_lofar = Time.now()
 
         # connect to VOEvent generator
-        self.vo_queue = self.voevent_connector()
+        if connect_vo:
+            self.vo_queue = self.voevent_connector()
+        else:
+            self.vo_queue = mp.Queue()
 
     def process_command(self, command):
         """
@@ -202,11 +205,9 @@ class AMBERClustering(DARCBase):
                         dada_triggers = []
                         for i in range(ncluster):
                             # set window size to roughly two DM delays, and at least one page
-                            window_size = max(1.024, cluster_dm[i] * 2 / 1000.)
                             dada_trigger = {'stokes': 'IQUV', 'dm': cluster_dm[i], 'beam': cluster_sb[i],
                                             'width': cluster_downsamp[i], 'snr': cluster_snr[i],
-                                            'time': cluster_time[i], 'utc_start': utc_start,
-                                            'window_size': window_size, 'port': network_port}
+                                            'time': cluster_time[i], 'utc_start': utc_start}
                             dada_triggers.append(dada_trigger)
                         self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
 
