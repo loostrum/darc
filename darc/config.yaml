@@ -43,10 +43,16 @@ amber_listener:
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
     interval: 2.0
-    dm_min: 0
-    dm_max: 99999
-    snr_min: 10
-    age_max: 10
+    # thresholds for IQUV triggering
+    thresh_iquv:
+      dm_frac_min: .8  # fraction of max MW contribution
+      snr_min: 12
+      interval: 30  # seconds
+    # thresholds for LOFAR triggering
+    # assumed to be more strict than IQUV thresholds for each parameter
+    thresh_lofar:
+      dm_frac_min: 1.2  # fraction of max MW contribution
+      snr_min: 20
 
 # VOEvent generator
 voevent_generator:
@@ -57,6 +63,7 @@ voevent_generator:
     server_auth: "9S5JNp9MgM"
     broker_host: "phobos.astron.nl"
     broker_port: 8098
+    interval_lofar: 36000 # trigger at most once every so many seconds
 
 # DADA triggers
 dada_trigger:
