@@ -53,15 +53,14 @@ class TestFullRun(unittest.TestCase):
 
         # load the encoded parset
         with open('/tank/data/sky/B0329+54/2019-06-25-11:17:00.B0329+54/parset', 'r') as f:
-            parset_str = util.decode_parset(f.read().strip())
-        self.parset = util.parse_parset(parset_str)
+            parset = f.read().strip()
 
         # nreader: one for each programme readding from the buffer, i.e. 3x AMBER
         self.settings = {'resolution': 1536*12500*12, 'nbuf': 5, 'key_i': 'aaaa',
                          'hdr_size': 4096, 'dada_files': files, 'nreader': 3,
                          'freq': 1280, 'amber_dir': amber_dir, 'nbatch': len(files)*10,
                          'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1129.70092773,
-                         'parset': self.parset}
+                         'parset': parset}
 
         # store custom config file
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml')
