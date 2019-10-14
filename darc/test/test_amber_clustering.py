@@ -22,7 +22,7 @@ class TestAMBERClustering(unittest.TestCase):
         in_queue = mp.Queue()
         out_queue = mp.Queue()
         # init AMBER Clustering
-        clustering = AMBERClustering()
+        clustering = AMBERClustering(connect_vo=False)
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
@@ -97,7 +97,7 @@ class TestAMBERClustering(unittest.TestCase):
         in_queue = mp.Queue()
         out_queue = mp.Queue()
         # init AMBER Clustering
-        clustering = AMBERClustering()
+        clustering = AMBERClustering(connect_vo=False)
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
