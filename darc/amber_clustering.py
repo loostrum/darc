@@ -123,8 +123,7 @@ class AMBERClustering(DARCBase):
         utc_start = Time(self.obs_config['startpacket'] / 781250., format='unix')
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
-        cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value # GHz
-        network_port = self.obs_config['network_port_event_iquv']
+        cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
         dmgal = self._get_ymw16(self.obs_config)
         dm_min_iquv = dmgal * self.thresh_iquv['dm_frac_min']
         dm_min_lofar = dmgal * self.thresh_lofar['dm_frac_min']
