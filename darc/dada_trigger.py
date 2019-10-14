@@ -62,13 +62,16 @@ class DADATrigger(DARCBase):
                 self.logger.error("Skipping trigger with unknown stokes mode: {}".format(stokes))
                 continue
 
+            # calculate window size: set by DM, but at least two pages (=2.048s)
+            # DM is roughly delay acros band in ms
+            window_size = max(2.048, trigger['DM'] / 1000.)
             event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
-                TimeDelta(trigger['window_size'] / 2, format='sec')
+                TimeDelta(window_size/2., format='sec')
             # ensure start time is past start time of observation
             if event_start_full < trigger['utc_start']:
                 self.logger.info("Event start before start of observation - adapting event start")
                 event_start_full = trigger['utc_start']
-            event_end_full = event_start_full + TimeDelta(trigger['window_size'], format='sec')
+            event_end_full = event_start_full + TimeDelta(window_size, format='sec')
             # ToDo: ensure end time is before end of observation
 
             event_start, event_start_frac = event_start_full.iso.split('.')
