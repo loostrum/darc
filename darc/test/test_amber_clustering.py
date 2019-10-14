@@ -11,6 +11,7 @@ from queue import Empty
 from darc.amber_clustering import AMBERClustering
 
 
+@unittest.skip("To be updated for new AMBERClustering")
 class TestAMBERClustering(unittest.TestCase):
 
     def test_clusters_without_thresholds(self):

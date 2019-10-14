@@ -76,7 +76,7 @@ class TestDADATrigger(unittest.TestCase):
         # open a listening socket for stokes I events
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.bind(("", trigger_i['port']))
+            sock.bind(("", dadatrigger.port_i))
             sock.listen(5)
             sock.settimeout(timeout)
         except socket.error as e:
@@ -113,7 +113,7 @@ class TestDADATrigger(unittest.TestCase):
         # open a listening socket for stokes IQUV events
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.bind(("", trigger_iquv['port']))
+            sock.bind(("", dadatrigger.port_iquv))
             sock.listen(5)
             sock.settimeout(timeout)
         except socket.error as e:
