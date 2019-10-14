@@ -86,6 +86,8 @@ class AMBERClustering(DARCBase):
 
         # clean any old triggers
         self.amber_triggers = []
+        # parse parset
+        obs_config['parset'] = self._load_parset(self.obs_config)
         # set config
         self.obs_config = obs_config
 
@@ -144,14 +146,13 @@ class AMBERClustering(DARCBase):
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
         cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
-        parset = self._load_parset(self.obs_config)
         dmgal = self._get_ymw16(self.obs_config)
         # dm_min_iquv = dmgal * self.thresh_iquv['dm_frac_min']
         # dm_min_lofar = dmgal * self.thresh_lofar['dm_frac_min']
 
         # get min and max DM based on source name
         try:
-            source = parset['task.source.name']
+            source = self.obs_config['parset']['task.source.name']
         except KeyError:
             self.logger.error("Cannot get source name from parset, disabling triggering")
             return
