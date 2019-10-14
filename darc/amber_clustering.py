@@ -2,6 +2,7 @@
 #
 # AMBER Clustering
 
+import os
 from time import sleep
 import yaml
 import ast
@@ -18,6 +19,7 @@ from darc.base import DARCBase
 from darc.voevent_generator import VOEventQueueServer
 from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
 from darc.external import tools
+from darc import util
 
 
 class AMBERClusteringException(Exception):
@@ -43,6 +45,9 @@ class AMBERClustering(DARCBase):
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
 
+        # load source list
+        self.source_list = self.load_source_list()
+
         # connect to VOEvent generator
         if connect_vo:
             self.vo_queue = self.voevent_connector()
@@ -50,10 +55,21 @@ class AMBERClustering(DARCBase):
             # dummy queue
             self.vo_queue = mp.Queue()
 
+    def load_source_list(self):
+        """
+        Load the list with known source DMs
+        :return: source list with dict per category
+        """
+        try:
+            with open(self.source_file, 'r') as f:
+                source_list = yaml.load(f, Loader=yaml.SafeLoader)
+        except OSError:
+            raise AMBERClusteringException("Cannot load source list: {}".format(e))
+        return source_list
+
     def process_command(self, command):
         """
         Process command received from queue
-        :return:
         """
         if command['command'] == 'trigger':
             if not self.observation_running:
@@ -125,9 +141,47 @@ class AMBERClustering(DARCBase):
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
         cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
+        parset = self._load_parset(self.obs_config)
         dmgal = self._get_ymw16(self.obs_config)
-        dm_min_iquv = dmgal * self.thresh_iquv['dm_frac_min']
-        dm_min_lofar = dmgal * self.thresh_lofar['dm_frac_min']
+        # dm_min_iquv = dmgal * self.thresh_iquv['dm_frac_min']
+        # dm_min_lofar = dmgal * self.thresh_lofar['dm_frac_min']
+
+        # get min and max DM based on source name
+        try:
+            source = parset['task.source.name']
+        except KeyError:
+            self.logger.error("Cannot get source name from parset, disabling triggering")
+            return
+
+        # check if source in in source list
+        # first check aliases
+        try:
+            alias = self.source_list['aliases'][source]
+        except KeyError:
+            # not found
+            pass
+        else:
+            # replace source by alias so we can look it up in other lists
+            self.logger.info("Using alias {} for source {}".format(alias, source))
+            source = alias
+        # check if source is a known pulsar or frb
+        dm_src = None
+        for key in ['pulsars', 'frbs']:
+            try:
+                dm_src = self.source_list[key][source]
+                src_type = key  # may be useful in the future
+            except KeyError:
+                pass
+            else:
+                break
+        if dm_src is None:
+            # still not found, no DM known.
+            self.logger.warning("Source not found: {}, disabling triggering".format(source))
+            return
+
+        # set min and max dm
+        dm_min = dm_src + self.dm_range
+        dm_max = dm_src - self.dm_range
 
         while self.observation_running:
             if self.amber_triggers:
@@ -181,7 +235,7 @@ class AMBERClustering(DARCBase):
                 cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _ = \
                     tools.get_triggers(triggers_for_clustering,
                                        tab=triggers[:, self.hdr_mapping['beam_id']],
-                                       dm_min=dm_min_iquv, dm_max=np.inf,
+                                       dm_min=dm_min, dm_max=dm_max,
                                        sig_thresh=self.thresh_iquv['snr_min'],
                                        dt=dt, delta_nu_MHz=chan_width, nu_GHz=cent_freq,
                                        sb=triggers_for_clustering_sb)
@@ -211,36 +265,36 @@ class AMBERClustering(DARCBase):
                             dada_triggers.append(dada_trigger)
                         self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
 
-                    # Check for LOFAR triggers
-                    if not self.can_trigger_lofar:
-                        self.logger.warning("LOFAR triggering disabled - ignoring trigger")
-                        continue
-                    mask = (cluster_dm >= dm_min_lofar) & (cluster_snr >= self.thresh_lofar['snr_min'])
-                    if np.any(mask):
-                        num = np.sum(mask)
-                        self.logger.info("Found {} trigger(s) for LOFAR".format(num))
-                        # note: the server keeps track of when LOFAR triggers were sent
-                        # and whether or not a new trigger can be sent
-                        # check if there are multiple triggers
-                        if num > 1:
-                            self.logger.info("Multiple triggers - selecting trigger with highest S/N")
-                        # argmax also works if there is one trigger, so run it always
-                        ind = np.argmax(cluster_snr[mask])
-                        lofar_trigger = {'dm': cluster_dm[mask][ind],
-                                         'dm_err': 0,
-                                         'width': 0,  # ms
-                                         'snr': cluster_snr[mask][ind],
-                                         'flux': 0,  # mJy
-                                         'ra': 0,  # decimal deg
-                                         'dec': 0,  # decimal deg
-                                         'ymw16': dmgal,
-                                         'semiMaj': 0,  # arcmin
-                                         'semiMin': 0,  # arcmin
-                                         'name': 0,
-                                         'utc': (utc_start + TimeDelta(cluster_time[mask][i], format='sec')).isot,
-                                         'importance': 0.1,
-                                         'test': True}  # just testing
-                        self.vo_queue.put(lofar_trigger)
+                    # # Check for LOFAR triggers
+                    # if not self.can_trigger_lofar:
+                    #     self.logger.warning("LOFAR triggering disabled - ignoring trigger")
+                    #     continue
+                    # mask = (cluster_dm >= dm_min_lofar) & (cluster_snr >= self.thresh_lofar['snr_min'])
+                    # if np.any(mask):
+                    #     num = np.sum(mask)
+                    #     self.logger.info("Found {} trigger(s) for LOFAR".format(num))
+                    #     # note: the server keeps track of when LOFAR triggers were sent
+                    #     # and whether or not a new trigger can be sent
+                    #     # check if there are multiple triggers
+                    #     if num > 1:
+                    #         self.logger.info("Multiple triggers - selecting trigger with highest S/N")
+                    #     # argmax also works if there is one trigger, so run it always
+                    #     ind = np.argmax(cluster_snr[mask])
+                    #     lofar_trigger = {'dm': cluster_dm[mask][ind],
+                    #                      'dm_err': 0,
+                    #                      'width': 0,  # ms
+                    #                      'snr': cluster_snr[mask][ind],
+                    #                      'flux': 0,  # mJy
+                    #                      'ra': 0,  # decimal deg
+                    #                      'dec': 0,  # decimal deg
+                    #                      'ymw16': dmgal,
+                    #                      'semiMaj': 0,  # arcmin
+                    #                      'semiMin': 0,  # arcmin
+                    #                      'name': 0,
+                    #                      'utc': (utc_start + TimeDelta(cluster_time[mask][i], format='sec')).isot,
+                    #                      'importance': 0.1,
+                    #                      'test': True}  # just testing
+                    #     self.vo_queue.put(lofar_trigger)
 
             sleep(self.interval)
         self.logger.info("Observation finished")
@@ -288,3 +342,34 @@ class AMBERClustering(DARCBase):
             self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
             return 0
         return dm
+
+    def _load_parset(self, obs_config):
+        """
+        Load the observation parset
+        :param obs_config: Observation config
+        :return: parset as dict
+        """
+        if self.host_type == 'master':
+            # encoded parset is already in config on master node
+            # decode the parset
+            raw_parset = util.decode_parset(obs_config['parset'])
+            # convert to dict and store
+            parset = util.parse_parset(raw_parset)
+        else:
+            # Load the parset from the master parset file
+            master_config_file = os.path.join(obs_config['master_dir'], 'parset', 'darc_master.parset')
+            try:
+                # Read raw config
+                with open(master_config_file) as f:
+                    master_config = f.read().strip()
+                # Convert to dict
+                master_config = util.parse_parset(master_config)
+                # extract obs parset and decode
+                raw_parset = util.decode_parset(master_config['parset'])
+                parset = util.parse_parset(raw_parset)
+            except Exception as e:
+                self.logger.warning(
+                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
+                parset = None
+
+        return parset
