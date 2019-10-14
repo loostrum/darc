@@ -74,7 +74,7 @@ class StatusWebsite(threading.Thread):
             statuses = {}
             for node in self.all_nodes:
                 statuses[node] = {}
-                self.logger.info("Getting {} status".format(node))
+                # self.logger.info("Getting {} status".format(node))
                 try:
                     status = send_command(10, 'all', 'status', host=node)
                 except Exception as e:
