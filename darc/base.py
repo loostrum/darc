@@ -14,7 +14,7 @@ except ImportError:
     from Queue import Empty
 
 from darc.logger import get_logger
-from darc.definitions import CONFIG_FILE
+from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 
 
 class DARCBase(threading.Thread):
@@ -54,6 +54,16 @@ class DARCBase(threading.Thread):
         # setup logger
         self.logger = get_logger(name, self.log_file)
         self.logger.info("{} initialized".format(self.log_name))
+
+        # set host type
+        hostname = socket.gethostname()
+        if hostname == MASTER:
+            self.host_type = 'master'
+        elif hostname in WORKERS:
+            self.host_type = 'worker'
+        else:
+            self.logger.warning("Running on unknown host")
+            self.host_type = None
 
     def stop(self):
         """

@@ -180,8 +180,9 @@ class AMBERClustering(DARCBase):
             return
 
         # set min and max dm
-        dm_min = dm_src + self.dm_range
-        dm_max = dm_src - self.dm_range
+        dm_max = dm_src + self.dm_range
+        dm_min = max(dm_src - self.dm_range, 0)
+        self.logger.info("Found source {}. Setting DM range to {} - {}".format(source, dm_min, dm_max))
 
         while self.observation_running:
             if self.amber_triggers:
