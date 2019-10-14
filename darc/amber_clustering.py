@@ -248,11 +248,16 @@ class AMBERClustering(DARCBase):
         :return: YMW16 DM
         """
         # get pointing
-        parset = obs_config['parset']
-        if self.host_type == 'master':
-            beam = 0
-        else:
+        try:
+            parset = obs_config['parset']
+        except KeyError as e:
+            self.logger.error("Cannot read parset, setting YMW16 DM to zero ({})".format(e))
+            return 0
+        try:
             beam = obs_config['beam']
+        except KeyError as e:
+            self.logger.error("Cannot read beam from parset, setting CB to 0 ({})".format(e))
+            beam = 0
         try:
             key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
             c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
