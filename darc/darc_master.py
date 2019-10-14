@@ -12,6 +12,8 @@ import threading
 import socket
 from time import sleep, time
 from shutil import copy2
+from astropy.time import Time, TimeDelta
+
 from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
@@ -457,7 +459,7 @@ class DARCMaster(object):
         :param config_file: Path to observation config file
         """
 
-        self.logger.info("Starting observation with config file {}".format(config_file))
+        self.logger.info("Received start_observation command with config file {}".format(config_file))
         # check if config file exists
         if not os.path.isfile(config_file):
             self.logger.error("File not found: {}".format(config_file))
@@ -499,6 +501,12 @@ class DARCMaster(object):
         else:
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
+
+        # wait until start time
+        utc_start = Time(config['startpacket'] / 781250., format='unix')
+        t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
+        self.logger.info("Starting observation at {}".format(t_setup))
+        util.sleepuntil_utc(t_setup)
 
         # create command
         command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
