@@ -190,6 +190,9 @@ class AMBERClustering(DARCBase):
 
                 ncluster = len(cluster_snr)
                 if ncluster > 0:
+                    if not self.can_trigger_iquv:
+                        self.logger.warning("IQUV triggering disabled - ignoring trigger")
+                        continue
                     # check if we can do triggering
                     now = Time.now()
                     if now < self.time_iquv:
@@ -209,6 +212,9 @@ class AMBERClustering(DARCBase):
                         self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
 
                     # Check for LOFAR triggers
+                    if not self.can_trigger_lofar:
+                        self.logger.warning("LOFAR triggering disabled - ignoring trigger")
+                        continue
                     mask = (cluster_dm >= dm_min_lofar) & (cluster_snr >= self.thresh_lofar['snr_min'])
                     if np.any(mask):
                         num = np.sum(mask)

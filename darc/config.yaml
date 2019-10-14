@@ -42,28 +42,32 @@ amber_listener:
 # Clustering of AMBER triggers
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
+    source_file: "{home}/darc/source_list.yaml"
     interval: 2.0
+    dm_range: 10  # trigger if within 10 units of known source DM
+    can_trigger_iquv: True
+    can_trigger_lofar: False
     # thresholds for IQUV triggering
     thresh_iquv:
-      dm_frac_min: .8  # fraction of max MW contribution
+      # dm_frac_min: .8  # fraction of max MW contribution. Maybe to be used instead of source list
       snr_min: 12
       interval: 30  # seconds
     # thresholds for LOFAR triggering
     # assumed to be more strict than IQUV thresholds for each parameter
     thresh_lofar:
-      dm_frac_min: 1.2  # fraction of max MW contribution
+      # dm_frac_min: 1.2  # fraction of max MW contribution. Maybe to be used instead of source list
       snr_min: 20
 
 # VOEvent generator
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
-    send_events: True
+    send_events: False
     server_port: 52000
     server_auth: "9S5JNp9MgM"
     broker_host: "phobos.astron.nl"
     broker_port: 8098
-    interval_lofar: 36000 # trigger at most once every so many seconds
+    interval_lofar: 36000 # trigger at most once every so many seconds. Not implemented yet!
 
 # DADA triggers
 dada_trigger:
