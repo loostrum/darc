@@ -64,7 +64,7 @@ class DADATrigger(DARCBase):
 
             # calculate window size: set by DM, but at least two pages (=2.048s)
             # DM is roughly delay acros band in ms
-            window_size = max(2.048, trigger['DM'] / 1000.)
+            window_size = max(2.048, trigger['dm'] / 1000.)
             event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
                 TimeDelta(window_size/2., format='sec')
             # ensure start time is past start time of observation
