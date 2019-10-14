@@ -87,7 +87,7 @@ class AMBERClustering(DARCBase):
         # clean any old triggers
         self.amber_triggers = []
         # parse parset
-        obs_config['parset'] = self._load_parset(self.obs_config)
+        obs_config['parset'] = self._load_parset(obs_config)
         # set config
         self.obs_config = obs_config
 
