@@ -308,7 +308,10 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         dm, sig, tt, downsample = fn[:,0], fn[:,1], fn[:,2], fn[:,3]
     else:
         print("Wrong input type. Expected string or nparray")
-        return [],[],[],[],[]
+        if sb is not None:
+            return [],[],[],[],[],[]
+        else:
+            return [],[],[],[],[]
 
     ntrig_orig = len(dm)
 
@@ -323,7 +326,10 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
 
     if len(tt)==0:
         print("Returning None: time array is empty")
-        return 
+        if sb is not None:
+            return [],[],[],[],[],[]
+        else:
+            return [],[],[],[],[]
 
     tduration = tt.max() - tt.min()
     ntime = int(tduration / t_window)
