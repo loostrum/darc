@@ -91,6 +91,9 @@ class AMBERClustering(DARCBase):
 
         self.observation_running = True
 
+        # (re)load source list in case of changes
+        self.source_list = self.load_source_list()
+
         # process triggers in thread
         self.proc_thread = threading.Thread(target=self.process_triggers)
         self.proc_thread.daemon = True
