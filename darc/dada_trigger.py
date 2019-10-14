@@ -134,6 +134,7 @@ class DADATrigger(DARCBase):
             sock.sendall(event.encode())
         except socket.timeout:
             self.logger.error("Failed to send events within timeout limit")
+            sock.close()
             return
         self.logger.info("Successfully sent events")
 
