@@ -47,6 +47,7 @@ class AMBERClustering(DARCBase):
         if connect_vo:
             self.vo_queue = self.voevent_connector()
         else:
+            # dummy queue
             self.vo_queue = mp.Queue()
 
     def process_command(self, command):
@@ -134,7 +135,6 @@ class AMBERClustering(DARCBase):
                 triggers = self.amber_triggers
 
                 self.amber_triggers = []
-                self.logger.info("Starting processing of {} AMBER triggers".format(len(triggers)))
                 # check for header (always, because it is received once for every amber instance)
                 if not self.hdr_mapping:
                     for trigger in triggers:
@@ -176,7 +176,6 @@ class AMBERClustering(DARCBase):
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
                                                        self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
                 triggers_for_clustering_sb = triggers[:, self.hdr_mapping['beam_id']].astype(int)
-                self.logger.info("Clustering")
                 # cluster using IQUV thresholds
                 # LOFAR thresholds are assumed to be more strict for every parameter
                 cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _ = \
@@ -186,18 +185,17 @@ class AMBERClustering(DARCBase):
                                        sig_thresh=self.thresh_iquv['snr_min'],
                                        dt=dt, delta_nu_MHz=chan_width, nu_GHz=cent_freq,
                                        sb=triggers_for_clustering_sb)
-                self.logger.info("Clustered {} raw triggers into {} clusters".format(len(triggers_for_clustering),
-                                                                                     len(cluster_snr)))
+                self.logger.info("Clustered {} raw triggers into {} IQUV triggers".format(len(triggers_for_clustering),
+                                                                                          len(cluster_snr)))
 
                 ncluster = len(cluster_snr)
                 if ncluster > 0:
-                    self.logger.info("Found {} trigger(s) for IQUV triggering".format(ncluster))
                     # check if we can do triggering
                     now = Time.now()
                     if now < self.time_iquv:
                         self.logger.warning("Cannot trigger IQUV yet, next possible time: {}".format(self.time_iquv))
                     else:
-                        self.logger.info("Can trigger IQUV - proceeding")
+                        self.logger.info("Sending IQUV trigger")
                         # update last trigger time
                         self.time_iquv = now + TimeDelta(self.thresh_iquv['interval'], format='sec')
                         # trigger IQUV
