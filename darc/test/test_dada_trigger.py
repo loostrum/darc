@@ -16,10 +16,9 @@ from darc.dada_trigger import DADATrigger
 
 class TestDADATrigger(unittest.TestCase):
 
-    def get_trigger(self, window_size, stokes):
+    def get_trigger(self, stokes):
         """
         Generate a trigger dict
-        :param: window_size: event duration in seconds
         :param: stokes: I or IQUV
         :return: trigger (dict), event (str)
         """
@@ -27,17 +26,11 @@ class TestDADATrigger(unittest.TestCase):
         utc_start = Time("2019-01-01 12:00:00")
         time = 38.249
 
-        # set network port (values from arts_survey_control.conf)
-        if stokes == 'I':
-            port = 30000
-        elif stokes == 'IQUV':
-            port = 30001
-        else:
-            self.fail("Unknown stokes mode: {}".format(stokes))
-
         # trigger
-        trigger = {'dm': 56.791, 'snr': 15.2, 'width': 2, 'beam': 22, 'time': time,
-                   'window_size': 10.24, 'utc_start': utc_start, 'stokes': stokes, 'port': port}
+        dm = 56.791
+        window_size = max(2.048, dm / 1000.)
+        trigger = {'dm': dm, 'snr': 15.2, 'width': 2, 'beam': 22, 'time': time,
+                   'utc_start': utc_start, 'stokes': stokes}
 
         # event parameters
         event_start_full = utc_start + TimeDelta(time, format='sec') - TimeDelta(window_size/2, format='sec')
@@ -78,8 +71,8 @@ class TestDADATrigger(unittest.TestCase):
         dadatrigger.start()
 
         # get trigger dict and event
-        trigger_i, event_i = self.get_trigger(dadatrigger.window_size_i, stokes='I')
-        trigger_iquv, event_iquv = self.get_trigger(dadatrigger.window_size_iquv, stokes='IQUV')
+        trigger_i, event_i = self.get_trigger(stokes='I')
+        trigger_iquv, event_iquv = self.get_trigger(stokes='IQUV')
         # open a listening socket for stokes I events
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
