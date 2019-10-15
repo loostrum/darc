@@ -45,7 +45,7 @@ amber_listener:
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
     source_file: "{home}/darc/source_list.yaml"
-    interval: 2.0
+    interval: 1.0
     dm_range: 10  # trigger if within 10 units of known source DM
     can_trigger_iquv: True
     can_trigger_lofar: False
@@ -53,7 +53,7 @@ amber_clustering:
     thresh_iquv:
       # dm_frac_min: .8  # fraction of max MW contribution. Maybe to be used instead of source list
       snr_min: 12
-      interval: 30  # seconds
+      interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be more strict than IQUV thresholds for each parameter
     thresh_lofar:
