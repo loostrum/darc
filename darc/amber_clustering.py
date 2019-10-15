@@ -41,12 +41,10 @@ class AMBERClustering(DARCBase):
         self.obs_config = None
         self.observation_running = False
         self.amber_triggers = []
+        self.source_list = None
 
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
-
-        # load source list
-        self.source_list = self.load_source_list()
 
         # connect to VOEvent generator
         if connect_vo:
@@ -63,7 +61,7 @@ class AMBERClustering(DARCBase):
         try:
             with open(self.source_file, 'r') as f:
                 source_list = yaml.load(f, Loader=yaml.SafeLoader)
-        except OSError:
+        except OSError as e:
             raise AMBERClusteringException("Cannot load source list: {}".format(e))
         return source_list
 
