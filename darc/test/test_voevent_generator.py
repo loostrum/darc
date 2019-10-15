@@ -18,6 +18,8 @@ class TestVOEventGenerator(unittest.TestCase):
         generator = VOEventGenerator()
         # overwrite server location
         generator.server_host = 'localhost'
+        # ensure it does not send events
+        generator.send_events = False
         # start the generator
         generator.start()
         # create a trigger

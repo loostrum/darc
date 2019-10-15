@@ -4,35 +4,34 @@ import os
 import unittest
 import multiprocessing as mp
 import threading
+import socket
 from shutil import which
 from time import sleep
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 import numpy as np
 try:
     import psrdada
 except ImportError:
     psrdada = None
 
-from darc.amber_listener import AMBERListener
 try:
     from darc.processor import Processor
 except ImportError:
     Processor = None
 
 
+# skip if not running on arts041
+@unittest.skipUnless(socket.gethostname() == 'arts041', "Test can only run on arts041")
+# Skip if psrdada not available
+@unittest.skipIf(psrdada is None or which('dada_db') is None, "psrdada not available")
+# Skip if Processor
+@unittest.skipIf(Processor is None, "Processor failed to import, missing packages?")
 class TestProcessor(unittest.TestCase):
 
     def test_psrdada(self):
         """
         Check whether we can connect to and read from a psrdada buffer
         """
-
-        # Skip if we don't have psrdada in python or on system
-        if psrdada is None or which('dada_db') is None:
-            self.skipTest("PSRDADA not available")
         
 
         # remove any old buffer

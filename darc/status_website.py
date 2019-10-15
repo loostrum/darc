@@ -40,9 +40,12 @@ class StatusWebsite(threading.Thread):
             setattr(self, key, value)
 
         # set services
-        if config_master['real_time']:
+        if config_master['mode'] == 'real-time':
             self.services_master = config_master['services_master_rt']
             self.services_worker = config_master['services_worker_rt']
+        elif config_master['mode'] == 'mixed':
+            self.services_master = config_master['services_master_mix']
+            self.services_worker = config_master['services_worker_mix']
         else:
             self.services_master = config_master['services_master_off']
             self.services_worker = config_master['services_worker_off']
@@ -71,7 +74,7 @@ class StatusWebsite(threading.Thread):
             statuses = {}
             for node in self.all_nodes:
                 statuses[node] = {}
-                self.logger.info("Getting {} status".format(node))
+                # self.logger.info("Getting {} status".format(node))
                 try:
                     status = send_command(10, 'all', 'status', host=node)
                 except Exception as e:

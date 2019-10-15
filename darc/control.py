@@ -14,7 +14,7 @@ from darc.definitions import CONFIG_FILE
 logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
 
 
-def send_command(timeout, service, command, payload=None, host='localhost'):
+def send_command(timeout, service, command, payload=None, host='localhost', port=None):
     """
     :param timeout: Timeout for reply in seconds
     :param service: Service to send command to
@@ -28,10 +28,11 @@ def send_command(timeout, service, command, payload=None, host='localhost'):
         message = "{{'service':'{}', 'command':'{}', 'payload':'{}'}}".format(service, command, payload)
     else:
         message = "{{'service':'{}', 'command':'{}'}}".format(service, command)
-    # read port from config
-    with open(CONFIG_FILE, 'r') as f:
-        master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-    port = master_config['port']
+    if port is None:
+        # read port from config
+        with open(CONFIG_FILE, 'r') as f:
+            master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
+        port = master_config['port']
     # connect to master
     try:
         master_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,8 +71,10 @@ def main():
     # Check available services in config
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
-    if config['real_time']:
+    if config['mode'] == 'real-time':
         services = config['services_master_rt'] + config['services_worker_rt']
+    elif config['mode'] == 'mixed':
+        services = config['services_master_mix'] + config['services_worker_mix']
     else:
         services = config['services_master_off'] + config['services_worker_off']
     master_commands = config['master_commands']
@@ -85,7 +88,7 @@ def main():
     parser.add_argument('--timeout', type=int, default=10, help="Timeout for sending command "
                         "(Default: %(default)ss)")
     parser.add_argument('--host', type=str, default='localhost', help="Host to send command to "
-                       "(Default: %(default)s)")
+                        "(Default: %(default)s)")
     parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
     parser.add_argument('--config', type=str, default=None, help="Node observation config")
 

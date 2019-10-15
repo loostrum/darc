@@ -12,11 +12,12 @@ import threading
 import socket
 from time import sleep, time
 from shutil import copy2
+from astropy.time import Time, TimeDelta
+
 from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
-import darc.amber_triggering
 import darc.amber_clustering
 import darc.voevent_generator
 import darc.status_website
@@ -30,7 +31,7 @@ class DARCMasterException(Exception):
 
 
 class DARCMaster(object):
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
         Setup queues, config, logging
         """
@@ -53,13 +54,13 @@ class DARCMaster(object):
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
                                 'status_website': darc.status_website.StatusWebsite,
                                 'amber_listener': darc.amber_listener.AMBERListener,
-                                'amber_triggering': darc.amber_triggering.AMBERTriggering,
                                 'amber_clustering': darc.amber_clustering.AMBERClustering,
                                 'dada_trigger': darc.dada_trigger.DADATrigger,
                                 'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # Load config file
+        self.config_file = config_file
         self._load_config()
 
         # store hostname
@@ -89,7 +90,7 @@ class DARCMaster(object):
         """
         Load configuration file
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
         # set config, expanding strings
@@ -111,13 +112,17 @@ class DARCMaster(object):
 
         # store services
         if self.hostname == MASTER:
-            if self.real_time:
+            if self.mode == 'real-time':
                 self.services = self.services_master_rt
+            elif self.mode == 'mixed':
+                self.services = self.services_master_mix
             else:
                 self.services = self.services_master_off
         elif self.hostname in WORKERS:
-            if self.real_time:
+            if self.mode == 'real-time':
                 self.services = self.services_worker_rt
+            elif self.mode == 'mixed':
+                self.services = self.services_worker_mix
             else:
                 self.services = self.services_worker_off
         else:
@@ -221,19 +226,19 @@ class DARCMaster(object):
                 status, reply = self.start_observation(payload)
             return status, reply
         # Stop observation
-        # only stop in real-time mode, as offline processing runs after the observation
+        # only stop in real-time modes, as offline processing runs after the observation
         elif command == 'stop_observation':
-            if self.real_time:
+            if self.mode in ['real-time', 'mixed']:
                 status, reply = self.stop_observation()
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
-                status = 'Succes'
+                status = 'Success'
                 reply = 'Ignoring stop in offline processing mode'
             return status, reply
         # Abort observation
         # always stop if aborted
         elif command == 'abort_observation':
-            status, reply = self.stop_observation()
+            status, reply = self.stop_observation(abort=True)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -289,13 +294,13 @@ class DARCMaster(object):
         self.logger.info("Checking status of {}".format(service))
         if thread is None:
             # no thread means the service is not running
-            self.logger.info("{} is stopped".format(service))
+            # self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
         elif thread.isAlive():
-            self.logger.info("{} is running".format(service))
+            # self.logger.info("{} is running".format(service))
             reply = 'running'
         else:
-            self.logger.info("{} is stopped".format(service))
+            # self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
 
         return status, reply
@@ -310,9 +315,6 @@ class DARCMaster(object):
         if service == 'amber_listener':
             source_queue = self.amber_listener_queue
             target_queue = self.amber_trigger_queue
-        elif service == 'amber_triggering':
-            source_queue = self.amber_trigger_queue
-            target_queue = None
         elif service == 'amber_clustering':
             source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue
@@ -457,7 +459,7 @@ class DARCMaster(object):
         :param config_file: Path to observation config file
         """
 
-        self.logger.info("Starting observation with config file {}".format(config_file))
+        self.logger.info("Received start_observation command with config file {}".format(config_file))
         # check if config file exists
         if not os.path.isfile(config_file):
             self.logger.error("File not found: {}".format(config_file))
@@ -487,57 +489,47 @@ class DARCMaster(object):
             self.logger.error("Could not store config file: {}".format(e))
 
         # initialize observation
-        # Real-time procesing
-        if self.real_time:
-            if self.hostname == MASTER:
-                self.logger.info("Nothing to start yet for real-time processing on master node")
-            elif self.hostname in WORKERS:
-                self.logger.info("Starting real-time processing on worker node")
-                # clear all queues
-                self.logger.info("Clearing queues")
-                for queue in self.all_queues:
-                    util.clear_queue(queue)
-                # ensure all services are running
-                self.logger.info("Making sure all services are running")
-                for service in self.services:
-                    self.start_service(service)
-                # start observation by feeding obs config to all queues
-                command = {'command': 'start_observation', 'obs_config': config}
-                for queue in self.all_queues:
-                    queue.put(command)
-            else:
-                self.logger.error("Running on unknown host: {}".format(self.hostname))
-                return "Error", "Failed: running on unknown host"
+        # ensure services are running
+        for service in self.services:
+            self.start_service(service)
 
-            return "Success", "Observation started for real-time processing"
-        # Offline processing
+        # check host type
+        if self.hostname == MASTER:
+            host_type = 'master'
+        elif self.hostname in WORKERS:
+            host_type = 'worker'
         else:
-            # ensure services are running
-            for service in self.services:
-                self.start_service(service)
-            # set host type and send config to offline processing
-            command = {}
-            if self.hostname == MASTER:
-                command['host_type'] = 'master'
-            elif self.hostname in WORKERS:
-                command['host_type'] = 'worker'
-            else:
-                self.logger.error("Running on unknown host: {}".format(self.hostname))
-                return "Error", "Failed: running on unknown host"
+            self.logger.error("Running on unknown host: {}".format(self.hostname))
+            return "Error", "Failed: running on unknown host"
 
-            command['obs_config'] = config
-            # put commands on queue
-            self.processor_queue.put(command)
-            return "Success", "Observation started for offline processing"
+        # wait until start time
+        utc_start = Time(config['startpacket'] / 781250., format='unix')
+        t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
+        self.logger.info("Starting observation at {}".format(t_setup))
+        util.sleepuntil_utc(t_setup)
 
-    def stop_observation(self):
+        # create command
+        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
+        # clear queues, then send command
+        for queue in self.all_queues:
+            util.clear_queue(queue)
+        for queue in self.all_queues:
+            queue.put(command)
+
+    def stop_observation(self, abort=False):
         """
         Stop an observation
+        :param abort: whether to abort the observation
         :return: status, reply message
         """
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
+            # in mixed mode, skip stopping offline_procssing, unless abort is True
+            if (self.mode == 'mixed') and (queue == self.processor_queue) and not abort:
+                self.logger.info("Skipping stopping offline processing in mixed mode")
+                continue
             queue.put({'command': 'stop_observation'})
+
         status = 'Success'
         reply = "Stopped observation"
         self.logger.info("Stopped observation")

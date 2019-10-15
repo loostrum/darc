@@ -14,7 +14,7 @@ except ImportError:
     from Queue import Empty
 
 from darc.logger import get_logger
-from darc.definitions import CONFIG_FILE
+from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 
 
 class DARCBase(threading.Thread):
@@ -55,13 +55,23 @@ class DARCBase(threading.Thread):
         self.logger = get_logger(name, self.log_file)
         self.logger.info("{} initialized".format(self.log_name))
 
+        # set host type
+        hostname = socket.gethostname()
+        if hostname == MASTER:
+            self.host_type = 'master'
+        elif hostname in WORKERS:
+            self.host_type = 'worker'
+        else:
+            self.logger.warning("Running on unknown host")
+            self.host_type = None
+
     def stop(self):
         """
         Set the stop event
         """
         self.logger.info("Stopping {}".format(self.log_name))
-        self.stop_event.set()
         self.cleanup()
+        self.stop_event.set()
 
     def set_source_queue(self, queue):
         """
@@ -116,7 +126,13 @@ class DARCBase(threading.Thread):
                     self.stop_observation()
                 else:
                     self.process_command(command)
+        # EOFError can occur due to usage of queues
+        # Can be ignored
+        except EOFError:
+            pass
         except Exception as e:
+            if isinstance(e, EOFError):
+                self.logger.info("Found EOF Error")
             self.logger.error("Caught exception in main loop: {}".format(e))
             self.stop()
 

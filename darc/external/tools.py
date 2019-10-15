@@ -307,8 +307,11 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     elif type(fn)==np.ndarray:
         dm, sig, tt, downsample = fn[:,0], fn[:,1], fn[:,2], fn[:,3]
     else:
-        print("Wrong input type. Expected string or nparray")
-        return [],[],[],[],[]
+        #print("Wrong input type. Expected string or nparray")
+        if sb is not None:
+            return [],[],[],[],[],[]
+        else:
+            return [],[],[],[],[]
 
     ntrig_orig = len(dm)
 
@@ -322,8 +325,11 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         sb_cut = []
 
     if len(tt)==0:
-        print("Returning None: time array is empty")
-        return 
+        #print("Returning None: time array is empty")
+        if sb is not None:
+            return [],[],[],[],[],[]
+        else:
+            return [],[],[],[],[]
 
     tduration = tt.max() - tt.min()
     ntime = int(tduration / t_window)
@@ -339,8 +345,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
 #    dm_list = dm_range(dm_max, dm_min=dm_min)
     dm_list = dm_range(1.1*dm.max(), dm_min=0.9*dm.min())
 
-    print(("\nGrouping in window of %.2f sec" % np.round(t_window,2)))
-    print(("DMs:", dm_list))
+    #print(("\nGrouping in window of %.2f sec" % np.round(t_window,2)))
+    #print(("DMs:", dm_list))
 
     tt_start = tt.min() - .5*t_window
     ind_full = []
@@ -380,7 +386,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
 
     ntrig_group = len(dm_cut)
 
-    print(("Grouped down to %d triggers from %d\n" % (ntrig_group, ntrig_orig)))
+    #print(("Grouped down to %d triggers from %d\n" % (ntrig_group, ntrig_orig)))
 
     rm_ii = []
 
