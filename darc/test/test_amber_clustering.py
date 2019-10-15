@@ -30,6 +30,9 @@ class TestAMBERClustering(unittest.TestCase):
         # start the clustering
         clustering.start()
 
+        # overwrite source list location
+        clustering.source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source_list.yaml')
+
         # load triggers to put on queue
         nline_to_check = 100
         trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
@@ -70,7 +73,6 @@ class TestAMBERClustering(unittest.TestCase):
                 break
         if not output:
             self.fail("No clusters received")
-        print(output)
 
         # stop clustering
         in_queue.put({'command': 'stop_observation'})

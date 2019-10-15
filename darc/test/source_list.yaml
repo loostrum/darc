@@ -1,0 +1,15 @@
+# Here we keep track of known sources and their DMs,
+# in order to (avoid) IQUV / LOFAR triggering
+# supplying part of a source name is ok
+
+pulsars:
+    'B0329+54': 26.8
+    'B0531+21': 56.8
+    'B0950+08': 3.0
+    'B1933+16': 158.5
+
+frbs:
+    'none': 0
+
+aliases:
+    'none': 0
