@@ -51,7 +51,7 @@ class TestDADATrigger(unittest.TestCase):
         event = dedent("""\
                        N_EVENTS 1
                        {utc_start}
-                       {event_start} {event_start_frac} {event_end} {event_end_frac} {snr} {dm} {width} {beam}
+                       {event_start} {event_start_frac} {event_end} {event_end_frac} {dm} {snr} {width} {beam}
                        """.format(**event_info))
         return trigger, event
         
