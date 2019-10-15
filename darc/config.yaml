@@ -51,8 +51,9 @@ amber_clustering:
     can_trigger_lofar: False
     # thresholds for IQUV triggering
     thresh_iquv:
-      # dm_frac_min: .8  # fraction of max MW contribution. Maybe to be used instead of source list
-      snr_min: 12
+      dm_frac_min: 1.2  # fraction of max MW contribution
+      width_max: 122  # corresponds to 10ms
+      snr_min: 10
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be more strict than IQUV thresholds for each parameter

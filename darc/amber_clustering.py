@@ -149,8 +149,6 @@ class AMBERClustering(DARCBase):
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
         cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
         dmgal = self._get_ymw16(self.obs_config)
-        # dm_min_iquv = dmgal * self.thresh_iquv['dm_frac_min']
-        # dm_min_lofar = dmgal * self.thresh_lofar['dm_frac_min']
 
         # get min and max DM based on source name
         try:
@@ -182,13 +180,15 @@ class AMBERClustering(DARCBase):
                 break
         if dm_src is None:
             # still not found, no DM known.
-            self.logger.warning("Source not found: {}, disabling triggering".format(source))
-            return
-
-        # set min and max dm
-        dm_max = dm_src + self.dm_range
-        dm_min = max(dm_src - self.dm_range, 0)
-        self.logger.info("Found source {}. Setting DM range to {} - {}".format(source, dm_min, dm_max))
+            dm_max = None
+            dm_min = dmgal * self.thresh_iquv['dm_frac_min']
+            self.logger.info("Source not found: {}, using generic triggering settings".format(source))
+        else:
+            # set min and max dm
+            width_max = np.inf
+            dm_max = dm_src + self.dm_range
+            dm_min = max(dm_src - self.dm_range, 0)
+            self.logger.info("Found source {}. Setting DM range to {} - {}".format(source, dm_min, dm_max))
 
         while self.observation_running:
             if self.amber_triggers:
@@ -249,6 +249,13 @@ class AMBERClustering(DARCBase):
                 self.logger.info("Clustered {} raw triggers into {} IQUV triggers".format(len(triggers_for_clustering),
                                                                                           len(cluster_snr)))
 
+                # select on width
+                mask = cluster_downsamp < width_max
+                cluster_snr = cluster_snr[mask]
+                cluster_dm = cluster_dm[mask]
+                cluster_time = cluster_time[mask]
+                cluster_downsamp = cluster_downsamp[mask]
+                cluster_sb = cluster_sb[mask]
                 ncluster = len(cluster_snr)
                 if ncluster > 0:
                     if not self.can_trigger_iquv:
