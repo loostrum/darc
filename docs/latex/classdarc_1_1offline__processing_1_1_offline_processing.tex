@@ -1,0 +1,235 @@
+\hypertarget{classdarc_1_1offline__processing_1_1_offline_processing}{}\section{darc.\+offline\+\_\+processing.\+Offline\+Processing Class Reference}
+\label{classdarc_1_1offline__processing_1_1_offline_processing}\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+Inheritance diagram for darc.\+offline\+\_\+processing.\+Offline\+Processing\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdarc_1_1offline__processing_1_1_offline_processing}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a99afa1c4f6f91890f17c7c39bda54696}\label{classdarc_1_1offline__processing_1_1_offline_processing_a99afa1c4f6f91890f17c7c39bda54696}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_abfffd0fa408fa946fdc8d60662e1dc41}{set\+\_\+source\+\_\+queue}} (self, queue)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_ab42c7966d7982b49acd82ad2a596b460}{stop}} (self)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a54eaa9ed16ace461feaed56058f6372c}{run}} (self)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a65452452eba43a6230bf0dd27e9f7ee8}\label{classdarc_1_1offline__processing_1_1_offline_processing_a65452452eba43a6230bf0dd27e9f7ee8}} 
+{\bfseries daemon}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a2e6148da8f3ac735b9df8d756f0fc615}\label{classdarc_1_1offline__processing_1_1_offline_processing_a2e6148da8f3ac735b9df8d756f0fc615}} 
+{\bfseries stop\+\_\+event}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a83a1d9cdf158ad1da548974a78fcde19}\label{classdarc_1_1offline__processing_1_1_offline_processing_a83a1d9cdf158ad1da548974a78fcde19}} 
+{\bfseries observation\+\_\+queue}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a06d8ca5b3455b83bcb7b9026fc4bc9b6}\label{classdarc_1_1offline__processing_1_1_offline_processing_a06d8ca5b3455b83bcb7b9026fc4bc9b6}} 
+{\bfseries threads}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_ad2eb0302c59a43942ff7f9ea39ba9a08}\label{classdarc_1_1offline__processing_1_1_offline_processing_ad2eb0302c59a43942ff7f9ea39ba9a08}} 
+{\bfseries config}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_ac47b62d8aa432b95b0315ad204b15ab6}\label{classdarc_1_1offline__processing_1_1_offline_processing_ac47b62d8aa432b95b0315ad204b15ab6}} 
+{\bfseries logger}
+\item 
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a6bc7cb0cbea8874deeafb19155740acc}\label{classdarc_1_1offline__processing_1_1_offline_processing_a6bc7cb0cbea8874deeafb19155740acc}} 
+{\bfseries host\+\_\+type}
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a337eccf1c9dad9e6f24a047c8715b7d5}{\+\_\+start\+\_\+observation\+\_\+master}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_aa41e6768c0863aeb0266670ef67e02ad}{\+\_\+start\+\_\+observation\+\_\+worker}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a65fccfa1fa2618873c2d86b5e5b3b7f6}{\+\_\+merge\+\_\+triggers}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a1cfab9b2b2b47612dbf26ade9f3c36a4}{\+\_\+cluster}} (self, obs\+\_\+config, filterbank\+\_\+name, tab=None, ind=None, sbmin=None, sbmax=None, out=None)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a3267c51a62c3022f47423d374833571e}{\+\_\+merge\+\_\+hdf5}} (self, obs\+\_\+config, output\+\_\+file)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a2353ffe1274b3217edd28839bdaa2f41}{\+\_\+classify}} (self, obs\+\_\+config, input\+\_\+file)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_ac1e6e317518b89b7f8475a5f7e002be1}{\+\_\+merge\+\_\+plots}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a063c95259a4d840c774dd24e960b3d1f}{\+\_\+gather\+\_\+results}} (self, obs\+\_\+config, $\ast$$\ast$kwargs)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_abffc70755e8cc6a67c4b4475e35fe18f}{\+\_\+get\+\_\+coordinates}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a4a5ed630ad941ee39f1dace63afabee0}{\+\_\+get\+\_\+overview}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a24c8331e60cadfcb4ced2a6aeb5faf01}{\+\_\+get\+\_\+ymw16}} (self, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a365b8c9dd4245e94518ed76fb4af522d}{\+\_\+fold\+\_\+pulsar}} (self, source, obs\+\_\+config)
+\item 
+def \mbox{\hyperlink{classdarc_1_1offline__processing_1_1_offline_processing_a347b007864d5a14e30ac984bc6da1ad7}{\+\_\+load\+\_\+parset}} (self, obs\+\_\+config)
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a2353ffe1274b3217edd28839bdaa2f41}\label{classdarc_1_1offline__processing_1_1_offline_processing_a2353ffe1274b3217edd28839bdaa2f41}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_classify@{\_classify}}
+\index{\_classify@{\_classify}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_classify()}{\_classify()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+classify (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config,  }\item[{}]{input\+\_\+file }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Run the ML classifier in python 3 virtualenv
+:param obs_config: Observation config
+:param input_file: HDF5 file to process
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a1cfab9b2b2b47612dbf26ade9f3c36a4}\label{classdarc_1_1offline__processing_1_1_offline_processing_a1cfab9b2b2b47612dbf26ade9f3c36a4}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_cluster@{\_cluster}}
+\index{\_cluster@{\_cluster}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_cluster()}{\_cluster()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+cluster (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config,  }\item[{}]{filterbank\+\_\+name,  }\item[{}]{tab = {\ttfamily None},  }\item[{}]{ind = {\ttfamily None},  }\item[{}]{sbmin = {\ttfamily None},  }\item[{}]{sbmax = {\ttfamily None},  }\item[{}]{out = {\ttfamily None} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Run triggers.py
+:param obs_config: Observation config
+:param filterbank_name: Full path to filterbank file (TAB/IAB) or prefix (SB) to use
+:param tab: TAB number to process (0 for IAB, absent/None for SB)
+:param ind: Index of out array where
+:param sbmin: First SB to process (SB mode only)
+:param sbmax: Last SB to process (SB mode only)
+:param out: array where return value is put at index <ind> (optional)
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a365b8c9dd4245e94518ed76fb4af522d}\label{classdarc_1_1offline__processing_1_1_offline_processing_a365b8c9dd4245e94518ed76fb4af522d}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_fold\_pulsar@{\_fold\_pulsar}}
+\index{\_fold\_pulsar@{\_fold\_pulsar}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_fold\_pulsar()}{\_fold\_pulsar()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+fold\+\_\+pulsar (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{source,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Fold pulsar with PRESTO
+:param source: pulsar name including B or J
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a063c95259a4d840c774dd24e960b3d1f}\label{classdarc_1_1offline__processing_1_1_offline_processing_a063c95259a4d840c774dd24e960b3d1f}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_gather\_results@{\_gather\_results}}
+\index{\_gather\_results@{\_gather\_results}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_gather\_results()}{\_gather\_results()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+gather\+\_\+results (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config,  }\item[{$\ast$$\ast$}]{kwargs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Gather output results and put in central location
+:param obs_config: Observation config
+:param kwargs: number of candidates, output prefixes
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_abffc70755e8cc6a67c4b4475e35fe18f}\label{classdarc_1_1offline__processing_1_1_offline_processing_abffc70755e8cc6a67c4b4475e35fe18f}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_get\_coordinates@{\_get\_coordinates}}
+\index{\_get\_coordinates@{\_get\_coordinates}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_get\_coordinates()}{\_get\_coordinates()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+get\+\_\+coordinates (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Generate the coordinates file from the pointing directions
+:param obs_config: Observation config
+#:return: dict with RA, Dec, gl, gb for each CB
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a4a5ed630ad941ee39f1dace63afabee0}\label{classdarc_1_1offline__processing_1_1_offline_processing_a4a5ed630ad941ee39f1dace63afabee0}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_get\_overview@{\_get\_overview}}
+\index{\_get\_overview@{\_get\_overview}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_get\_overview()}{\_get\_overview()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+get\+\_\+overview (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Generate observation overview file
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a24c8331e60cadfcb4ced2a6aeb5faf01}\label{classdarc_1_1offline__processing_1_1_offline_processing_a24c8331e60cadfcb4ced2a6aeb5faf01}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_get\_ymw16@{\_get\_ymw16}}
+\index{\_get\_ymw16@{\_get\_ymw16}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_get\_ymw16()}{\_get\_ymw16()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+get\+\_\+ymw16 (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Get YMW16 DM
+:param obs_config: Observation config
+:return: YMW16 DM
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a347b007864d5a14e30ac984bc6da1ad7}\label{classdarc_1_1offline__processing_1_1_offline_processing_a347b007864d5a14e30ac984bc6da1ad7}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_load\_parset@{\_load\_parset}}
+\index{\_load\_parset@{\_load\_parset}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_load\_parset()}{\_load\_parset()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+load\+\_\+parset (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Load the observation parset
+:param obs_config: Observation config
+:return: parset as dict
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a3267c51a62c3022f47423d374833571e}\label{classdarc_1_1offline__processing_1_1_offline_processing_a3267c51a62c3022f47423d374833571e}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_merge\_hdf5@{\_merge\_hdf5}}
+\index{\_merge\_hdf5@{\_merge\_hdf5}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_merge\_hdf5()}{\_merge\_hdf5()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+merge\+\_\+hdf5 (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config,  }\item[{}]{output\+\_\+file }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Merge HDF5 files generated by clustering
+:param obs_config: Observation config
+:param output_file: Filename of merged HDF5 data
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_ac1e6e317518b89b7f8475a5f7e002be1}\label{classdarc_1_1offline__processing_1_1_offline_processing_ac1e6e317518b89b7f8475a5f7e002be1}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_merge\_plots@{\_merge\_plots}}
+\index{\_merge\_plots@{\_merge\_plots}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_merge\_plots()}{\_merge\_plots()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+merge\+\_\+plots (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Merge classifier output plots
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a65fccfa1fa2618873c2d86b5e5b3b7f6}\label{classdarc_1_1offline__processing_1_1_offline_processing_a65fccfa1fa2618873c2d86b5e5b3b7f6}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_merge\_triggers@{\_merge\_triggers}}
+\index{\_merge\_triggers@{\_merge\_triggers}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_merge\_triggers()}{\_merge\_triggers()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+merge\+\_\+triggers (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Merge AMBER triggers into one file
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a337eccf1c9dad9e6f24a047c8715b7d5}\label{classdarc_1_1offline__processing_1_1_offline_processing_a337eccf1c9dad9e6f24a047c8715b7d5}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_start\_observation\_master@{\_start\_observation\_master}}
+\index{\_start\_observation\_master@{\_start\_observation\_master}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_start\_observation\_master()}{\_start\_observation\_master()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+start\+\_\+observation\+\_\+master (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Start observation on master node
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_aa41e6768c0863aeb0266670ef67e02ad}\label{classdarc_1_1offline__processing_1_1_offline_processing_aa41e6768c0863aeb0266670ef67e02ad}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!\_start\_observation\_worker@{\_start\_observation\_worker}}
+\index{\_start\_observation\_worker@{\_start\_observation\_worker}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{\_start\_observation\_worker()}{\_start\_observation\_worker()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+\_\+start\+\_\+observation\+\_\+worker (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{obs\+\_\+config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyVerb}Start observation on worker node
+:param obs_config: Observation config
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_a54eaa9ed16ace461feaed56058f6372c}\label{classdarc_1_1offline__processing_1_1_offline_processing_a54eaa9ed16ace461feaed56058f6372c}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!run@{run}}
+\index{run@{run}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+run (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Wait for start_observation command
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_abfffd0fa408fa946fdc8d60662e1dc41}\label{classdarc_1_1offline__processing_1_1_offline_processing_abfffd0fa408fa946fdc8d60662e1dc41}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!set\_source\_queue@{set\_source\_queue}}
+\index{set\_source\_queue@{set\_source\_queue}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{set\_source\_queue()}{set\_source\_queue()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+set\+\_\+source\+\_\+queue (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{queue }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}:param queue: Source of start_observation commands
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1offline__processing_1_1_offline_processing_ab42c7966d7982b49acd82ad2a596b460}\label{classdarc_1_1offline__processing_1_1_offline_processing_ab42c7966d7982b49acd82ad2a596b460}} 
+\index{darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}!stop@{stop}}
+\index{stop@{stop}!darc.offline\_processing.OfflineProcessing@{darc.offline\_processing.OfflineProcessing}}
+\subsubsection{\texorpdfstring{stop()}{stop()}}
+{\footnotesize\ttfamily def darc.\+offline\+\_\+processing.\+Offline\+Processing.\+stop (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Stop the service
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+darc/offline\+\_\+processing.\+py\end{DoxyCompactItemize}

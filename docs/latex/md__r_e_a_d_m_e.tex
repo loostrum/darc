@@ -1,0 +1,36 @@
+Data Analysis of Real-\/time Candidates from A\+R\+TS
+
+master\+: \href{https://travis-ci.com/loostrum/darc}{\texttt{ }}
+
+dev\+: \href{https://travis-ci.com/loostrum/darc}{\texttt{ }}
+
+This repository contains the necessary software to automatically process F\+RB candidates produced by the A\+R\+TS real-\/time system. The main executable should only be run on the A\+R\+TS cluster.
+
+\subsubsection*{Branches}
+
+Note\+: I\+AB modes also support processing the central T\+AB.
+\begin{DoxyItemize}
+\item master\+: Offline, T\+AB mode processing.
+\item dev\+: Development of real-\/time processing
+\item test\+\_\+trigger\+: Directly apply thresholds to A\+M\+B\+ER triggers to test I\+Q\+UV triggering (I\+AB).
+\end{DoxyItemize}
+
+\subsubsection*{Overview}
+
+D\+A\+RC comprises several parts that communicate through either queues or sockets. The availability of different services depends on which branch is active.
+
+
+\begin{DoxyItemize}
+\item D\+A\+R\+C\+Master\+: Master service. Handles communication with user, controls all other services.
+\item A\+M\+B\+E\+R\+Listener\+: Continuously reads A\+M\+B\+ER triggers and puts them on a Python queue (for clustering or direct triggering).
+\item A\+M\+B\+E\+R\+Clustering\+: Clusters A\+M\+B\+ER triggers together and puts them on D\+A\+DA trigger queue.
+\item A\+M\+B\+E\+R\+Triggering\+: Directly applies thresholds to A\+M\+B\+ER triggers and puts triggers on V\+O\+Event queue.
+\item D\+A\+D\+A\+Trigger\+: Generates and send dada\+\_\+dbevent triggers for stokes I and I\+Q\+UV
+\item V\+O\+Event\+Generator\+: Converts incoming trigger to V\+O\+Event and sends it.
+\item Status\+Website\+: Queries status of all services and generates status webpage.
+\item Offline\+Procesing\+: Handles offline processing for 12 T\+A\+Bs / I\+AB.
+\end{DoxyItemize}
+
+\subsubsection*{Executables}
+
+{\ttfamily darc}\+: Used to interact with the all services through the D\+A\+RC Master service.\textbackslash{} {\ttfamily darc\+\_\+start\+\_\+master}\+: Starts the D\+A\+RC Master service if not already running.\textbackslash{} {\ttfamily darc\+\_\+stop\+\_\+master}\+: Stops the D\+A\+RC Master service and by extension all other services.\textbackslash{} {\ttfamily darc\+\_\+start\+\_\+all\+\_\+services}\+: Starts all services, including D\+A\+RC Master if it is not running.\textbackslash{} {\ttfamily darc\+\_\+stop\+\_\+all\+\_\+services}\+: Stops all services except D\+A\+RC Master.\textbackslash{} {\ttfamily darc\+\_\+kill\+\_\+all}\+: Kill D\+A\+RC Master service and by extension all other services.\textbackslash{} {\ttfamily darc\+\_\+service}\+: The D\+A\+RC Master service. Should not be started directly, but through {\ttfamily darc\+\_\+start\+\_\+master} or {\ttfamily darc\+\_\+start\+\_\+all\+\_\+services} 

@@ -1,0 +1,145 @@
+\hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools}{}\section{darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools Class Reference}
+\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools}\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_ad70f2490dd7786e16dc51864a407b737}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_ad70f2490dd7786e16dc51864a407b737}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self)
+\item 
+def \mbox{\hyperlink{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a0d702d754a0292c33de8f7ef097a8cff}{sigma\+\_\+from\+\_\+mad}} (self, data)
+\item 
+def \mbox{\hyperlink{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a43bc80cfc5246e566f10e35753b34c1e}{calc\+\_\+snr\+\_\+presto}} (self, data)
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_aec625935372545d1a31ff5c4e51b1123}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_aec625935372545d1a31ff5c4e51b1123}} 
+def {\bfseries calc\+\_\+snr\+\_\+amber} (self, data, thresh=3.)
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a050c6f507006ed54e89fd55a8ada4468}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a050c6f507006ed54e89fd55a8ada4468}} 
+def {\bfseries calc\+\_\+snr\+\_\+mad} (self, data)
+\item 
+def \mbox{\hyperlink{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a97eef6fc596dc73dbe0b098aef56be99}{calc\+\_\+snr\+\_\+matchedfilter}} (self, data, widths=None)
+\item 
+def \mbox{\hyperlink{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a1bc0ca3b5fbb0f53f6af672622507687}{calc\+\_\+snr\+\_\+widths}} (self, data, widths=None)
+\item 
+def \mbox{\hyperlink{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a40765ebd3feabd12ad928534625000f6}{compare\+\_\+snr}} (self, fn\+\_\+1, fn\+\_\+2, dm\+\_\+min=0, dm\+\_\+max=np.\+inf, save\+\_\+data=False, sig\+\_\+thresh=5.\+0, t\+\_\+window=0.\+5, max\+\_\+rows=None, t\+\_\+max=np.\+inf, tab=None)
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a201df3687bac2f632ced5de3c588cccb}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a201df3687bac2f632ced5de3c588cccb}} 
+def {\bfseries plot\+\_\+comparison} (self, par\+\_\+1, par\+\_\+2, par\+\_\+match\+\_\+arr, ind\+\_\+missed, figname=\textquotesingle{}./test.\+pdf\textquotesingle{})
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a138d86a18cce2734f8d9efa02efc60ec}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a138d86a18cce2734f8d9efa02efc60ec}} 
+{\bfseries arr\+\_\+copy} = data.\+copy()
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a256f817a68af00c83f7a7574ea46f2bf}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a256f817a68af00c83f7a7574ea46f2bf}} 
+{\bfseries arr\+\_\+} = arr\+\_\+copy\mbox{[}\+:ntime//ii$\ast$ii\mbox{]}.reshape(-\/1, ii).mean(-\/1)
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a63b3131f9dbc1d336bb4e2ddf8fe1a6a}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a63b3131f9dbc1d336bb4e2ddf8fe1a6a}} 
+{\bfseries snr\+\_\+} = self.\+calc\+\_\+snr(arr\+\_\+)
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_af5d449c302217f59e3646177c5f8ad9c}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_af5d449c302217f59e3646177c5f8ad9c}} 
+{\bfseries snr\+\_\+max} = snr\+\_\+
+\item 
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a065516ebacdf7a88f2abac869a28d516}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a065516ebacdf7a88f2abac869a28d516}} 
+{\bfseries width\+\_\+max} = ii
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a97eef6fc596dc73dbe0b098aef56be99}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a97eef6fc596dc73dbe0b098aef56be99}} 
+\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}!calc\_snr\_matchedfilter@{calc\_snr\_matchedfilter}}
+\index{calc\_snr\_matchedfilter@{calc\_snr\_matchedfilter}!darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsubsection{\texorpdfstring{calc\_snr\_matchedfilter()}{calc\_snr\_matchedfilter()}}
+{\footnotesize\ttfamily def darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools.\+calc\+\_\+snr\+\_\+matchedfilter (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{data,  }\item[{}]{widths = {\ttfamily None} }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate the S/N of pulse profile after 
+trying 9 rebinnings.
+
+Parameters
+----------
+arr   : np.array
+    (ntime,) vector of pulse profile 
+
+Returns
+-------
+snr : np.float 
+    S/N of pulse
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a43bc80cfc5246e566f10e35753b34c1e}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a43bc80cfc5246e566f10e35753b34c1e}} 
+\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}!calc\_snr\_presto@{calc\_snr\_presto}}
+\index{calc\_snr\_presto@{calc\_snr\_presto}!darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsubsection{\texorpdfstring{calc\_snr\_presto()}{calc\_snr\_presto()}}
+{\footnotesize\ttfamily def darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools.\+calc\+\_\+snr\+\_\+presto (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{data }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate S/N of 1D input array (data)
+after excluding 0.05 at tails
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a1bc0ca3b5fbb0f53f6af672622507687}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a1bc0ca3b5fbb0f53f6af672622507687}} 
+\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}!calc\_snr\_widths@{calc\_snr\_widths}}
+\index{calc\_snr\_widths@{calc\_snr\_widths}!darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsubsection{\texorpdfstring{calc\_snr\_widths()}{calc\_snr\_widths()}}
+{\footnotesize\ttfamily def darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools.\+calc\+\_\+snr\+\_\+widths (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{data,  }\item[{}]{widths = {\ttfamily None} }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate the S/N of pulse profile after 
+trying 9 rebinnings.
+
+Parameters
+----------
+arr   : np.array
+    (ntime,) vector of pulse profile 
+
+Returns
+-------
+snr : np.float 
+    S/N of pulse
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a40765ebd3feabd12ad928534625000f6}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a40765ebd3feabd12ad928534625000f6}} 
+\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}!compare\_snr@{compare\_snr}}
+\index{compare\_snr@{compare\_snr}!darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsubsection{\texorpdfstring{compare\_snr()}{compare\_snr()}}
+{\footnotesize\ttfamily def darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools.\+compare\+\_\+snr (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{fn\+\_\+1,  }\item[{}]{fn\+\_\+2,  }\item[{}]{dm\+\_\+min = {\ttfamily 0},  }\item[{}]{dm\+\_\+max = {\ttfamily np.inf},  }\item[{}]{save\+\_\+data = {\ttfamily False},  }\item[{}]{sig\+\_\+thresh = {\ttfamily 5.0},  }\item[{}]{t\+\_\+window = {\ttfamily 0.5},  }\item[{}]{max\+\_\+rows = {\ttfamily None},  }\item[{}]{t\+\_\+max = {\ttfamily np.inf},  }\item[{}]{tab = {\ttfamily None} }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read in two files with single-pulse candidates
+and compare triggers.
+
+Parameters:
+----------
+fn_1 : str 
+    name of input triggers text file
+    (must be .trigger, .singlepulse, or .txt)
+fn_2 : str
+    name of input triggers text file for comparison 
+dm_min : float
+    do not process triggers below this DM 
+dm_max : float 
+    do not process triggers above this DM 
+save_data : bool 
+    if True save to np.array
+sig_thresh : float 
+    do not process triggers below this S/N 
+t_window : float 
+    time window within which triggers in 
+    fn_1 and fn_2 will be considered the same 
+
+Return:
+-------
+Function returns four parameter arrays for 
+each fn_1 and fn_2, which should be ordered so 
+that they can be compared directly:
+
+grouped_params1, grouped_params2, matched_params
+\end{DoxyVerb}
+ \mbox{\Hypertarget{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a0d702d754a0292c33de8f7ef097a8cff}\label{classdarc_1_1external_1_1tools_1_1_s_n_r___tools_a0d702d754a0292c33de8f7ef097a8cff}} 
+\index{darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}!sigma\_from\_mad@{sigma\_from\_mad}}
+\index{sigma\_from\_mad@{sigma\_from\_mad}!darc.external.tools.SNR\_Tools@{darc.external.tools.SNR\_Tools}}
+\subsubsection{\texorpdfstring{sigma\_from\_mad()}{sigma\_from\_mad()}}
+{\footnotesize\ttfamily def darc.\+external.\+tools.\+S\+N\+R\+\_\+\+Tools.\+sigma\+\_\+from\+\_\+mad (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{data }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get gaussian std from median 
+aboslute deviation (MAD)
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+darc/external/tools.\+py\end{DoxyCompactItemize}
