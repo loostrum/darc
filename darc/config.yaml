@@ -6,7 +6,7 @@ darc_master:
     socket_timeout: 30  # for creating socket
     setup_time: 5  # start_observation is sent this long before the actual start time
     stop_timeout: 5  # for stopping services
-    mode:  'offline'  # real-time, offline, or mixed
+    mode:  'mixed'  # real-time, offline, or mixed
     services_master_rt: ["status_website", "voevent_generator"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website", "voevent_generator"]
@@ -30,6 +30,7 @@ status_website:
         voevent_generator: "VOEvent generator"
         status_website: "Status website"
         amber_listener: "AMBER listener"
+        amber_clustering: "AMBER clustering"
         offline_processing: "Offline processing"
         dada_trigger: "DADA triggering"
         processor: "Processor"
