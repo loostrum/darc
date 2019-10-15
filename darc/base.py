@@ -132,7 +132,7 @@ class DARCBase(threading.Thread):
             pass
         except Exception as e:
             if isinstance(e, EOFError):
-                self.logger.info("Found EOF ERror")
+                self.logger.info("Found EOF Error")
             self.logger.error("Caught exception in main loop: {}".format(e))
             self.stop()
 

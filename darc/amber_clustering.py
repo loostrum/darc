@@ -48,7 +48,11 @@ class AMBERClustering(DARCBase):
 
         # connect to VOEvent generator
         if connect_vo:
-            self.vo_queue = self.voevent_connector()
+            try:
+                self.vo_queue = self.voevent_connector()
+            except Exception as e:
+                self.logger.error("Failed to connect to VOEvent Generator: {}".format(e))
+                self.vo_queue = mp.Queue()
         else:
             # dummy queue
             self.vo_queue = mp.Queue()
