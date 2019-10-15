@@ -749,7 +749,11 @@ class OfflineProcessing(threading.Thread):
         # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
         gl, gb = pointing.galactic.to_string(precision=8).split(' ')
         cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
-        result = subprocess.check_output(cmd)
+        try:
+            result = subprocess.check_output(cmd)
+        except OSError as e:
+            self.logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
+            return 0
         try:
             dm = float(result.split()[7])
         except Exception as e:
