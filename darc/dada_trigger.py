@@ -90,12 +90,12 @@ class DADATrigger(DARCBase):
             # here already sure that stokes.upper() is either IQUV or I
             if stokes.upper() == 'I':
                 ntrig_i += 1
-                events_i += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {snr} "
-                             "{dm} {width} {beam}\n".format(**trigger))
+                events_i += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {dm} "
+                             "{snr} {width} {beam}\n".format(**trigger))
             else:
                 ntrig_iquv += 1
-                events_iquv += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {snr} "
-                                "{dm} {width} {beam}\n".format(**trigger))
+                events_iquv += ("{event_start} {event_start_frac} {event_end} {event_end_frac} {dm} "
+                                "{snr} {width} {beam}\n".format(**trigger))
 
         # send stokes I events
         if ntrig_i > 0:
