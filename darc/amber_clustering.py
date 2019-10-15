@@ -354,13 +354,14 @@ class AMBERClustering(DARCBase):
         :param obs_config: Observation config
         :return: parset as dict
         """
-        if self.host_type == 'master':
+        try:
             # encoded parset is already in config on master node
             # decode the parset
             raw_parset = util.decode_parset(obs_config['parset'])
             # convert to dict and store
             parset = util.parse_parset(raw_parset)
-        else:
+        except KeyError:
+            self.logger.info("Observation parset not found in input config, looking for master parset")
             # Load the parset from the master parset file
             master_config_file = os.path.join(obs_config['master_dir'], 'parset', 'darc_master.parset')
             try:

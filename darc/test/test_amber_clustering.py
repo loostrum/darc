@@ -4,17 +4,16 @@ import os
 import unittest
 import multiprocessing as mp
 from time import sleep
-import numpy as np
 from astropy.time import Time
 from queue import Empty
 
 from darc.amber_clustering import AMBERClustering
+from darc import util
 
 
-@unittest.skip("To be updated for new AMBERClustering")
 class TestAMBERClustering(unittest.TestCase):
 
-    def test_clusters_without_thresholds(self):
+    def test_clustering_iquv(self):
         """
         Test AMBER clustering without applying thresholds
         """
@@ -27,17 +26,12 @@ class TestAMBERClustering(unittest.TestCase):
         # set the queues
         clustering.set_source_queue(in_queue)
         clustering.set_target_queue(out_queue)
-        # remove tresholds
-        clustering.age_max = np.inf
-        clustering.dm_min = 0
-        clustering.dm_max = np.inf
-        clustering.snr_min = 0
 
         # start the clustering
         clustering.start()
 
         # load triggers to put on queue
-        nline_to_check = 50
+        nline_to_check = 100
         trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
         with open(trigger_file, 'r') as f:
             triggers = f.readlines()
@@ -46,9 +40,21 @@ class TestAMBERClustering(unittest.TestCase):
             triggers = triggers[:nline_to_check]
 
         # start observation
+        # create input parset with required keys
+        # source has to match trigger file DMs
+        beam = 0
+        parset_dict = {'task.source.name': 'B0531+21',
+                       'task.beamSet.0.compoundBeam.{}.phaseCenter'.format(beam): '[83.633deg, 22.0144deg]',
+                       'task.directionReferenceFrame': 'J2000'}
+        # encode parset
+        parset_str = ''
+        for k, v in parset_dict.items():
+            parset_str += '{}={}\n'.format(k, v)
+        parset_enc = util.encode_parset(parset_str)
+
         utc_start = Time.now()
         obs_config = {'startpacket': int(utc_start.unix*781250), 'min_freq': 1219.70092773,
-                      'network_port_event_i': 30000}
+                      'beam': beam, 'parset': parset_enc}
         in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
 
         # put triggers on queue
@@ -67,18 +73,14 @@ class TestAMBERClustering(unittest.TestCase):
         print(output)
 
         # stop clustering
+        in_queue.put({'command': 'stop_observation'})
         clustering.stop()
 
-        expected_output = [{'stokes': 'I', 'dm': 56.6, 'port': 30000, 'beam': 0, 'width': 1.0, 'window_size': 1.024,
-                            'snr': 18.4666, 'time': 0.0244941},
-                           {'stokes': 'I', 'dm': 80.0, 'port': 30000, 'beam': 2, 'width': 1000.0, 'window_size': 1.024,
-                            'snr': 10.3451, 'time': 0.90112},
-                           {'stokes': 'I', 'dm': 47.8, 'port': 30000, 'beam': 3, 'width': 1000.0, 'window_size': 1.024,
-                            'snr': 10.8202, 'time': 2.94912},
-                           {'stokes': 'I', 'dm': 41.6, 'port': 30000, 'beam': 3, 'width': 1000.0, 'window_size': 1.024,
-                            'snr': 14.372, 'time': 0.90112},
-                           {'stokes': 'I', 'dm': 15.8, 'port': 30000, 'beam': 4, 'width': 1000.0, 'window_size': 1.024,
-                            'snr': 15.7447, 'time': 2.94912}]
+        expected_output = [{'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1.0, 'snr': 18.4666, 'time': 0.0244941},
+                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 3, 'width': 1.0, 'snr': 29.6098, 'time': 3.46857},
+                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 3, 'width': 1.0, 'snr': 25.0833, 'time': 4.58277},
+                           {'stokes': 'IQUV', 'dm': 56.6, 'beam': 4, 'width': 1000.0, 'snr': 15.1677, 'time': 6.02112},
+                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 7, 'width': 1.0, 'snr': 19.8565, 'time': 11.0317}]
 
         # test all clusters are there
         self.assertEqual(len(output), len(expected_output))
@@ -89,56 +91,12 @@ class TestAMBERClustering(unittest.TestCase):
             del cluster['utc_start']
             self.assertDictEqual(cluster, expected_cluster)
 
-    def test_clusters_with_thresholds(self):
+    @unittest.skip("Not implemented yet")
+    def test_clustering_lofar(self):
         """
-        Test AMBER clustering with applying thresholds
+        Test clustering and sending LOFAR trigger to VOEvent Generator
         """
-
-        # create queues
-        in_queue = mp.Queue()
-        out_queue = mp.Queue()
-        # init AMBER Clustering
-        clustering = AMBERClustering(connect_vo=False)
-        # set the queues
-        clustering.set_source_queue(in_queue)
-        clustering.set_target_queue(out_queue)
-
-        # set max age to -inf, so zero triggers are approved
-        clustering.age_max = -np.inf
-
-        # start the clustering
-        clustering.start()
-
-        # load triggers to put on queue
-        nline_to_check = 50
-        trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
-        # check the output is correct, i.e. equal to input
-        with open(trigger_file, 'r') as f:
-            triggers = f.readlines()
-        if len(triggers) > nline_to_check:
-            triggers = triggers[:nline_to_check]
-        triggers = [line.strip() for line in triggers]
-
-        # start observation
-        obs_config = {'startpacket': int(Time.now().unix*781250), 'min_freq': 1219.70092773,
-                      'network_port_event_i': 30000}
-        in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
-
-        # put triggers on queue
-        for trigger in triggers:
-            in_queue.put({'command': 'trigger', 'trigger': trigger})
-        # get output
-        sleep(clustering.interval + 5)
-        try:
-            output = out_queue.get(timeout=5)
-        except Empty:
-            output = []
-
-        # stop clustering
-        clustering.stop()
-
-        # with thresholds, none of the triggers are ok
-        self.assertEqual(output, [])
+        pass
 
 
 if __name__ == '__main__':

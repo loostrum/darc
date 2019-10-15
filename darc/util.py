@@ -66,6 +66,15 @@ def decode_parset(parset_bytes):
     return codecs.decode(codecs.decode(codecs.decode(parset_bytes, 'hex'), 'bz2'), 'utf-8')
 
 
+def encode_parset(parset_str):
+    """
+    Encode parset string into bytes
+    :param parset_str: parset as one string
+    :return: encoded parset as bytes
+    """
+    return codecs.encode(codecs.encode(codecs.encode(parset_str, 'utf-8'), 'bz2'), 'hex')
+
+
 def parse_parset(parset_str):
     """
     Parse parset into dict with proper types
