@@ -180,9 +180,11 @@ class AMBERClustering(DARCBase):
                 break
         if dm_src is None:
             # still not found, no DM known.
+            width_max = self.thresh_iquv['width_max']
             dm_max = None
             dm_min = dmgal * self.thresh_iquv['dm_frac_min']
-            self.logger.info("Source not found: {}, using generic triggering settings".format(source))
+            self.logger.info("Source not found: {}, using dm range {} - {}, max width {}".format(source, dm_min,
+                                                                                                 dm_max, width_max))
         else:
             # set min and max dm
             width_max = np.inf
