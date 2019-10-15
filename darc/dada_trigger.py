@@ -47,7 +47,8 @@ class DADATrigger(DARCBase):
         Send trigger to dada_dbevent
         :param triggers: list of trigger dictionaries
         """
-        self.logger.info("Received {} trigger(s)".format(len(triggers)))
+        self.logger.info("Received {} trigger(s):".format(len(triggers)))
+        self.logger.info(triggers)
 
         # utc start is identical for all triggers of a set
         utc_start = triggers[0]['utc_start'].iso.replace(' ', '-')
