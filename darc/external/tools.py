@@ -207,6 +207,12 @@ def read_singlepulse(fn, max_rows=None, beam=None):
     elif fn.split('.')[-1]=='trigger':
         A = np.genfromtxt(fn, max_rows=max_rows)
 
+        if len(A) == 0:
+            if beam == 'all':
+                return [], [], [], [], []
+            else:
+                return [], [], [], []
+
         if len(A.shape)==1:
             A = A[None]
 
@@ -220,12 +226,15 @@ def read_singlepulse(fn, max_rows=None, beam=None):
                 beamno, dm, sig, tt, downsample = A[:, 0], A[:,-3], A[:,-1], A[:, -5], A[:, 3]
             else:
                 print("Error: DO NOT RECOGNIZE COLUMNS OF .trigger FILE")
-                return 
+                if beam == 'all':
+                    return [], [], [], [], []
+                else:
+                    return [], [], [], []
         else:
             # beam batch sample integration_step time DM SNR
             beamno, dm, sig, tt, downsample = A[:, 0], A[:,-2], A[:,-1], A[:, -3], A[:, 3]
         
-        if beam!=None:
+        if beam is not None and beam != 'all':
             # pick only the specified beam
             dm = dm[beamno.astype(int) == beam]
             sig = sig[beamno.astype(int) == beam]
@@ -252,14 +261,22 @@ def read_singlepulse(fn, max_rows=None, beam=None):
         return 
 
     if len(A)==0:
-        return 0, 0, 0, 0
+        if beam == 'all':
+            return 0, 0, 0, 0, 0
+        else:
+            return 0, 0, 0, 0
 
-    return dm, sig, tt, downsample
+    if beam == 'all':
+        return dm, sig, tt, downsample, beamno
+    else:
+        return dm, sig, tt, downsample
+
 
 def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf, 
                  t_window=0.5, max_rows=None, t_max=np.inf,
                  sig_max=np.inf, dt=2*40.96, delta_nu_MHz=300./1536, 
-                 nu_GHz=1.4, fnout=False, tab=None, sb=None, dm_width_filter=False):
+                 nu_GHz=1.4, fnout=False, tab=None, read_beam=False,
+                 dm_width_filter=False):
     """ Get brightest trigger in each 10s chunk.
 
     Parameters
@@ -281,8 +298,9 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         name of text file to save clustered triggers to 
     tab : int
         which TAB to process (0 for IAB)
-    sb : np.ndarray
-        synthesized beam number for each trigger
+    read_beam: bool
+        read and return beam number (default: False)
+        all beams are read if this is true
 
     Returns
     -------
@@ -293,25 +311,36 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt_cut : ndarray
         Arrival times of brightest trigger in each DM/T window 
     ds_cut : ndarray 
-        downsample factor array of brightest trigger in each DM/T window 
-    sb_cut: ndarray
-        synthesized beam array of brightest trigger in each DM/T windows (only if input SB given)
+        downsample factor array of brightest trigger in each DM/T window
+    beam_cut: ndarray
+        beam array of brightest trigger in each DM/T windows (only if read_beam is True)
+    ind_cut : ndarray
+        indexes of events that were kept 
     """
     if tab is not None:
         beam_amber = tab
+        read_beam = False
+    elif read_beam:
+        beam_amber = 'all'
     else:
         beam_amber = None
 
-    if type(fn)==str:
-        dm, sig, tt, downsample = read_singlepulse(fn, max_rows=max_rows, beam=beam_amber)[:4]
-    elif type(fn)==np.ndarray:
-        dm, sig, tt, downsample = fn[:,0], fn[:,1], fn[:,2], fn[:,3]
-    else:
-        #print("Wrong input type. Expected string or nparray")
-        if sb is not None:
-            return [],[],[],[],[],[]
+    if type(fn) == str:
+        if read_beam:
+            dm, sig, tt, downsample, beam = read_singlepulse(fn, max_rows=max_rows, beam=beam_amber)[:5]
         else:
-            return [],[],[],[],[]
+            dm, sig, tt, downsample = read_singlepulse(fn, max_rows=max_rows, beam=beam_amber)[:4]
+    elif type(fn) == np.ndarray:
+        if read_beam:
+            dm, sig, tt, downsample, beam = fn[:, 0], fn[:, 1], fn[:, 2], fn[:, 3], fn[:, 4]
+        else:
+            dm, sig, tt, downsample = fn[:, 0], fn[:, 1], fn[:, 2], fn[:, 3]
+    else:
+        #print("Wrong input type. Expected string or ndarray")
+        if read_beam:
+            return [], [], [], [], [], []
+        else:
+            return [], [], [], [], []
 
     ntrig_orig = len(dm)
 
@@ -320,23 +349,25 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt = np.delete(tt, bad_sig_ind)
     dm = np.delete(dm, bad_sig_ind)
     downsample = np.delete(downsample, bad_sig_ind)
-    sig_cut, dm_cut, tt_cut, ds_cut = [],[],[],[]
-    if sb is not None:
-        sb_cut = []
+    sig_cut, dm_cut, tt_cut, ds_cut = [], [], [], []
 
-    if len(tt)==0:
+    if read_beam:
+        beam = np.delete(beam, bad_sig_ind)
+        beam_cut = []
+
+    if len(tt) == 0:
         #print("Returning None: time array is empty")
-        if sb is not None:
-            return [],[],[],[],[],[]
+        if read_beam:
+            return [], [], [], [], [], []
         else:
-            return [],[],[],[],[]
+            return [], [], [], [], []
 
     tduration = tt.max() - tt.min()
     ntime = int(tduration / t_window)
 
     # Make dm windows between 90% of the lowest trigger and 
     # 10% of the largest trigger
-    if dm_min==0:
+    if dm_min == 0:
         dm_min = 0.9*dm.min()
     if dm_max > 1.1*dm.max():
         dm_max = 1.1*dm.max()
@@ -364,8 +395,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 dm_cut.append(dm[ind_maxsnr])
                 tt_cut.append(tt[ind_maxsnr])
                 ds_cut.append(downsample[ind_maxsnr])
-                if sb is not None:
-                    sb_cut.append(sb[ind_maxsnr])
+                if read_beam:
+                    beam_cut.append(beam[ind_maxsnr])
                 ind_full.append(ind_maxsnr)
             except:
                 continue
@@ -381,8 +412,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     sig_cut = np.array(sig_cut)[ind]
     tt_cut = tt_cut[ind]
     ds_cut = np.array(ds_cut)[ind]
-    if sb is not None:
-        sb_cut = np.array(sb_cut)[ind]
+    if read_beam:
+        beam_cut = np.array(beam_cut)[ind]
 
     ntrig_group = len(dm_cut)
 
@@ -401,23 +432,24 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt_cut = np.delete(tt_cut, rm_ii)
     sig_cut = np.delete(sig_cut, rm_ii)
     ds_cut = np.delete(ds_cut, rm_ii)
-    if sb is not None:
-        sb_cut = np.delete(sb_cut, rm_ii)
+    if read_beam:
+        beam_cut = np.delete(beam_cut, rm_ii)
     ind_full = np.delete(ind_full, rm_ii)
 
-    if fnout != False:
-        if sb is not None:
-            clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, sb_cut, ind_full])
+    if fnout:
+        if read_beam:
+            clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, beam_cut, ind_full])
             clustered_arr = clustered_arr.reshape(6, -1)
         else:
             clustered_arr = np.concatenate([sig_cut, dm_cut, tt_cut, ds_cut, ind_full])
             clustered_arr = clustered_arr.reshape(5, -1)
         np.savetxt(fnout, clustered_arr) 
 
-    if sb is not None:
-        return sig_cut, dm_cut, tt_cut, ds_cut, sb_cut, ind_full
+    if read_beam:
+        return sig_cut, dm_cut, tt_cut, ds_cut, beam_cut, ind_full
     else:
         return sig_cut, dm_cut, tt_cut, ds_cut, ind_full
+
 
 def add_tab_col(fdir, fnout='out'):
     """ Take list of .trigger files for 

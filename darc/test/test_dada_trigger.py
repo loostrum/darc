@@ -16,7 +16,7 @@ from darc.dada_trigger import DADATrigger
 
 class TestDADATrigger(unittest.TestCase):
 
-    def get_trigger(self, stokes):
+    def get_trigger(self, stokes, min_window_size, delay_end):
         """
         Generate a trigger dict
         :param: stokes: I or IQUV
@@ -28,13 +28,14 @@ class TestDADATrigger(unittest.TestCase):
 
         # trigger
         dm = 56.791
-        window_size = max(2.048, dm / 1000.)
         trigger = {'dm': dm, 'snr': 15.2, 'width': 2, 'beam': 22, 'time': time,
                    'utc_start': utc_start, 'stokes': stokes}
 
         # event parameters
-        event_start_full = utc_start + TimeDelta(time, format='sec') - TimeDelta(window_size/2, format='sec')
-        event_end_full = event_start_full + TimeDelta(window_size, format='sec')
+        # dm delay is less than the minimum trigger duration, so start/end time do not need to take DM into account
+        shift = 2.048
+        event_start_full = utc_start + TimeDelta(time, format='sec') - TimeDelta(shift, format='sec')
+        event_end_full = event_start_full + TimeDelta(min_window_size + delay_end + shift, format='sec')
 
         event_start, event_start_frac = event_start_full.iso.split('.')
         #event_start_frac = '.' + event_start_frac
@@ -71,8 +72,8 @@ class TestDADATrigger(unittest.TestCase):
         dadatrigger.start()
 
         # get trigger dict and event
-        trigger_i, event_i = self.get_trigger(stokes='I')
-        trigger_iquv, event_iquv = self.get_trigger(stokes='IQUV')
+        trigger_i, event_i = self.get_trigger('I', dadatrigger.min_window_size, dadatrigger.delay_end)
+        trigger_iquv, event_iquv = self.get_trigger('IQUV', dadatrigger.min_window_size, dadatrigger.delay_end)
         # open a listening socket for stokes I events
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

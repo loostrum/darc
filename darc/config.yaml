@@ -77,6 +77,8 @@ dada_trigger:
     log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
     port_i: 30000
     port_iquv: 30001
+    min_window_size: 2.048  # minimum trigger duration
+    delay_end: 2.048  # how much extra to store in addition to DM delay
 
 # SB generator
 sb_generator:
