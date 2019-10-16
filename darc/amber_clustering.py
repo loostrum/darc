@@ -237,17 +237,16 @@ class AMBERClustering(DARCBase):
 
                 # pick columns to feed to clustering algorithm
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
-                                                       self.hdr_mapping['time'], self.hdr_mapping['integration_step'])]
-                triggers_for_clustering_sb = triggers[:, self.hdr_mapping['beam_id']].astype(int)
+                                                       self.hdr_mapping['time'], self.hdr_mapping['integration_step'],
+                                                       self.hdr_mapping['beam_id'])]
                 # cluster using IQUV thresholds
                 # LOFAR thresholds are assumed to be more strict for every parameter
                 cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _ = \
                     tools.get_triggers(triggers_for_clustering,
-                                       tab=triggers[:, self.hdr_mapping['beam_id']],
                                        dm_min=dm_min, dm_max=dm_max,
                                        sig_thresh=self.thresh_iquv['snr_min'],
                                        dt=dt, delta_nu_MHz=chan_width, nu_GHz=cent_freq,
-                                       sb=triggers_for_clustering_sb)
+                                       read_beam=True)
                 self.logger.info("Clustered {} raw triggers into {} IQUV triggers".format(len(triggers_for_clustering),
                                                                                           len(cluster_snr)))
 
