@@ -251,12 +251,12 @@ class AMBERClustering(DARCBase):
                                                                                           len(cluster_snr)))
 
                 # select on width
-                mask = cluster_downsamp < width_max
-                cluster_snr = cluster_snr[mask]
-                cluster_dm = cluster_dm[mask]
-                cluster_time = cluster_time[mask]
-                cluster_downsamp = cluster_downsamp[mask]
-                cluster_sb = cluster_sb[mask]
+                mask = np.array(cluster_downsamp) < width_max
+                cluster_snr = np.array(cluster_snr)[mask]
+                cluster_dm = np.array(cluster_dm)[mask]
+                cluster_time = np.array(cluster_time)[mask]
+                cluster_downsamp = np.array(cluster_downsamp)[mask]
+                cluster_sb = np.array(cluster_sb)[mask]
                 ncluster = len(cluster_snr)
                 if ncluster > 0:
                     if not self.can_trigger_iquv:
