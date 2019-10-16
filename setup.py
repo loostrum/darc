@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='darc',
-      version='1.0',
+      version='1.0.1',
       description='Data Analysis of Real-time Candidates from ARTS',
       url='http://github.com/loostrum/darc',
       author='Leon Oostrum',
