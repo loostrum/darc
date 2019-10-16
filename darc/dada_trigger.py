@@ -63,11 +63,17 @@ class DADATrigger(DARCBase):
                 self.logger.error("Skipping trigger with unknown stokes mode: {}".format(stokes))
                 continue
 
-            # calculate window size: set by DM, but at least two pages (=2.048s)
+            # start 2 pages before trigger time
+            # 1 page should be enough, but due to a bug in dada_dbevent the start time is rounded up
+            # to the next page, instead of down
+            shift = 2.048  # 2 pages
+            # calculate window size: equal to DM delay, but at least some minimum set in config
             # DM is roughly delay acros band in ms
-            window_size = max(2.048, trigger['dm'] / 1000.)
+            # add end delay defined in config and shift
+            window_size = max(self.min_window_size, trigger['dm'] / 1000.) + self.delay_end + shift
+
             event_start_full = Time(trigger['utc_start']) + TimeDelta(trigger['time'], format='sec') - \
-                TimeDelta(window_size/2., format='sec')
+                TimeDelta(shift, format='sec')
             # ensure start time is past start time of observation
             if event_start_full < trigger['utc_start']:
                 self.logger.info("Event start before start of observation - adapting event start")
