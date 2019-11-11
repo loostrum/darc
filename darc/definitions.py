@@ -29,3 +29,4 @@ DISH_DIAM = 25*u.m
 NUMCB = 40
 TSYS = 75*u.Kelvin
 AP_EFF = .75
+NDISH = 8

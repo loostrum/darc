@@ -13,13 +13,13 @@ import numpy as np
 from astropy.time import Time
 import astropy.units as u
 import astropy.constants as const
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz, FK5
+from astropy.coordinates import SkyCoord, FK5
 try:
     from queue import Empty
 except ImportError:
     from Queue import Empty
 
-from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT
+from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT, NDISH
 
 
 def sleepuntil_utc(end_time, event=None):
@@ -161,7 +161,7 @@ def clear_queue(queue):
         pass
 
 
-def get_flux(snr, width, ndish=8, npol=2, coherent=True):
+def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
     """
     Compute single pulse flux density using radiometer equation
     :param snr: S/N
