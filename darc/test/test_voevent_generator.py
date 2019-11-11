@@ -26,7 +26,7 @@ class TestVOEventGenerator(unittest.TestCase):
         trigger = {'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 25, 'flux': 0.5,
                    'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
                    'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
-                   'importance': 0.1, 'utc': '2019-01-01-18:00:00.0'}
+                   'importance': 0.1, 'utc': '2019-01-01T18:00:00.0'}
 
         sleep(1)
 
