@@ -8,11 +8,17 @@ import datetime
 import time
 import json
 import codecs
+
+import numpy as np
 from astropy.time import Time
+import astropy.units as u
+import astropy.constants as const
 try:
     from queue import Empty
 except ImportError:
     from Queue import Empty
+
+from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH
 
 
 def sleepuntil_utc(end_time, event=None):
@@ -152,3 +158,23 @@ def clear_queue(queue):
             queue.get_nowait()
     except Empty:
         pass
+
+
+def get_flux(snr, width, ndish=8, npol=2, coherent=True):
+    """
+    Compute single pulse flux density using radiometer equation
+    :param snr: S/N
+    :param width: Width (with unit)
+    :param ndish: Number of dishes used (default: 8)
+    :param npol: Number of polarizations (default: 2)
+    :param coherent: Using coherent beamforming (default: True)
+    :return: Peak flux density with unit
+    """
+    gain = AP_EFF * np.pi * (DISH_DIAM/2.)**2 / (2*const.k_B)
+    if coherent:
+        beta = 1
+    else:
+        beta = 1./2
+    sefd = TSYS / (gain * ndish**beta)
+    flux = snr * sefd / np.sqrt(npol * BANDWIDTH * width)
+    return flux.to(u.mJy)

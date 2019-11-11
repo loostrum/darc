@@ -25,4 +25,7 @@ TSAMP = 81.92E-6*u.s
 WSRT_LAT = 52.915184*u.deg
 WSRT_LON = 6.60387*u.deg
 WSRT_ALT = 16*u.m
+DISH_DIAM = 25*u.m
 NUMCB = 40
+TSYS = 75*u.Kelvin
+AP_EFF = .75
