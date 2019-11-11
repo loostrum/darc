@@ -328,8 +328,8 @@ class AMBERClustering(DARCBase):
                                  'ra': pointing.ra.deg,  # decimal deg
                                  'dec': pointing.dec.deg,  # decimal deg
                                  'ymw16': dmgal,
-                                 'semiMaj': 15.,  # arcmin
-                                 'semiMin': 15./60,  # arcmin
+                                 'semiMaj': 15,  # arcmin, CB
+                                 'semiMin': 15,  # arcmin, CB
                                  'name': name,
                                  'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
                                  'importance': 0.1}
