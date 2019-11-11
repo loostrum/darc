@@ -79,16 +79,6 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.stop()
 
         expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
-                           {'stokes': 'IQUV', 'dm': 47.8, 'beam': 3, 'width': 1000, 'snr': 10.8202, 'time': 2.94912},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 25.0833, 'time': 4.58277},
-                           {'stokes': 'IQUV', 'dm': 47.2, 'beam': 9, 'width': 1000, 'snr': 11.173, 'time': 4.99712},
-                           {'stokes': 'IQUV', 'dm': 56.6, 'beam': 10, 'width': 1000, 'snr': 15.1677, 'time': 6.02112},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 11.3797, 'time': 8.33061},
-                           {'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1, 'snr': 10.4506, 'time': 10.0863},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 19.8565, 'time': 11.0317}]
-
-        expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 3, 'width': 1000, 'snr': 10.8202, 'time': 2.94912},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 25.0833, 'time': 4.58277},
