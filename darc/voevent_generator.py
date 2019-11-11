@@ -141,6 +141,7 @@ class VOEventGenerator(threading.Thread):
 
         self.logger.info("Creating VOEvent")
         self.NewVOEvent(**trigger)
+        self.logger.info("Created event")
 
         if self.send_events:
             self.logger.info("Sending VOEvent")

@@ -8,6 +8,8 @@ from astropy.time import Time
 from queue import Empty
 
 from darc.amber_clustering import AMBERClustering
+from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
+
 from darc import util
 
 
@@ -96,12 +98,83 @@ class TestAMBERClustering(unittest.TestCase):
             del cluster['utc_start']
             self.assertDictEqual(cluster, expected_cluster)
 
-    @unittest.skip("Not implemented yet")
     def test_clustering_lofar(self):
         """
         Test clustering and sending LOFAR trigger to VOEvent Generator
         """
-        pass
+        port = 52000
+        auth = 'AAAA'
+
+        # init VOEvent Generator
+        generator = VOEventGenerator()
+        # ensure it does not send events
+        generator.send_events = False
+        # overwrite port and auth
+        generator.server_port = port
+        generator.server_auth = auth
+        # start the generator
+        generator.start()
+
+        # init AMBER clustering
+        # create queues
+        in_queue = mp.Queue()
+        out_queue = mp.Queue()
+        # setup clustering
+        clustering = AMBERClustering()
+        # set the queues
+        clustering.set_source_queue(in_queue)
+        clustering.set_target_queue(out_queue)
+        # overwrite VO connector
+
+        def connector():
+            # Load VO server settings
+            VOEventQueueServer.register('get_queue')
+            server = VOEventQueueServer(address=('localhost', port), authkey=auth.encode())
+            server.connect()
+            return server.get_queue()
+        clustering.voevent_connector = connector
+
+        # start the clustering
+        clustering.start()
+
+        # overwrite source list location
+        clustering.source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source_list.yaml')
+
+        # start observation
+        # create input parset with required keys
+        beam = 0
+        parset_dict = {'task.source.name': 'B0531+21',
+                       'task.beamSet.0.compoundBeam.{}.phaseCenter'.format(beam): '[83.633deg, 22.0144deg]',
+                       'task.directionReferenceFrame': 'J2000'}
+        # encode parset
+        parset_str = ''
+        for k, v in parset_dict.items():
+            parset_str += '{}={}\n'.format(k, v)
+        parset_enc = util.encode_parset(parset_str)
+
+        utc_start = Time('2019-01-01T12:00:00', scale='utc', format='isot')
+        obs_config = {'startpacket': int(utc_start.unix * 781250), 'min_freq': 1219.70092773,
+                      'beam': beam, 'parset': parset_enc}
+        in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
+
+        # put trigger on queue that passes LOFAR thresholds
+        triggers = ['# beam_id batch_id sample_id integration_step compacted_integration_steps '
+                    'time DM_id DM compacted_DMs SNR',
+                    '0 0 299 1 2 0.0244941 283 56.6 10 100']
+        for trigger in triggers:
+            in_queue.put({'command': 'trigger', 'trigger': trigger})
+
+        # wait, the stop observation
+        sleep(clustering.interval + 5)
+        in_queue.put({'command': 'stop_observation'})
+        clustering.stop()
+
+        # stop voevent generator
+        generator.stop()
+        filename = os.path.join(generator.voevent_dir, '2019-01-01T12:00:00.024.xml')
+        self.assertTrue(os.path.isfile(filename))
+        # remove output file
+        os.remove(filename)
 
 
 if __name__ == '__main__':

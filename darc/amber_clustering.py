@@ -4,7 +4,6 @@
 
 import os
 from time import sleep
-import socket
 import yaml
 import ast
 import subprocess
@@ -39,7 +38,6 @@ class AMBERClustering(DARCBase):
 
         self.connect_vo = connect_vo
         self.dummy_queue = mp.Queue()
-        self.hostname = socket.gethostname()
 
         self.threads = {}
         self.hdr_mapping = {}
@@ -231,8 +229,12 @@ class AMBERClustering(DARCBase):
         cluster_sb = np.array(cluster_sb)[mask].astype(int)
         ncluster = len(cluster_snr)
 
-        self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s)".format(len(triggers),
-                                                                                    ncluster))
+        if src_type is not None:
+            known = 'known'
+        else:
+            known = 'unknown'
+        self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
+                         "for {} source".format(len(triggers), ncluster, known))
 
         # return if there are no clusters
         if ncluster == 0:
@@ -319,8 +321,7 @@ class AMBERClustering(DARCBase):
                 self.logger.error("No VO Generator connection available - cannot trigger LOFAR")
             else:
                 # create the full trigger and put on VO queue
-                lofar_trigger = {'hostname': self.hostname,
-                                 'dm': dm_to_send,
+                lofar_trigger = {'dm': dm_to_send,
                                  'dm_err': dm_err,
                                  'width': width.to(u.ms).value,  # ms
                                  'snr': snr,
