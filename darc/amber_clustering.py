@@ -4,6 +4,7 @@
 
 import os
 from time import sleep
+import socket
 import yaml
 import ast
 import subprocess
@@ -38,6 +39,7 @@ class AMBERClustering(DARCBase):
 
         self.connect_vo = connect_vo
         self.dummy_queue = mp.Queue()
+        self.hostname = socket.gethostname()
 
         self.threads = {}
         self.hdr_mapping = {}
@@ -230,7 +232,7 @@ class AMBERClustering(DARCBase):
         ncluster = len(cluster_snr)
 
         self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s)".format(len(triggers),
-                                                                                  ncluster))
+                                                                                    ncluster))
 
         # return if there are no clusters
         if ncluster == 0:
@@ -291,40 +293,50 @@ class AMBERClustering(DARCBase):
                 self.logger.info("Multiple triggers - selecting trigger with highest S/N")
             # argmax also works if there is one trigger, so just run it always
             ind = np.argmax(cluster_snr[mask])
+            # estimate flux density based on peak S/N and width
+            snr = cluster_snr[mask][ind]
+            width = TSAMP.to(u.ms) * cluster_downsamp[mask][ind]
+            # astropy units only knows mJy, but the VOEvent Generator expects Jy
+            flux = util.get_flux(snr, width).to(u.mJy).value / 1000.
             # select known source DM if available
             if dm_src is not None:
                 dm_to_send = dm_src
+                dm_err = 0.
             else:
                 dm_to_send = cluster_dm[mask][ind]
+                # set error to DM delay across pulse width
+                # Apertif has roughly 1 DM unit = 1 ms delay across band
+                dm_err = width.to(u.ms).value
             # get a source name
             if src_type is not None:
                 name = src_type
             else:
                 name = 'candidate'
-            # estimate flux density based on peak S/N and width
-            snr = cluster_snr[mask][ind]
-            width = TSAMP.to(u.ms) * cluster_downsamp[mask][ind]
-            flux = util.get_flux(snr, width).to(u.mJy).value
             # get pointing
             if pointing is None:
                 self.logger.error("No pointing information available - cannot trigger LOFAR")
-                return
-            # create the full trigger and put on VO queue
-            lofar_trigger = {'dm': dm_to_send,
-                             'dm_err': 0,
-                             'width': width.to(u.ms).value,  # ms
-                             'snr': snr,
-                             'flux': flux,  # mJy
-                             'ra': pointing.ra.deg,  # decimal deg
-                             'dec': pointing.dec.deg,  # decimal deg
-                             'ymw16': dmgal,
-                             'semiMaj': 15.,  # arcmin
-                             'semiMin': 15./60,  # arcmin
-                             'name': name,
-                             'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
-                             'importance': 0.1,
-                             'test': True}  # just testing
-            self.vo_queue.put(lofar_trigger)
+            elif not self.have_vo:
+                self.logger.error("No VO Generator connection available - cannot trigger LOFAR")
+            else:
+                # create the full trigger and put on VO queue
+                lofar_trigger = {'hostname': self.hostname,
+                                 'dm': dm_to_send,
+                                 'dm_err': dm_err,
+                                 'width': width.to(u.ms).value,  # ms
+                                 'snr': snr,
+                                 'flux': flux,  # Jy
+                                 'ra': pointing.ra.deg,  # decimal deg
+                                 'dec': pointing.dec.deg,  # decimal deg
+                                 'ymw16': dmgal,
+                                 'semiMaj': 15.,  # arcmin
+                                 'semiMin': 15./60,  # arcmin
+                                 'name': name,
+                                 'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
+                                 'importance': 0.1}
+                # add system parameters (dt, central freq (GHz), bandwidth (MHz))
+                lofar_trigger.update(sys_params)
+                self.logger.info("Sending LOFAR trigger")
+                self.vo_queue.put(lofar_trigger)
 
     def _process_triggers(self):
         """
@@ -352,21 +364,23 @@ class AMBERClustering(DARCBase):
                           'dm_min': max(dm_src - self.dm_range, self.dm_min_global),
                           'dm_max': dm_src + self.dm_range,
                           'width_max': np.inf,
-                          'snr_min': self.snr_min_global
+                          'snr_min': self.snr_min_global,
+                          'pointing': pointing,
                           }
             # Add LOFAR thresholds
             self.logger.info("Setting known source trigger DM range to {dm_min} - {dm_max}, "
-                             "max width={width_max}, min S/N={snr_min}".format(**thresh_src))
+                             "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_src))
 
         # set min and max DM for new sources with unknown DM
         thresh_new = {'src_type': None,
                       'dm_min': max(dmgal * self.thresh_iquv['dm_frac_min'], self.dm_min_global),
                       'dm_max': np.inf,
                       'width_max': self.thresh_iquv['width_max'],
-                      'snr_min': self.thresh_iquv['snr_min']
+                      'snr_min': self.thresh_iquv['snr_min'],
+                      'pointing': pointing,
                       }
         self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-                         "max width = {width_max}, min S/N={snr_min}".format(**thresh_new))
+                         "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
 
         # main loop
         while self.observation_running:
