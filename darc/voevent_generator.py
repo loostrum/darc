@@ -92,6 +92,7 @@ class VOEventGenerator(threading.Thread):
         self.voevent_server.start()
 
         # wait for events until stop is set
+        # Todo: gather triggers for _interval_ seconds
         while not self.stop_event.is_set():
             try:
                 trigger = self.voevent_queue.get(timeout=1)
@@ -158,7 +159,9 @@ class VOEventGenerator(threading.Thread):
                 subprocess.check_output(cmd, shell=True)
             except subprocess.CalledProcessError as e:
                 self.logger.error("Failed to send VOEvent: {}".format(e.output))
-            os.system(cmd)
+            else:
+                self.logger.info("VOEvent sent - disabling future LOFAR triggering")
+                self.send_events = False
         else:
             self.logger.warning("Sending VOEvents is disabled - Cancelling trigger")
 
