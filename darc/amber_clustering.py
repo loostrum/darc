@@ -339,7 +339,8 @@ class AMBERClustering(DARCBase):
                                  'semiMin': 15,  # arcmin, CB
                                  'name': name,
                                  'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
-                                 'importance': 0.1}
+                                 'importance': 0.1,
+                                 'test': True}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
                 self.logger.info("Sending LOFAR trigger")
@@ -371,7 +372,7 @@ class AMBERClustering(DARCBase):
                           'dm_min': max(dm_src - self.dm_range, self.dm_min_global),
                           'dm_max': dm_src + self.dm_range,
                           # 'width_max': np.inf,
-                          'width_max': 10,
+                          'width_max': 100,  # 1933
                           'snr_min': self.snr_min_global,
                           'pointing': pointing,
                           }
