@@ -451,12 +451,12 @@ class AMBERClustering(DARCBase):
                     self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
-                self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
-                                                                      args=(triggers_for_clustering, sys_params,
-                                                                            utc_start),
-                                                                      kwargs=thresh_new)
-                self.threads['trigger_new_source'].daemon = True
-                self.threads['trigger_new_source'].start()
+                #self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
+                #                                                      args=(triggers_for_clustering, sys_params,
+                #                                                            utc_start),
+                #                                                      kwargs=thresh_new)
+                #self.threads['trigger_new_source'].daemon = True
+                #self.threads['trigger_new_source'].start()
 
             sleep(self.interval)
         self.logger.info("Observation finished")
