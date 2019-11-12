@@ -55,7 +55,8 @@ amber_clustering:
     thresh_iquv:
       dm_frac_min: 1.2  # fraction of max MW contribution
       width_max: 122  # corresponds to 10ms
-      snr_min: 10
+      # snr_min: 10
+      snr_min: 50
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be equally or more strict than IQUV thresholds for each parameter
