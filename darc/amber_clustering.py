@@ -221,7 +221,6 @@ class AMBERClustering(DARCBase):
                                read_beam=True, **sys_params)
 
         # select on width
-        self.logger.info('Wmax: {}'.format(width_max))
         mask = np.array(cluster_downsamp) <= width_max
         cluster_snr = np.array(cluster_snr)[mask]
         cluster_dm = np.array(cluster_dm)[mask]
