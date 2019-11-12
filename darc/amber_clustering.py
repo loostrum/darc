@@ -221,6 +221,7 @@ class AMBERClustering(DARCBase):
                                read_beam=True, **sys_params)
 
         # select on width
+        self.logger.info('Wmax: {}'.format(width_max))
         mask = np.array(cluster_downsamp) <= width_max
         cluster_snr = np.array(cluster_snr)[mask]
         cluster_dm = np.array(cluster_dm)[mask]
@@ -233,8 +234,9 @@ class AMBERClustering(DARCBase):
             known = 'known'
         else:
             known = 'unknown'
-        # self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
-        #                  "for {} source".format(len(triggers), ncluster, known))
+        
+        #self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
+        #                 "for {} source".format(len(triggers), ncluster, known))
 
         # return if there are no clusters
         if ncluster == 0:
@@ -244,7 +246,10 @@ class AMBERClustering(DARCBase):
         dm = cluster_dm[ind]
         snr = cluster_snr[ind]
         width = cluster_downsamp[ind] * 81.92E-3
-        self.logger.info("TRIGGER: S/N={} Width={} ms DM={} pc/cc".format(snr, width, dm))
+        delay = TimeDelta(18.77864, format='sec')  # DM + 2.5s
+        time_lofar = (utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).isot
+
+        self.logger.info("TRIGGER: UTC={} S/N={} Width={} ms DM={} pc/cc".format(time_lofar, snr, width, dm))
 
         # there are clusters, do IQUV triggering if possible
         # if self.can_trigger_iquv:
@@ -371,8 +376,7 @@ class AMBERClustering(DARCBase):
                           'src_type': src_type,
                           'dm_min': max(dm_src - self.dm_range, self.dm_min_global),
                           'dm_max': dm_src + self.dm_range,
-                          # 'width_max': np.inf,
-                          'width_max': 100,  # 1933
+                          'width_max': np.inf,
                           'snr_min': self.snr_min_global,
                           'pointing': pointing,
                           }
@@ -388,8 +392,8 @@ class AMBERClustering(DARCBase):
                       'snr_min': self.thresh_iquv['snr_min'],
                       'pointing': pointing,
                       }
-        self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-                         "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
+        #self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
+        #                 "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
 
         # main loop
         while self.observation_running:

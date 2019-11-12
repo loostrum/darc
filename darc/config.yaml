@@ -62,7 +62,7 @@ amber_clustering:
     thresh_lofar:
       dm_frac_min: 2.0  # fraction of max MW contribution. Maybe to be used instead of source list
       width_max: 122  # corresponds to 10ms
-      snr_min: 15
+      snr_min: 30
 
 # VOEvent generator
 voevent_generator:
