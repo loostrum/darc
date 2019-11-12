@@ -249,6 +249,8 @@ class AMBERClustering(DARCBase):
         time_lofar = (utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).isot
 
         self.logger.info("TRIGGER: UTC={} S/N={} Width={} ms DM={} pc/cc".format(time_lofar, snr, width, dm))
+        # Skip VO LOFAR triggering
+        return
 
         # there are clusters, do IQUV triggering if possible
         # if self.can_trigger_iquv:
