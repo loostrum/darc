@@ -246,11 +246,9 @@ class AMBERClustering(DARCBase):
         snr = cluster_snr[ind]
         width = cluster_downsamp[ind] * 81.92E-3
         delay = TimeDelta(16.161814 + 2.5, format='sec')  # DM 158.521 1520->200 minus half buffer size
-        time_lofar = (utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).isot
+        time_lofar = (utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).unix
 
-        self.logger.info("TRIGGER: UTC={} S/N={} Width={} ms DM={} pc/cc".format(time_lofar, snr, width, dm))
-        # Skip VO LOFAR triggering
-        return
+        self.logger.info("TRIGGER: UTC= {} S/N={} Width={} ms DM={} pc/cc".format(time_lofar, snr, width, dm))
 
         # there are clusters, do IQUV triggering if possible
         # if self.can_trigger_iquv:
