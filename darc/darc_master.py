@@ -519,6 +519,7 @@ class DARCMaster(object):
             util.clear_queue(queue)
         for queue in self.all_queues:
             queue.put(command)
+        return "Success", "Observation started"
 
     def stop_observation(self, abort=False):
         """

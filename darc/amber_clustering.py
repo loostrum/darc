@@ -232,7 +232,8 @@ class AMBERClustering(DARCBase):
         if src_type is not None:
             known = 'known'
         else:
-            known = 'unknown'
+            known = 'new'
+        
         self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
                          "for {} source".format(len(triggers), ncluster, known))
 
@@ -266,12 +267,16 @@ class AMBERClustering(DARCBase):
         else:
             self.logger.warning("IQUV triggering disabled - ignoring trigger")
 
-        # In the future: skip LOFAR triggering for pulsars
-        # if src_type == 'pulsar':
-        #     return
+        # skip LOFAR triggering for pulsars
+        if src_type == 'pulsar':
+            self.logger.warning("Skipping LOFAR triggering for pulsars")
+            return
+
         # select LOFAR thresholds
         if src_type is not None:
             # known source, use same width and DM threshold as IQUV, but apply S/N threshold
+            # DM_min and width_max effectively do nothing here, but they need to be defined
+            # for the mask = line below to work
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = dm_min
             width_max_lofar = width_max
@@ -306,19 +311,21 @@ class AMBERClustering(DARCBase):
                 dm_err = 0.
             else:
                 dm_to_send = cluster_dm[mask][ind]
-                # set error to DM delay across pulse width
+                # set DM uncertainty to DM delay across pulse width
                 # Apertif has roughly 1 DM unit = 1 ms delay across band
                 dm_err = width.to(u.ms).value
-            # get a source name
+            # set a source name
             if src_type is not None:
                 name = src_type
             else:
                 name = 'candidate'
-            # get pointing
+            # check whether or not pointing information is available
             if pointing is None:
                 self.logger.error("No pointing information available - cannot trigger LOFAR")
+            # check if we are connected to the server
             elif not self.have_vo:
                 self.logger.error("No VO Generator connection available - cannot trigger LOFAR")
+            # do the trigger
             else:
                 # create the full trigger and put on VO queue
                 lofar_trigger = {'dm': dm_to_send,
@@ -381,7 +388,7 @@ class AMBERClustering(DARCBase):
                       'pointing': pointing,
                       }
         self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-                         "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
+                        "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
 
         # main loop
         while self.observation_running:
