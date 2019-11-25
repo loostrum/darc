@@ -74,6 +74,7 @@ voevent_generator:
     server_auth: "9S5JNp9MgM"
     broker_host: "phobos.astron.nl"
     broker_port: 8098
+    interval: 1.0  # how long to keep gathering triggers after one arrives
 
 # DADA triggers
 dada_trigger:

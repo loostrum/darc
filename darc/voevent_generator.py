@@ -10,6 +10,7 @@ try:
     from queue import Empty
 except ImportError:
     from Queue import Empty
+from time import sleep
 import numpy as np
 import threading
 import socket
@@ -83,7 +84,7 @@ class VOEventGenerator(threading.Thread):
 
     def run(self):
         """
-        Read triggers from queue and call processing for each trigger
+        Read triggers from queue and process them
         """
 
         # start the queue server
@@ -92,13 +93,28 @@ class VOEventGenerator(threading.Thread):
         self.voevent_server.start()
 
         # wait for events until stop is set
-        # Todo: gather triggers for _interval_ seconds
         while not self.stop_event.is_set():
             try:
-                trigger = self.voevent_queue.get(timeout=1)
+                trigger = self.voevent_queue.get(timeout=.1)
             except Empty:
                 continue
-            self.logger.info("Received trigger: {}".format(trigger))
+            else:
+                # a trigger was received, wait and read queue again in case there are multiple triggers
+                sleep(self.interval)
+                additional_triggers = []
+                # read queue without waiting
+                while True:
+                    try:
+                        additional_trigger = self.voevent_queue.get_nowait()
+                    except Empty:
+                        break
+                    else:
+                        additional_triggers.append(additional_trigger)
+
+                # add additional triggers if there are any
+                if additional_triggers:
+                    trigger = [trigger] + additional_triggers
+
             self.create_and_send(trigger)
 
         # stop the queue server
@@ -109,8 +125,17 @@ class VOEventGenerator(threading.Thread):
         """
         Creates VOEvent
         Sends if enabled in config
-        :param trigger: Trigger event
+        :param trigger: Trigger event(s). dict if one event, list of dicts if multiple events
         """
+
+        # if multiple triggers are received, select one
+        if isinstance(trigger, list):
+            self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
+            trigger = self._select_trigger(trigger)
+
+        self.logger.info("Trigger: {}".format(trigger))
+
+        # trigger should be a dict
         if not isinstance(trigger, dict):
             self.logger.error("Trigger is not a dict")
             return
@@ -141,7 +166,7 @@ class VOEventGenerator(threading.Thread):
         trigger['posang'] = util.ha_to_proj(hadec.ra, hadec.dec).to(u.deg).value
 
         self.logger.info("Creating VOEvent")
-        self.NewVOEvent(**trigger)
+        self._NewVOEvent(**trigger)
         self.logger.info("Created event")
 
         if self.send_events:
@@ -165,10 +190,27 @@ class VOEventGenerator(threading.Thread):
         else:
             self.logger.warning("Sending VOEvents is disabled - Cancelling trigger")
 
-    def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
-                   ymw16, name, importance, utc, gl, gb, gain,
-                   dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH/NCHAN).to(u.MHz).value,
-                   nu_GHz=1.37, posang=0, test=False):
+    @staticmethod
+    def _select_trigger(triggers):
+        """
+        :param triggers: list of trigger dictionaries
+        :return: trigger with highest S/N
+        """
+        max_snr = 0
+        index = None
+        # loop over triggers and check if current trigger has highest S/N
+        for i, trigger in enumerate(triggers):
+            snr = trigger['snr']
+            if snr > max_snr:
+                max_snr = snr
+                index = i
+        # index is now index of trigger with highest S/N
+        return triggers[index]
+
+    def _NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
+                    ymw16, name, importance, utc, gl, gb, gain,
+                    dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH/NCHAN).to(u.MHz).value,
+                    nu_GHz=1.37, posang=0, test=False):
 
         z = dm/1200.0  # May change
         errDeg = semiMaj/60.0
