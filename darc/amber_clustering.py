@@ -232,56 +232,51 @@ class AMBERClustering(DARCBase):
         if src_type is not None:
             known = 'known'
         else:
-            known = 'unknown'
+            known = 'new'
         
-        #self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
-        #                 "for {} source".format(len(triggers), ncluster, known))
+        self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
+                         "for {} source".format(len(triggers), ncluster, known))
 
         # return if there are no clusters
         if ncluster == 0:
             return
-        # pick brightest
-        ind = np.argmax(cluster_snr)
-        dm = cluster_dm[ind]
-        snr = cluster_snr[ind]
-        width = cluster_downsamp[ind] * 81.92E-3
-        delay = TimeDelta(16.161814 + 2.5, format='sec')  # DM 158.521 1520->200 minus half buffer size
-        time_lofar = (utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).unix
-
-        self.logger.info("TRIGGER: UTC= {} S/N={} Width={} ms DM={} pc/cc".format(time_lofar, snr, width, dm))
 
         # there are clusters, do IQUV triggering if possible
-        # if self.can_trigger_iquv:
-        #     # check if we can do triggering
-        #     now = Time.now()
-        #     if now < self.time_iquv:
-        #         self.logger.warning("Cannot trigger IQUV yet, next possible time: {}".format(self.time_iquv))
-        #     else:
-        #         self.logger.info("Sending IQUV trigger")
-        #         # update last trigger time
-        #         self.time_iquv = now + TimeDelta(self.thresh_iquv['interval'], format='sec')
-        #         # trigger IQUV
-        #         dada_triggers = []
-        #         for i in range(ncluster):
-        #             # send known source dm if available
-        #             if dm_src is not None:
-        #                 dm_to_send = dm_src
-        #             else:
-        #                 dm_to_send = cluster_dm[i]
-        #             dada_trigger = {'stokes': 'IQUV', 'dm': dm_to_send, 'beam': cluster_sb[i],
-        #                             'width': cluster_downsamp[i], 'snr': cluster_snr[i],
-        #                             'time': cluster_time[i], 'utc_start': utc_start}
-        #             dada_triggers.append(dada_trigger)
-        #         self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
-        # else:
-        #     self.logger.warning("IQUV triggering disabled - ignoring trigger")
+        if self.can_trigger_iquv:
+            # check if we can do triggering
+            now = Time.now()
+            if now < self.time_iquv:
+                self.logger.warning("Cannot trigger IQUV yet, next possible time: {}".format(self.time_iquv))
+            else:
+                self.logger.info("Sending IQUV trigger")
+                # update last trigger time
+                self.time_iquv = now + TimeDelta(self.thresh_iquv['interval'], format='sec')
+                # trigger IQUV
+                dada_triggers = []
+                for i in range(ncluster):
+                    # send known source dm if available
+                    if dm_src is not None:
+                        dm_to_send = dm_src
+                    else:
+                        dm_to_send = cluster_dm[i]
+                    dada_trigger = {'stokes': 'IQUV', 'dm': dm_to_send, 'beam': cluster_sb[i],
+                                    'width': cluster_downsamp[i], 'snr': cluster_snr[i],
+                                    'time': cluster_time[i], 'utc_start': utc_start}
+                    dada_triggers.append(dada_trigger)
+                self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
+        else:
+            self.logger.warning("IQUV triggering disabled - ignoring trigger")
 
-        # In the future: skip LOFAR triggering for pulsars
-        # if src_type == 'pulsar':
-        #     return
+        # skip LOFAR triggering for pulsars
+        if src_type == 'pulsar':
+            self.logger.warning("Skipping LOFAR triggering for pulsars")
+            return
+
         # select LOFAR thresholds
         if src_type is not None:
             # known source, use same width and DM threshold as IQUV, but apply S/N threshold
+            # DM_min and width_max effectively do nothing here, but they need to be defined
+            # for the mask = line below to work
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = dm_min
             width_max_lofar = width_max
@@ -316,19 +311,21 @@ class AMBERClustering(DARCBase):
                 dm_err = 0.
             else:
                 dm_to_send = cluster_dm[mask][ind]
-                # set error to DM delay across pulse width
+                # set DM uncertainty to DM delay across pulse width
                 # Apertif has roughly 1 DM unit = 1 ms delay across band
                 dm_err = width.to(u.ms).value
-            # get a source name
+            # set a source name
             if src_type is not None:
                 name = src_type
             else:
                 name = 'candidate'
-            # get pointing
+            # check whether or not pointing information is available
             if pointing is None:
                 self.logger.error("No pointing information available - cannot trigger LOFAR")
+            # check if we are connected to the server
             elif not self.have_vo:
                 self.logger.error("No VO Generator connection available - cannot trigger LOFAR")
+            # do the trigger
             else:
                 # create the full trigger and put on VO queue
                 lofar_trigger = {'dm': dm_to_send,
@@ -343,8 +340,7 @@ class AMBERClustering(DARCBase):
                                  'semiMin': 15,  # arcmin, CB
                                  'name': name,
                                  'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
-                                 'importance': 0.1,
-                                 'test': True}
+                                 'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
                 self.logger.info("Sending LOFAR trigger")
@@ -391,8 +387,8 @@ class AMBERClustering(DARCBase):
                       'snr_min': self.thresh_iquv['snr_min'],
                       'pointing': pointing,
                       }
-        #self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-        #                 "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
+        self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
+                        "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
 
         # main loop
         while self.observation_running:
@@ -455,12 +451,12 @@ class AMBERClustering(DARCBase):
                     self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
-                #self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
-                #                                                      args=(triggers_for_clustering, sys_params,
-                #                                                            utc_start),
-                #                                                      kwargs=thresh_new)
-                #self.threads['trigger_new_source'].daemon = True
-                #self.threads['trigger_new_source'].start()
+                self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
+                                                                      args=(triggers_for_clustering, sys_params,
+                                                                            utc_start),
+                                                                      kwargs=thresh_new)
+                self.threads['trigger_new_source'].daemon = True
+                self.threads['trigger_new_source'].start()
 
             sleep(self.interval)
         self.logger.info("Observation finished")

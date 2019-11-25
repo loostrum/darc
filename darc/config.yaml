@@ -49,20 +49,21 @@ amber_clustering:
     interval: 1.0
     dm_range: 10  # for known sources, trigger if within this many DM units
     dm_min_global: 5  # never trigger below this DM
-    snr_min_global: 35  # never trigger below this S/N
+    snr_min_global: 10  # never trigger below this S/N
     can_trigger_iquv: True  # set to False to disable IQUV triggering completely
     # thresholds for IQUV triggering on new sources
     thresh_iquv:
       dm_frac_min: 1.2  # fraction of max MW contribution
-      width_max: 122  # corresponds to 10ms
+      width_max: 100  # corresponds to ~8ms
       snr_min: 10
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be equally or more strict than IQUV thresholds for each parameter
+    # for known sources, only the LOFAR S/N threshold is applied
     thresh_lofar:
-      dm_frac_min: 2.0  # fraction of max MW contribution. Maybe to be used instead of source list
-      width_max: 122  # corresponds to 10ms
-      snr_min: 30
+      dm_frac_min: 2.0  # fraction of max MW contribution.
+      width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
+      snr_min: 12
 
 # VOEvent generator
 voevent_generator:
