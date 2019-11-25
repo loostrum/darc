@@ -13,7 +13,8 @@ darc_master:
     services_worker_off: ["offline_processing"]
     services_master_mix: ["offline_processing", "status_website", "voevent_generator"]
     services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger"]
-    master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload"]
+    master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload",
+                      "lofar_status", "lofar_enable", "lofar_disable"]
     service_commands: ["status", "start", "stop", "restart"]
     editor: "vim"
 
@@ -39,38 +40,41 @@ status_website:
 amber_listener:
     log_file: "{home}/darc/log/amber_listener.{hostname}.log"
     interval: .2
-    start_timeout: 30
+    start_timeout: 60
 
 # Clustering of AMBER triggers
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
     source_file: "{home}/darc/source_list.yaml"
     interval: 1.0
-    dm_range: 10  # trigger if within 10 units of known source DM
-    can_trigger_iquv: True
-    can_trigger_lofar: False
-    # thresholds for IQUV triggering
+    # Global thresholds and limits for known sources
+    dm_range: 10  # for known sources, trigger if within this many DM units
+    dm_min_global: 5  # never trigger below this DM
+    snr_min_global: 10  # never trigger below this S/N
+    # thresholds for IQUV triggering on new sources
     thresh_iquv:
       dm_frac_min: 1.2  # fraction of max MW contribution
-      width_max: 122  # corresponds to 10ms
+      width_max: 100  # corresponds to ~8ms
       snr_min: 10
       interval: 60  # seconds
     # thresholds for LOFAR triggering
-    # assumed to be more strict than IQUV thresholds for each parameter
+    # assumed to be equally or more strict than IQUV thresholds for each parameter
+    # for known sources, only the LOFAR S/N threshold is applied
     thresh_lofar:
-      # dm_frac_min: 1.2  # fraction of max MW contribution. Maybe to be used instead of source list
-      snr_min: 20
+      dm_frac_min: 2.0  # fraction of max MW contribution.
+      width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
+      snr_min: 12
 
 # VOEvent generator
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
-    send_events: False
+    send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
     server_port: 52000
     server_auth: "9S5JNp9MgM"
     broker_host: "phobos.astron.nl"
     broker_port: 8098
-    interval_lofar: 36000 # trigger at most once every so many seconds. Not implemented yet!
+    interval: 1.0  # how long to keep gathering triggers after one arrives
 
 # DADA triggers
 dada_trigger:

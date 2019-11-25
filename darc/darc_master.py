@@ -248,6 +248,10 @@ class DARCMaster(object):
         elif command == 'reload':
             self._load_config()
             return 'Success', ''
+        # lofar commands
+        elif 'lofar' in command:
+            status, reply = self._lofar_cmd(command)
+            return status, reply
 
         # Service interaction
         if service == 'all':
@@ -515,6 +519,7 @@ class DARCMaster(object):
             util.clear_queue(queue)
         for queue in self.all_queues:
             queue.put(command)
+        return "Success", "Observation started"
 
     def stop_observation(self, abort=False):
         """
@@ -568,6 +573,56 @@ class DARCMaster(object):
         # Convert to dict
         config = util.parse_parset(parset)
         return config
+
+    def _lofar_cmd(self, command):
+        """
+        Check status of LOFAR triggering, or enable/disable it
+        :param command: command to run
+        :return: status, reply
+        """
+        vo_generator = self.threads['voevent_generator']
+        if self.hostname != MASTER:
+            return "Error", "Failed: should run on master node"
+        # status
+        if command == 'lofar_status':
+            # get status
+            try:
+                can_send = vo_generator.send_events
+                status = 'Success'
+                reply = 'LOFAR triggering enabled: {}'.format(can_send)
+            except Exception as e:
+                self.logger.error("Failed to get LOFAR triggering status ({})".format(e))
+                status = 'Error'
+                reply = 'Failed to check LOFAR triggering status'
+
+        # enable
+        elif command == 'lofar_enable':
+            # get status
+            try:
+                vo_generator.send_events = True
+                status = 'Success'
+                reply = 'LOFAR triggering enabled'
+            except Exception as e:
+                self.logger.error("Failed to enable LOFAR triggering ({})".format(e))
+                status = 'Error'
+                reply = 'Failed to enable LOFAR triggering'
+
+        # disable
+        elif command == 'lofar_disable':
+            # get status
+            try:
+                vo_generator.send_events = False
+                status = 'Success'
+                reply = 'LOFAR triggering disabled'
+            except Exception as e:
+                self.logger.error("Failed to disable LOFAR triggering ({})".format(e))
+                status = 'Error'
+                reply = 'Failed to disable LOFAR triggering'
+
+        else:
+            status = 'Error'
+            reply = 'Unknown command'
+        return status, reply
 
 
 def main():

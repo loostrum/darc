@@ -10,18 +10,21 @@ try:
     from queue import Empty
 except ImportError:
     from Queue import Empty
+from time import sleep
+import numpy as np
 import threading
 import socket
 from multiprocessing.managers import BaseManager
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+import astropy.constants as const
 from astropy.time import Time
+import pytz
 import voeventparse as vp
 import datetime
-import pytz
 from xml.dom import minidom
 
-from darc.definitions import *
+from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 
@@ -81,7 +84,7 @@ class VOEventGenerator(threading.Thread):
 
     def run(self):
         """
-        Read triggers from queue and call processing for each trigger
+        Read triggers from queue and process them
         """
 
         # start the queue server
@@ -92,10 +95,26 @@ class VOEventGenerator(threading.Thread):
         # wait for events until stop is set
         while not self.stop_event.is_set():
             try:
-                trigger = self.voevent_queue.get(timeout=1)
+                trigger = self.voevent_queue.get(timeout=.1)
             except Empty:
                 continue
-            self.logger.info("Received trigger: {}".format(trigger))
+            else:
+                # a trigger was received, wait and read queue again in case there are multiple triggers
+                sleep(self.interval)
+                additional_triggers = []
+                # read queue without waiting
+                while True:
+                    try:
+                        additional_trigger = self.voevent_queue.get_nowait()
+                    except Empty:
+                        break
+                    else:
+                        additional_triggers.append(additional_trigger)
+
+                # add additional triggers if there are any
+                if additional_triggers:
+                    trigger = [trigger] + additional_triggers
+
             self.create_and_send(trigger)
 
         # stop the queue server
@@ -106,15 +125,23 @@ class VOEventGenerator(threading.Thread):
         """
         Creates VOEvent
         Sends if enabled in config
-        :param trigger: Trigger event
+        :param trigger: Trigger event(s). dict if one event, list of dicts if multiple events
         """
+
+        # if multiple triggers are received, select one
+        if isinstance(trigger, list):
+            self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
+            trigger = self._select_trigger(trigger)
+
+        self.logger.info("Trigger: {}".format(trigger))
+
+        # trigger should be a dict
         if not isinstance(trigger, dict):
             self.logger.error("Trigger is not a dict")
             return
 
         # check if all required params are present
-        # gl and gb are generated from ra and dec
-        # semiMaj and semiMin have default set for IAB
+        # others are calculated
         keys = ['dm', 'dm_err', 'width', 'snr', 'flux', 'semiMaj', 'semiMin',
                 'ra', 'dec', 'ymw16', 'name', 'importance', 'utc']
         for key in keys:
@@ -127,9 +154,20 @@ class VOEventGenerator(threading.Thread):
         trigger['gl'] = coord.galactic.l.deg
         trigger['gb'] = coord.galactic.b.deg
 
+        # calculate gain
+        gain = (AP_EFF * np.pi * (DISH_DIAM / 2.) ** 2 / (2 * const.k_B) * NDISH).to(u.Kelvin/(1000*u.mJy)).value
+        trigger['gain'] = gain
+
+        # calculate parallactic angle - Useful when using SB for pointing instead of center of CB
+        t = Time(trigger['utc'])
+        # IERS server is down, avoid using it
+        t.delta_ut1_utc = 0
+        hadec = util.ra_to_ha(coord.ra, coord.dec, t)
+        trigger['posang'] = util.ha_to_proj(hadec.ra, hadec.dec).to(u.deg).value
+
         self.logger.info("Creating VOEvent")
-        self.NewVOEvent(**trigger)
-        self.logger.info("Generated VOEvent")
+        self._NewVOEvent(**trigger)
+        self.logger.info("Created event")
 
         if self.send_events:
             self.logger.info("Sending VOEvent")
@@ -146,12 +184,35 @@ class VOEventGenerator(threading.Thread):
                 subprocess.check_output(cmd, shell=True)
             except subprocess.CalledProcessError as e:
                 self.logger.error("Failed to send VOEvent: {}".format(e.output))
-            os.system(cmd)
+            else:
+                self.logger.info("VOEvent sent - disabling future LOFAR triggering")
+                self.send_events = False
+        else:
+            self.logger.warning("Sending VOEvents is disabled - Cancelling trigger")
 
-    def NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
-                   ymw16, name, importance, utc, gl, gb, test=True):
+    @staticmethod
+    def _select_trigger(triggers):
+        """
+        :param triggers: list of trigger dictionaries
+        :return: trigger with highest S/N
+        """
+        max_snr = 0
+        index = None
+        # loop over triggers and check if current trigger has highest S/N
+        for i, trigger in enumerate(triggers):
+            snr = trigger['snr']
+            if snr > max_snr:
+                max_snr = snr
+                index = i
+        # index is now index of trigger with highest S/N
+        return triggers[index]
 
-        z = dm/1200.0  #May change
+    def _NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
+                    ymw16, name, importance, utc, gl, gb, gain,
+                    dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH/NCHAN).to(u.MHz).value,
+                    nu_GHz=1.37, posang=0, test=False):
+
+        z = dm/1200.0  # May change
         errDeg = semiMaj/60.0
 
         # Parse UTC
@@ -161,15 +222,14 @@ class VOEventGenerator(threading.Thread):
         utc_hh = int(utc[11:13])
         utc_mm = int(utc[14:16])
         utc_ss = float(utc[17:])
-        t = Time('T'.join([utc[:10], utc[11:]]), scale='utc', format='isot')
+        t = Time(utc, scale='utc', format='isot')
+        # IERS server is down, avoid using it
+        t.delta_ut1_utc = 0
         mjd = t.mjd
 
-        now = Time.now()
-        mjd_now = now.mjd
+        ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd)])
 
-        ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd_now)])
-
-        # for now use test role, not actual observation
+        # Set role to either test or real observation
         if test:
             v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
                            role=vp.definitions.roles.test)
@@ -179,26 +239,26 @@ class VOEventGenerator(threading.Thread):
         # Author origin information
         vp.set_who(v, date=datetime.datetime.utcnow(), author_ivorn="nl.astron")
         # Author contact information
-        vp.set_author(v, title="ASTRON FRB alert system", contactName="Leon Oostrum",
+        vp.set_author(v, title="ARTS FRB alert system", contactName="Leon Oostrum",
                       contactEmail="oostrum@astron.nl", shortName="ALERT")
         # Parameter definitions
 
-        # Apertif-specific observing configuration %%TODO: update parameters as necessary for new obs config
+        # Apertif-specific observing configuration
         beam_sMa = vp.Param(name="beam_semi-major_axis", unit="MM",
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.smajAxis", ac=True, value=semiMaj)
         beam_sma = vp.Param(name="beam_semi-minor_axis", unit="MM",
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.sminAxis", ac=True, value=semiMin)
-        beam_rot = vp.Param(name="beam_rotation_angle", value=0.0, unit="Degrees",
+        beam_rot = vp.Param(name="beam_rotation_angle", value=posang, unit="Degrees",
                             ucd="instr.beam;pos.errorEllipse;instr.offset", ac=True)
-        tsamp = vp.Param(name="sampling_time", value=0.08192, unit="ms", ucd="time.resolution", ac=True)
-        bw = vp.Param(name="bandwidth", value=300.0, unit="MHz", ucd="instr.bandwidth", ac=True)
-        nchan = vp.Param(name="nchan", value="1536", dataType="int",
+        tsamp = vp.Param(name="sampling_time", value=dt, unit="ms", ucd="time.resolution", ac=True)
+        bw = vp.Param(name="bandwidth", value=delta_nu_MHz, unit="MHz", ucd="instr.bandwidth", ac=True)
+        nchan = vp.Param(name="nchan", value=str(NCHAN), dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
-        cf = vp.Param(name="centre_frequency", value=1370.0, unit="MHz", ucd="em.freq;instr", ac=True)
+        cf = vp.Param(name="centre_frequency", value=str(1000*nu_GHz), unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
-        gain = vp.Param(name="gain", value=1.0, unit="K/Jy", ac=True)
-        tsys = vp.Param(name="tsys", value=75.0, unit="K", ucd="phot.antennaTemp", ac=True)
+        gain = vp.Param(name="gain", value=gain, unit="K/Jy", ac=True)
+        tsys = vp.Param(name="tsys", value=TSYS.to(u.Kelvin).value, unit="K", ucd="phot.antennaTemp", ac=True)
         backend = vp.Param(name="backend", value="ARTS")
         # beam = vp.Param(name="beam", value= )
 
@@ -208,7 +268,7 @@ class VOEventGenerator(threading.Thread):
 
         # Event parameters
         DM = vp.Param(name="dm", ucd="phys.dispMeasure", unit="pc/cm^3", ac=True, value=str(dm))
-        # DM_err = vp.Param(name="dm_err", ucd="stat.error;phys.dispMeasure", unit="pc/cm^3", ac=True, value=dm_err)
+        DM_err = vp.Param(name="dm_err", ucd="stat.error;phys.dispMeasure", unit="pc/cm^3", ac=True, value=dm_err)
         Width = vp.Param(name="width", ucd="time.duration;src.var.pulse", unit="ms", ac=True, value=str(width))
         SNR = vp.Param(name="snr", ucd="stat.snr", unit="None", ac=True, value=str(snr))
         Flux = vp.Param(name="flux", ucd="phot.flux", unit="Jy", ac=True, value=str(flux))
@@ -216,8 +276,8 @@ class VOEventGenerator(threading.Thread):
         Gl = vp.Param(name="gl", ucd="pos.galactic.lon", unit="Degrees", ac=True, value=str(gl))
         Gb = vp.Param(name="gb", ucd="pos.galactic.lat", unit="Degrees", ac=True, value=str(gb))
 
-        v.What.append(vp.Group(params=[DM, Width, SNR, Flux, Gl, Gb], name="event parameters"))
-        # v.What.append(vp.Group(params=[DM, DM_err, Width, SNR, Flux, Gl, Gb], name="event parameters"))
+        # v.What.append(vp.Group(params=[DM, Width, SNR, Flux, Gl, Gb], name="event parameters"))
+        v.What.append(vp.Group(params=[DM, DM_err, Width, SNR, Flux, Gl, Gb], name="event parameters"))
 
         # Advanced parameters (note, change script if using a differeing MW model)
         mw_dm = vp.Param(name="MW_dm_limit", unit="pc/cm^3", ac=True, value=str(ymw16))
@@ -231,7 +291,7 @@ class VOEventGenerator(threading.Thread):
         # WhereWhen
         vp.add_where_when(v, coords=vp.Position2D(ra=ra, dec=dec, err=errDeg, units='deg',
                                                   system=vp.definitions.sky_coord_system.utc_fk5_geo),
-                          obs_time=datetime.datetime(utc_YY,utc_MM,utc_DD,utc_hh,utc_mm,int(utc_ss),
+                          obs_time=datetime.datetime(utc_YY, utc_MM, utc_DD, utc_hh, utc_mm, int(utc_ss),
                                                      tzinfo=pytz.UTC),
                           observatory_location="WSRT")
 

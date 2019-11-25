@@ -3,21 +3,19 @@ Data Analysis of Real-time Candidates from ARTS
 
 master: [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
 
-dev: [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=dev)](https://travis-ci.com/loostrum/darc)
-
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
-The main executable should only be run on the ARTS cluster.
+The main executable should **only** be run on the ARTS cluster.
 
 ### Overview
 DARC comprises several parts that communicate through either queues or sockets. The availability of different services depends on which branch is active.
 
 * DARCMaster: Master service. Handles communication with user, controls all other services.
-* AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue (for clustering or direct triggering).
-* AMBERClustering: Clusters AMBER triggers together and puts them on DADA trigger queue.
+* AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue.
+* AMBERClustering: Clusters AMBER triggers together and puts them on queues for either IQUV or LOFAR triggering.
 * DADATrigger: Generates and send dada_dbevent triggers for stokes I and IQUV
-* VOEventGenerator: Converts incoming trigger to VOEvent and sends it.
+* VOEventGenerator: Converts incoming triggers to a VOEvent and sends them to LOFAR.
 * StatusWebsite: Queries status of all services and generates status webpage.
-* OfflineProcesing: Handles offline processing for 12 TABs / IAB.
+* OfflineProcesing: Handles offline processing, runs after every observation.
 
 ### Executables
 `darc`: Used to interact with the all services through the DARC Master service.\
