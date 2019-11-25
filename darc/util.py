@@ -202,6 +202,7 @@ def ra_to_ha(ra, dec, t):
     coord_apparent = SkyCoord(ra, dec, frame='icrs').transform_to(coord_system)
     # HA = LST - apparent RA
     ha = lst - coord_apparent.ra
+    dec = coord_apparent.dec
     # return SkyCoord of (Ha, Dec)
     return SkyCoord(ha, dec, frame=coord_system)
 
