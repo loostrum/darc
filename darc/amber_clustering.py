@@ -333,6 +333,11 @@ class AMBERClustering(DARCBase):
                 # set DM uncertainty to DM delay across pulse width
                 # Apertif has roughly 1 DM unit = 1 ms delay across band
                 dm_err = width.to(u.ms).value
+            # calculate arrival time at reference frequency = central frequency
+            cent_freq = sys_params['nu_GHz'] * 1000.
+            max_freq = cent_freq + .5 * BANDWIDTH.to(u.MHz).value
+            dm_delay = 4.15E3 * dm_to_send * (cent_freq**-2 - max_freq**-2)
+            utc_arr = (utc_start + TimeDelta(cluster_time[mask][ind] - dm_delay, format='sec')).isot
             # set a source name
             if src_type is not None:
                 name = src_type
@@ -358,7 +363,7 @@ class AMBERClustering(DARCBase):
                                  'semiMaj': 15,  # arcmin, CB
                                  'semiMin': 15,  # arcmin, CB
                                  'name': name,
-                                 'utc': (utc_start + TimeDelta(cluster_time[mask][ind], format='sec')).isot,
+                                 'utc': utc_arr,
                                  'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
