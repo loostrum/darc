@@ -241,31 +241,28 @@ class AMBERClustering(DARCBase):
         if ncluster == 0:
             return
 
-        # there are clusters, do IQUV triggering if possible
-        if self.can_trigger_iquv:
-            # check if we can do triggering
-            now = Time.now()
-            if now < self.time_iquv:
-                self.logger.warning("Cannot trigger IQUV yet, next possible time: {}".format(self.time_iquv))
-            else:
-                self.logger.info("Sending IQUV trigger")
-                # update last trigger time
-                self.time_iquv = now + TimeDelta(self.thresh_iquv['interval'], format='sec')
-                # trigger IQUV
-                dada_triggers = []
-                for i in range(ncluster):
-                    # send known source dm if available
-                    if dm_src is not None:
-                        dm_to_send = dm_src
-                    else:
-                        dm_to_send = cluster_dm[i]
-                    dada_trigger = {'stokes': 'IQUV', 'dm': dm_to_send, 'beam': cluster_sb[i],
-                                    'width': cluster_downsamp[i], 'snr': cluster_snr[i],
-                                    'time': cluster_time[i], 'utc_start': utc_start}
-                    dada_triggers.append(dada_trigger)
-                self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
+        # there are clusters, do IQUV triggering
+        # check if we can do triggering
+        now = Time.now()
+        if now < self.time_iquv:
+            self.logger.warning("Cannot trigger IQUV yet, next possible time: {}".format(self.time_iquv))
         else:
-            self.logger.warning("IQUV triggering disabled - ignoring trigger")
+            self.logger.info("Sending IQUV trigger")
+            # update last trigger time
+            self.time_iquv = now + TimeDelta(self.thresh_iquv['interval'], format='sec')
+            # trigger IQUV
+            dada_triggers = []
+            for i in range(ncluster):
+                # send known source dm if available
+                if dm_src is not None:
+                    dm_to_send = dm_src
+                else:
+                    dm_to_send = cluster_dm[i]
+                dada_trigger = {'stokes': 'IQUV', 'dm': dm_to_send, 'beam': cluster_sb[i],
+                                'width': cluster_downsamp[i], 'snr': cluster_snr[i],
+                                'time': cluster_time[i], 'utc_start': utc_start}
+                dada_triggers.append(dada_trigger)
+            self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
 
         # skip LOFAR triggering for pulsars
         if src_type == 'pulsar':
