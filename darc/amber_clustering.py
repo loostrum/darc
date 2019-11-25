@@ -275,15 +275,16 @@ class AMBERClustering(DARCBase):
         if src_type == 'pulsar' and int(beam) == 0 and dm_src is not None:
             # select brightest trigger
             ind = np.argmax(cluster_snr)
-            dm = cluster_dm[ind]
             snr = cluster_snr[ind]
-            width = cluster_downsamp[ind] * 81.92E-3
-            # calculate TBB end time: arrival time at 200 MHz + half of 5s buffer
-            dm_delay = dm_src * 4.15E3 * (1520.**-2 - 200.**-2)  # in seconds
-            delay = TimeDelta(dm_delay + 2.5, format='sec')
-            # time should be integer unix time
-            time_lofar = int(np.round((utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).unix))
-            self.logger.warning("TRIGGER: UTC: {} S/N: {} Width: {} ms DM: {} pc/cc".format(time_lofar, snr, width, dm))
+            if snr > self.temp_lofar_snrmin:
+                dm = cluster_dm[ind]
+                width = cluster_downsamp[ind] * 81.92E-3
+                # calculate TBB end time: arrival time at 200 MHz + half of 5s buffer
+                dm_delay = dm_src * 4.15E3 * (1520.**-2 - 200.**-2)  # in seconds
+                delay = TimeDelta(dm_delay + 2.5, format='sec')
+                # time should be integer unix time
+                time_lofar = int(np.round((utc_start + TimeDelta(cluster_time[ind], format='sec') + delay).unix))
+                self.logger.warning("TRIGGER: UTC: {} S/N: {} Width: {} ms DM: {} pc/cc".format(time_lofar, snr, width, dm))
         ###########
 
         # skip LOFAR triggering for pulsars
