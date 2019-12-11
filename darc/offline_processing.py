@@ -363,14 +363,8 @@ class OfflineProcessing(threading.Thread):
         if ind is None:
             ind = tab
 
-        # Minimum DM: highest of dmmin, fraction of galactic (normal observation) or
-        # dmmin (pulsar observation)
-        source = obs_config['parset']['task.source.name']
-        if source in self.test_pulsars:
-            obs_config['dmmin'] = self.dmmin
-        else:
-            dmmin_gal = self.dmgal_frac * self._get_ymw16(obs_config)
-            obs_config['dmmin'] = max(dmmin_gal, self.dmmin)
+        # Set minimum DM
+        obs_config['dmmin'] = self.dmmin
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         time_limit = self.max_proc_time / self.numthread
