@@ -17,7 +17,7 @@ except ImportError:
 import threading
 import socket
 import subprocess
-from shutil import copyfile
+from shutil import copyfile, which
 import random
 import string
 import astropy.units as u
@@ -198,6 +198,33 @@ class OfflineProcessing(threading.Thread):
                 self._fold_pulsar(source, obs_config)
         except Exception as e:
             self.logger.error("Pulsar folding failed: {}".format(e))
+            
+        # run calibration tools if this is a calibrator scan
+        # these have "drift" in the source name
+        try:
+            source = obs_config['parset']['task.source.name']
+            if 'drift' in source:
+                # split into actual source name and which beams were scanned
+                name, beam_range = source.split('drift')
+                # parse beam range, can be one beam or start/end beam
+                if len(beam_range) == 2:
+                    # one beam
+                    drift_beams = [int(beam_range)]
+                elif len(beam_range) == 4:
+                    # start and end beam
+                    sbeam = int(beam_range[:2])
+                    ebeam = int(beam_range[2:])
+                    drift_beams = range(sbeam, ebeam)
+                else:
+                    self.logger.error("Failed to parse beam range for calibrator scan: {}".format(source))
+                    drift_beams = []
+
+                # run calibration tools if this is a calibrator scan of this beam
+                if name in self.calibrators and (obs_config['beam'] in drift_beams):
+                    self.logger.info("Calibrator scan through this beam detected: {}".format(source))
+                self._run_calibration_tools(name, obs_config)
+        except Exception as e:
+            self.logger.error("Calibration tools failed: {}".format(e))
 
         # create trigger directory
         trigger_dir = "{output_dir}/triggers".format(**obs_config)
@@ -363,14 +390,8 @@ class OfflineProcessing(threading.Thread):
         if ind is None:
             ind = tab
 
-        # Minimum DM: highest of dmmin, fraction of galactic (normal observation) or
-        # dmmin (pulsar observation)
-        source = obs_config['parset']['task.source.name']
-        if source in self.test_pulsars:
-            obs_config['dmmin'] = self.dmmin
-        else:
-            dmmin_gal = self.dmgal_frac * self._get_ymw16(obs_config)
-            obs_config['dmmin'] = max(dmmin_gal, self.dmmin)
+        # Set minimum DM
+        obs_config['dmmin'] = self.dmmin
 
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         time_limit = self.max_proc_time / self.numthread
@@ -796,6 +817,38 @@ class OfflineProcessing(threading.Thread):
         full_cmd = prepfold_cmd + " && " + convert_cmd + ' &'
         self.logger.info("Running {}".format(full_cmd))
         os.system(full_cmd)
+
+    def _run_calibration_tools(self, source, obs_config):
+        """
+        :param source: Source name (like 3C296, _not_ 3C286drift0107)
+        :param obs_config: Observation config
+        """
+        # init settings for calibration tools script
+        kwargs = {'source': source, 'calibration_tools': self.calibration_tools}
+
+        # get number of dishes
+        # stored as string in parset, using a comma-separated format
+        dishes = obs_config['parset']['task.telescopes']
+        kwargs['ndish'] = dishes.count(',') + 1
+
+        # create output directories
+        prefix = '{}_{}'.format(obs_config['date'], source)
+        output_dir = os.path.join(self.calibration_dir, prefix)
+        for sub_dir in ['plots', 'data']:
+            util.makedirs(os.path.join(output_dir, sub_dir))
+        kwargs['output_dir'] = output_dir
+
+        # find full path to cp, to avoid using user alias like "cp -i"
+        kwargs['cp'] = which('cp')
+
+        # run in filterbank dir
+        os.chdir("{output_dir}/filterbank".format(**obs_config))
+
+        # define command (python2!)
+        cmd = "(nice python2 {calibration_tools} --Ndish {ndish} --src {source} CB??_??.fil;" \
+              " {cp} *.pdf {output_dir}/plots; {cp} *.npy {output_dir}/data) &".format(**kwargs)
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)
 
     def _load_parset(self, obs_config):
         """

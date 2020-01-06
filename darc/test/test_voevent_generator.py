@@ -18,8 +18,8 @@ class TestVOEventGenerator(unittest.TestCase):
         generator = VOEventGenerator()
         # overwrite server location
         generator.server_host = 'localhost'
-        # ensure it does not send events
-        generator.send_events = False
+        # events are only generated if send = True
+        generator.send_events = True
         # start the generator
         generator.start()
         sleep(1)
@@ -29,11 +29,11 @@ class TestVOEventGenerator(unittest.TestCase):
         triggers = [{'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 10, 'flux': 0.5,
                      'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
                      'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
-                     'importance': 0.1, 'utc': '2019-01-01T18:00:00.0'},
+                     'importance': 0.1, 'utc': '2019-01-01T18:00:00.0', 'test': True},
                     {'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 50, 'flux': 0.5,
                      'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
                      'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
-                     'importance': 0.1, 'utc': trigger_utc}]
+                     'importance': 0.1, 'utc': trigger_utc, 'test':True}]
 
         # get the queue
         VOEventQueueServer.register('get_queue')

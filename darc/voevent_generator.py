@@ -115,7 +115,10 @@ class VOEventGenerator(threading.Thread):
                 if additional_triggers:
                     trigger = [trigger] + additional_triggers
 
-            self.create_and_send(trigger)
+            if not self.send_events:
+                self.logger.warning("Trigger received but sending VOEvents is disabled")
+            else:
+                self.create_and_send(trigger)
 
         # stop the queue server
         self.voevent_server.shutdown()
@@ -167,28 +170,25 @@ class VOEventGenerator(threading.Thread):
 
         self.logger.info("Creating VOEvent")
         self._NewVOEvent(**trigger)
-        self.logger.info("Created event")
 
-        if self.send_events:
-            self.logger.info("Sending VOEvent")
-            # Filename is {utc}.xml
-            filename = os.path.join(self.voevent_dir, "{}.xml".format(trigger['utc']))
-            if not os.path.isfile(filename):
-                self.logger.error("Cannot find XML file to send")
-                return
-            cmd = "comet-sendvo -f {xmlfile} --host={host} " \
-                  "--port={port}".format(xmlfile=filename, host=self.broker_host,
-                                         port=self.broker_port)
-            self.logger.info("Running {}".format(cmd))
-            try:
-                subprocess.check_output(cmd, shell=True)
-            except subprocess.CalledProcessError as e:
-                self.logger.error("Failed to send VOEvent: {}".format(e.output))
-            else:
-                self.logger.info("VOEvent sent - disabling future LOFAR triggering")
-                self.send_events = False
+        self.logger.info("Sending VOEvent")
+        # Filename is {utc}.xml
+        filename = os.path.join(self.voevent_dir, "{}.xml".format(trigger['utc']))
+        if not os.path.isfile(filename):
+            self.logger.error("Cannot find XML file to send")
+            return
+        cmd = "comet-sendvo -f {xmlfile} --host={host} " \
+              "--port={port}".format(xmlfile=filename, host=self.broker_host,
+                                     port=self.broker_port)
+        self.logger.info("Running {}".format(cmd))
+        try:
+            subprocess.check_output(cmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.logger.error("Failed to send VOEvent: {}".format(e.output))
         else:
-            self.logger.warning("Sending VOEvents is disabled - Cancelling trigger")
+            self.logger.info("VOEvent sent - disabling future LOFAR triggering")
+            self.send_events = False
+
 
     @staticmethod
     def _select_trigger(triggers):
