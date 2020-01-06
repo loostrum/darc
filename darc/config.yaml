@@ -64,7 +64,6 @@ amber_clustering:
       dm_frac_min: 2.0  # fraction of max MW contribution.
       width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
       snr_min: 12
-    temp_lofar_snrmin: 40
 
 # VOEvent generator
 voevent_generator:
@@ -130,13 +129,16 @@ offline_processing:
     clean_type: "perchannel"
     max_proc_time: 18000
     ml_gpus: 0
-    test_pulsars: ["B0329+54", "B1933+16", "B0531+21", "B0950+08"]
+    test_pulsars: ["B0329+54", "B1933+16", "B0531+21", "B0950+08"]  # these will be folded with PRESTO
+    calibrators: ["CasA", "TauA", "3C48", "3C196", "3C286", "3C138", "3C147"]  # from calibration_tools.py
     key_ntriggers_skipped: "ntriggers_skipped"
     keys_data: ["data_freq_time", "data_dm_time", "params"]
     model_dir: "{home}/keras_models"
     model_1dtime: "heimdall_b0329_mix_147411d_time.hdf5"
     model_dmtime: "heimdall_dm_time.hdf5"
     model_freqtime: "20190501freq_time.hdf5"
+    calibration_dir: "{home}/darc/calibration"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
+    calibration_tools: "{home}/ARTS-obs/external/arts-analysis/calibration_tools.py"
