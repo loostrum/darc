@@ -824,7 +824,7 @@ class OfflineProcessing(threading.Thread):
         :param obs_config: Observation config
         """
         # init settings for calibration tools script
-        kwargs = {'source': source}
+        kwargs = {'source': source, 'calibration_tools': self.calibration_tools}
 
         # get number of dishes
         # stored as string in parset, using a comma-separated format
