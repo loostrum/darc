@@ -222,7 +222,7 @@ class OfflineProcessing(threading.Thread):
                 # run calibration tools if this is a calibrator scan of this beam
                 if name in self.calibrators and (obs_config['beam'] in drift_beams):
                     self.logger.info("Calibrator scan through this beam detected: {}".format(source))
-                self._run_calibration_tools(name, obs_config)
+                    self._run_calibration_tools(name, obs_config)
         except Exception as e:
             self.logger.error("Calibration tools failed: {}".format(e))
 
