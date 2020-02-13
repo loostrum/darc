@@ -214,7 +214,7 @@ class OfflineProcessing(threading.Thread):
                     # start and end beam
                     sbeam = int(beam_range[:2])
                     ebeam = int(beam_range[2:])
-                    drift_beams = range(sbeam, ebeam)
+                    drift_beams = range(sbeam, ebeam+1)
                 else:
                     self.logger.error("Failed to parse beam range for calibrator scan: {}".format(source))
                     drift_beams = []
