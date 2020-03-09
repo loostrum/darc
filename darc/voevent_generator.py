@@ -6,10 +6,7 @@ import os
 import yaml
 import multiprocessing as mp
 import subprocess
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 from time import sleep
 import numpy as np
 import threading
@@ -24,7 +21,7 @@ import voeventparse as vp
 import datetime
 from xml.dom import minidom
 
-from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
+from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, ROOT_DIR, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 
@@ -54,7 +51,7 @@ class VOEventGenerator(threading.Thread):
 
         self.voevent_server = None
 
-        with open(CONFIG_FILE, 'r') as f:
+        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
 
         # set config, expanding strings

@@ -9,7 +9,7 @@ import logging
 import socket
 import subprocess
 
-from darc.definitions import CONFIG_FILE
+from darc.definitions import ROOT_DIR, CONFIG_FILE
 
 logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
 
@@ -30,7 +30,7 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
         message = "{{'service':'{}', 'command':'{}'}}".format(service, command)
     if port is None:
         # read port from config
-        with open(CONFIG_FILE, 'r') as f:
+        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
             master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
         port = master_config['port']
     # connect to master
@@ -69,7 +69,7 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
 
 def main():
     # Check available services in config
-    with open(CONFIG_FILE, 'r') as f:
+    with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
     if config['mode'] == 'real-time':
         services = config['services_master_rt'] + config['services_worker_rt']
@@ -108,11 +108,11 @@ def main():
 
     # If command is edit, open config in an editor
     if args.cmd == 'edit':
-        with open(CONFIG_FILE, 'r') as f:
+        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
             master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
         default_editor = master_config['editor']
         editor = os.environ.get('EDITOR', default_editor)
-        ret = subprocess.Popen([editor, CONFIG_FILE]).wait()
+        ret = subprocess.Popen([editor, os.path.join(ROOT_DIR, CONFIG_FILE)]).wait()
         if ret != 0:
             logging.error("Editor did not exit properly")
         else:

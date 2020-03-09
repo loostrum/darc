@@ -8,13 +8,10 @@ import threading
 import multiprocessing as mp
 from multiprocessing import queues
 import yaml
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 
 from darc.logger import get_logger
-from darc.definitions import CONFIG_FILE, MASTER, WORKERS
+from darc.definitions import ROOT_DIR, CONFIG_FILE, MASTER, WORKERS
 
 
 class DARCBase(threading.Thread):
@@ -41,7 +38,7 @@ class DARCBase(threading.Thread):
         self.log_name = type(self).__name__
 
         # load config
-        with open(CONFIG_FILE, 'r') as f:
+        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)[name]
 
         # set config, expanding strings

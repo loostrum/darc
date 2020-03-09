@@ -17,7 +17,7 @@ from astropy.coordinates import SkyCoord
 
 from darc.base import DARCBase
 from darc.voevent_generator import VOEventQueueServer
-from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
+from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, ROOT_DIR, CONFIG_FILE, MASTER
 from darc.external import tools
 from darc import util
 
@@ -163,7 +163,7 @@ class AMBERClustering(DARCBase):
         """
         # Load VO server settings
         VOEventQueueServer.register('get_queue')
-        with open(CONFIG_FILE, 'r') as f:
+        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()

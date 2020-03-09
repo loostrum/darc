@@ -4,6 +4,7 @@ import os
 import astropy.units as u
 
 # config file name; assumed to be in same directory as this file
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = 'config.yaml'
 
 # hosts
