@@ -4,7 +4,7 @@ Data Analysis of Real-time Candidates from the Apertif Radio Transient System
 [![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
 
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
-As of December 2019, DARC has discovered 6 FRBs.
+As of February 2020, DARC has discovered 11 FRBs.
 
 ### Overview
 DARC comprises several parts that communicate through either queues or sockets. Each node of the ARTS cluster runs one instance of DARC. 
@@ -36,4 +36,7 @@ Check the log file of a specific service: `tail ~/darc/log/amber_clustering.arts
 Restart a specific service: `darc --host arts001 --service amber_clustering restart`  
 Start an observation: `darc --host arts001 --parset /path/to/parset start_observation`  
 To consult the status of DARC across the cluster, open the `~arts/darc/status` webpage on the master node.  
+
+### Documentation
+Available at https://loostrum.github.io/darc/
 
