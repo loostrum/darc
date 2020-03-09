@@ -14,19 +14,17 @@ from astropy.time import Time
 import astropy.units as u
 import astropy.constants as const
 from astropy.coordinates import SkyCoord, FK5
-try:
-    from queue import Empty
-except ImportError:
-    from Queue import Empty
+from queue import Empty
 
 from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT, NDISH
 
 
 def sleepuntil_utc(end_time, event=None):
     """
-    Sleep until specified time.
-    :param end_time: sleep until this time (datetime or astropy.time.Time object)
-    :param event: If specified, uses event.wait instead of time.sleep
+    Sleep until specified time
+
+    :param datetime.datetime/astropy.time.Time end_time: sleep until this time
+    :param threading.Event event: ff specified, uses event.wait instead of time.sleep
     """
 
     # convert datetime to astropy time
@@ -53,7 +51,8 @@ def sleepuntil_utc(end_time, event=None):
 def makedirs(path):
     """
     Mimic os.makedirs, but do not error when directory already exists
-    :param path: path to create
+
+    :param str path: path to recursively create
     """
     try:
         os.makedirs(path)
@@ -67,7 +66,8 @@ def makedirs(path):
 def decode_parset(parset_bytes):
     """
     Decode parset into string
-    :param parset_bytes: raw parset bytes
+
+    :param bytes parset_bytes: raw parset bytes
     :return: parset as string
     """
     return codecs.decode(codecs.decode(codecs.decode(parset_bytes, 'hex'), 'bz2'), 'utf-8')
@@ -76,7 +76,8 @@ def decode_parset(parset_bytes):
 def encode_parset(parset_str):
     """
     Encode parset string into bytes
-    :param parset_str: parset as one string
+
+    :param str parset_str: parset as one string
     :return: encoded parset as bytes
     """
     return codecs.encode(codecs.encode(codecs.encode(parset_str, 'utf-8'), 'bz2'), 'hex')
@@ -85,7 +86,8 @@ def encode_parset(parset_str):
 def parse_parset(parset_str):
     """
     Parse parset into dict with proper types
-    :param parset_str: raw parset as string
+
+    :param str parset_str: raw parset as string
     :return: parset as dict
     """
     # split per line, remove comments
@@ -128,7 +130,8 @@ def parse_parset(parset_str):
 def tail(f, event, interval=.1):
     """
     Read all lines of a file, then tail until stop event is set
-    :param f: handle to file to tail
+
+    :param filehandle f: handle to file to tail
     :param event: stop event
     :param interval: sleep time between checks for new lines (default: .1)
     """
@@ -152,7 +155,8 @@ def tail(f, event, interval=.1):
 def clear_queue(queue):
     """
     Read all remaining items in a queue and discard them
-    :param queue: queue to clear
+
+    :param queue.Queue queue: queue to clear
     """
     try:
         while True:
@@ -164,12 +168,13 @@ def clear_queue(queue):
 def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
     """
     Compute single pulse flux density using radiometer equation
-    :param snr: S/N
-    :param width: Width (with unit)
-    :param ndish: Number of dishes used (default: 8)
-    :param npol: Number of polarizations (default: 2)
-    :param coherent: Using coherent beamforming (default: True)
-    :return: Peak flux density with unit
+
+    :param float snr: S/N
+    :param astropy.units.quantity.Quantity width: Width
+    :param int ndish: Number of dishes used (default: 8)
+    :param int npol: Number of polarizations (default: 2)
+    :param bool coherent: Using coherent beamforming (default: True)
+    :return: Peak flux density (astropy.units.quantity.Quantity)
     """
     gain = AP_EFF * np.pi * (DISH_DIAM/2.)**2 / (2*const.k_B)
     if coherent:
@@ -184,9 +189,10 @@ def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
 def ra_to_ha(ra, dec, t):
     """
     Convert J2000 RA, Dec to WSRT HA, Dec
-    :param ra: right ascension with unit
-    :param dec: declination with unit
-    :param t: UT time (string or astropy.time.Time)
+
+    :param astropy.units.quantity.Quantity ra: right ascension with unit
+    :param astropy.units.quantity.Quantity dec: declination with unit
+    :param str/astropy.time.Time t: UTC time
     :return: SkyCoord object of apparent HA, Dec coordinates
     """
 
@@ -210,9 +216,10 @@ def ra_to_ha(ra, dec, t):
 def ha_to_ra(ha, dec, t):
     """
     Convert WSRT HA, Dec to J2000 RA, Dec
-    :param ha: hour angle with unit
-    :param dec: declination with unit
-    :param t: UT time (string or astropy.time.Time)
+
+    :param astropy.units.quantity.Quantity ha: hour angle with unit
+    :param astropy.units.quantity.Quantity dec: declination with unit
+    :param str/astropy.time.Time t: UTC time
     :return: SkyCoord object of J2000 coordinates
     """
 
@@ -233,9 +240,10 @@ def ha_to_ra(ha, dec, t):
 def ha_to_proj(ha, dec):
     """
     Convert WSRT HA, Dec to parallactic angle
+
     This is the SB rotation w.r.t. the RA-Dec frame
-    :param ha: hour angle with unit
-    :param dec: declination with unit
+    :param astropy.units.quantity.Quantity ha: hour angle with unit
+    :param astropy.units.quantity.Quantity dec: declination with unit
     """
     theta_proj = np.arctan(np.cos(WSRT_LAT)*np.sin(ha) /
                            (np.sin(WSRT_LAT)*np.cos(dec) -

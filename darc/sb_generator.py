@@ -15,8 +15,17 @@ class SBGeneratorException(Exception):
 
 
 class SBGenerator(object):
+    """
+    Synthesized beam generator
+    """
 
     def __init__(self, fname=None, science_case=None):
+        """
+        __init__ should be called by cls.from_science_case or cls.from_table
+
+        :param fname: path to synthesized beam table
+        :param science_case: ARTS science case (3 or 4)
+        """
         self.sb_table = None
         self.nsub = None
         self.numtab = None
@@ -53,6 +62,7 @@ class SBGenerator(object):
     def reversed(self):
         """
         Whether or not the SB table is reversed for use on filterbank data
+
         :return: reversed (bool)
         """
         return self.__reversed
@@ -61,7 +71,8 @@ class SBGenerator(object):
     def reversed(self, state):
         """
         Reverse the SB table for use on filterbank data
-        :param state: bool, whether or not to reverse the table
+
+        :param bool state: whether or not the table should be in filterbank order
         """
         if self.__reversed == state:
             # already in desired state
@@ -76,7 +87,8 @@ class SBGenerator(object):
     def from_table(cls, fname):
         """
         Initalize with provided SB table
-        :param fname: Path to SB table
+
+        :param str fname: Path to SB table
         :return: SBGenerator object
         """
         return cls(fname=fname)
@@ -84,8 +96,9 @@ class SBGenerator(object):
     @classmethod
     def from_science_case(cls, science_case):
         """
-        Initalize default table for given science cases
-        :param science_case: science case (3 or 4)
+        Initalize default table for given science case
+
+        :param int science_case: science case (3 or 4)
         :return: SBGenerator object
         """
         if science_case not in (3, 4):
@@ -94,7 +107,7 @@ class SBGenerator(object):
 
     def _load_table(self):
         """
-        Load the SB table
+        Load SB table
         """
         self.sb_mapping = np.loadtxt(self.fname, dtype=int)
         numsb, self.nsub = self.sb_mapping.shape
@@ -125,7 +138,8 @@ class SBGenerator(object):
     def get_map(self, sb):
         """
         Return mapping of requested SB
-        :param sb: beam to return mapping for
+
+        :param int sb: beam to return mapping for
         :return: SB mapping for requested beam
         """
         return self.sb_mapping[sb]
@@ -133,8 +147,9 @@ class SBGenerator(object):
     def synthesize_beam(self, data, sb):
         """
         Synthesize beam
-        :param data: TAB data with shape [TAB, freq, time]
-        :param sb: SB index
+
+        :param np.ndarray data: TAB data with shape [TAB, freq, time]
+        :param int sb: SB index
         :return: SB data with shape [freq, time]
         """
         ntab, nfreq, ntime = data.shape

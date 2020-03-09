@@ -16,12 +16,14 @@ logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout
 
 def send_command(timeout, service, command, payload=None, host='localhost', port=None):
     """
-    :param timeout: Timeout for reply in seconds
-    :param service: Service to send command to
-    :param command: Which command to send
-    :param payload: Payload for command (optional)
-    :param host: Hostname (default: localhost)
-    :return:
+    Send a command to the DARC master service
+
+    :param float timeout: Timeout for reply in seconds
+    :param str service: Service to send command to
+    :param str command: Which command to send
+    :param str payload: Payload for command (optional)
+    :param str host: Hostname (default: localhost)
+    :return: reply from DARC master
     """
     # define message as literal python dict
     if payload:
@@ -68,6 +70,13 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
 
 
 def main():
+    """
+    DARC command line interface
+
+    This function is called by the darc executable
+
+    Run darc --help for usage
+    """
     # Check available services in config
     with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']

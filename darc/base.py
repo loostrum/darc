@@ -17,12 +17,12 @@ from darc.definitions import ROOT_DIR, CONFIG_FILE, MASTER, WORKERS
 class DARCBase(threading.Thread):
     """
     DARC Base class
-    Provides common methods
+
+    Provides common methods to services
     """
 
     def __init__(self):
         """
-        Initialisation
         """
         threading.Thread.__init__(self)
         self.daemon = True
@@ -64,7 +64,7 @@ class DARCBase(threading.Thread):
 
     def stop(self):
         """
-        Set the stop event
+        Stop this service
         """
         self.logger.info("Stopping {}".format(self.log_name))
         self.cleanup()
@@ -72,7 +72,9 @@ class DARCBase(threading.Thread):
 
     def set_source_queue(self, queue):
         """
-        :param queue: Input queue
+        Set input queue
+
+        :param queues.Queue queue: Input queue
         """
         if not isinstance(queue, queues.Queue):
             self.logger.error("Given source queue is not an instance of Queue")
@@ -82,7 +84,9 @@ class DARCBase(threading.Thread):
 
     def set_target_queue(self, queue):
         """
-        :param queue: Output queue
+        Set output queue
+
+        :param queues.Queue queue: Output queue
         """
         if not isinstance(queue, queues.Queue):
             self.logger.error("Given target queue is not an instance of Queue")
@@ -93,6 +97,9 @@ class DARCBase(threading.Thread):
     def run(self):
         """
         Main loop
+
+        Receive commands on input queue, calls self.start_observation, self.stop_observation,
+        else self.process_command
         """
         # check queues
         try:
@@ -128,19 +135,40 @@ class DARCBase(threading.Thread):
         except EOFError:
             pass
         except Exception as e:
-            if isinstance(e, EOFError):
-                self.logger.info("Found EOF Error")
             self.logger.error("Caught exception in main loop: {}".format(e))
             self.stop()
 
     def start_observation(self, *args, **kwargs):
+        """
+        Start observation stub, should be overridden by subclass if commands need to be executed at
+        observation start
+
+        :param list args: start_observation arguments
+        :param dict kwargs: start_observation keyword arguments
+        """
         pass
 
     def stop_observation(self, *args, **kwargs):
+        """
+        Stop observation stub, should be overridden by subclass if commands need to be executed at
+        observation stop
+
+        :param list args: stop_observation arguments
+        :param dict kwargs: stop_observation keyword arguments
+        """
         pass
 
     def cleanup(self):
+        """
+        Stub for commands to run upon service stop, defaults to self.stop_observation
+        """
         self.stop_observation()
 
     def process_command(self, *args, **kwargs):
+        """
+        Process command from queue, other than start_observation and stop_observation
+
+        :param list args: process command arguments
+        :param dict kwargs: process command keyword arguments
+        """
         raise NotImplementedError("process_command should be defined by subclass")

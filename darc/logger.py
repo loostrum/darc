@@ -12,8 +12,9 @@ def get_logger(name, log_file, level=logging.DEBUG):
     """
     Create logger
 
-    :param log_file: Path to log file
-    :param level: log level (default: DEBUG)
+    :param str name: name to use in log prints
+    :param str log_file: Path to log file
+    :param int level: log level (default: logging.DEBUG)
     :return: logger
     """
     # create log dir

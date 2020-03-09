@@ -3,12 +3,14 @@
 import os
 import astropy.units as u
 
-# config file name; assumed to be in same directory as this file
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+#: Config file name
 CONFIG_FILE = 'config.yaml'
 
-# hosts
+#: ARTS master name
 MASTER = "arts041"
+
+#: ARTS worker names
 WORKERS = ["arts001", "arts002", "arts003", "arts004", "arts005", 
            "arts006", "arts007", "arts008", "arts009", "arts010", 
            "arts011", "arts012", "arts013", "arts014", "arts015", 
@@ -18,15 +20,35 @@ WORKERS = ["arts001", "arts002", "arts003", "arts004", "arts005",
            "arts031", "arts032", "arts033", "arts034", "arts035", 
            "arts036", "arts037", "arts038", "arts039", "arts040"]
 
-# WSRT/Apertif constants
-NCHAN = 1536
-BANDWIDTH = 300.*u.MHz
-TSAMP = 81.92E-6*u.s
+#: WSRT latitude
 WSRT_LAT = 52.915184*u.deg
+
+#: WSRT longitude
 WSRT_LON = 6.60387*u.deg
+
+#: WSRT altitude
 WSRT_ALT = 16*u.m
+
+#: WSRT dish diameter
 DISH_DIAM = 25*u.m
+
+#: Apertif/ARTS number of channels
+NCHAN = 1536
+
+#: Apertif/ARTS bandwidth
+BANDWIDTH = 300.*u.MHz
+
+#: Apertif/ARTS sampling time
+TSAMP = 81.92E-6*u.s
+
+#: Apertif/ARTS number of compound beams
 NUMCB = 40
-TSYS = 75*u.Kelvin
-AP_EFF = .75
+
+#: Apertif/ARTS system temperature
+TSYS = 85*u.Kelvin
+
+#: Apertif/ARTS aperture efficiency
+AP_EFF = .60
+
+#: Apertif/ARTS number of dishes in use
 NDISH = 8
