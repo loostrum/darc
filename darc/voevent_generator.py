@@ -30,6 +30,9 @@ from darc.logger import get_logger
 
 
 class VOEventQueueServer(BaseManager):
+    """
+    Server for VOEvent input queue
+    """
     pass
 
 
@@ -39,9 +42,12 @@ class VOEventGeneratorException(Exception):
 
 class VOEventGenerator(threading.Thread):
     """
-    Generate VOEvent from incoming trigger
+    Convert incoming triggers to VOEvent and send to
+    the VOEvent broker
     """
     def __init__(self):
+        """
+        """
         threading.Thread.__init__(self)
         self.stop_event = threading.Event()
         self.daemon = True
@@ -78,12 +84,14 @@ class VOEventGenerator(threading.Thread):
 
     def stop(self):
         """
-        Stop the service
+        Stop this service
         """
         self.stop_event.set()
 
     def run(self):
         """
+        Main loop
+
         Read triggers from queue and process them
         """
 
@@ -126,9 +134,11 @@ class VOEventGenerator(threading.Thread):
 
     def create_and_send(self, trigger):
         """
-        Creates VOEvent
-        Sends if enabled in config
-        :param trigger: Trigger event(s). dict if one event, list of dicts if multiple events
+        Create voevent
+
+        Event is only sent if enabled in config
+
+        :param list/dict trigger: Trigger event(s). dict if one event, list of dicts if multiple events
         """
 
         # if multiple triggers are received, select one
@@ -162,6 +172,8 @@ class VOEventGenerator(threading.Thread):
         trigger['gain'] = gain
 
         # calculate parallactic angle - Useful when using SB for pointing instead of center of CB
+        # ToDo: SB rotation is not equal to the angle calculated here, but a combination of
+        # parallactic angle and baseline projection angle
         t = Time(trigger['utc'])
         # IERS server is down, avoid using it
         t.delta_ut1_utc = 0
@@ -189,11 +201,12 @@ class VOEventGenerator(threading.Thread):
             self.logger.info("VOEvent sent - disabling future LOFAR triggering")
             self.send_events = False
 
-
     @staticmethod
     def _select_trigger(triggers):
         """
-        :param triggers: list of trigger dictionaries
+        Select trigger with highest S/N from a list of triggers
+
+        :param list triggers: one dict per trigger
         :return: trigger with highest S/N
         """
         max_snr = 0
@@ -211,8 +224,33 @@ class VOEventGenerator(threading.Thread):
                     ymw16, name, importance, utc, gl, gb, gain,
                     dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH/NCHAN).to(u.MHz).value,
                     nu_GHz=1.37, posang=0, test=False):
+        """
+        Create a VOEvent
 
-        z = dm/1200.0  # May change
+        :param float dm: Dispersion measure (pc cm**-3)
+        :param float dm_err: Error on DM (pc cm**-3)
+        :param float width: Pulse width (ms)
+        :param float snr: Signal-to-noise ratio
+        :param float flux: flux density (mJy)
+        :param float ra: Right ascension (deg)
+        :param float dec: Declination (deg)
+        :param float semiMaj: Localisation region semi-major axis (arcmin)
+        :param float semiMin: Localisation region semi-minor axis (arcmin)
+        :param float ymw16: YMW16 DM (pc cm**-3)
+        :param str name: Source name
+        :param float importance: Trigger importance (0-1)
+        :param str utc: UTC arrival time
+        :param float gl: Galactic longitude (deg)
+        :param float gb: Galactic latitude (deg)
+        :param float gain: Telescope gain (K Jy**-1)
+        :param float dt: Telescope time resolution (ms)
+        :param float delta_nu_MHz: Telescope frequency channel width (MHz)
+        :param float nu_GHz: Telescope centre frequency (GHz)
+        :param float posang: Localisation region position angle (deg)
+        :param bool test: Whether to send a test event or observation event
+        """
+
+        z = dm/1000.0  # May change
         errDeg = semiMaj/60.0
 
         # Parse UTC
@@ -268,7 +306,7 @@ class VOEventGenerator(threading.Thread):
 
         # Event parameters
         DM = vp.Param(name="dm", ucd="phys.dispMeasure", unit="pc/cm^3", ac=True, value=str(dm))
-        DM_err = vp.Param(name="dm_err", ucd="stat.error;phys.dispMeasure", unit="pc/cm^3", ac=True, value=dm_err)
+        DM_err = vp.Param(name="dm_err", ucd="stat.error;phys.dispMeasure", unit="pc/cm^3", ac=True, value=str(dm_err))
         Width = vp.Param(name="width", ucd="time.duration;src.var.pulse", unit="ms", ac=True, value=str(width))
         SNR = vp.Param(name="snr", ucd="stat.snr", unit="None", ac=True, value=str(snr))
         Flux = vp.Param(name="flux", ucd="phot.flux", unit="Jy", ac=True, value=str(flux))
@@ -283,7 +321,7 @@ class VOEventGenerator(threading.Thread):
         mw_dm = vp.Param(name="MW_dm_limit", unit="pc/cm^3", ac=True, value=str(ymw16))
         mw_model = vp.Param(name="galactic_electron_model", value="YMW16")
         redshift_inferred = vp.Param(name="redshift_inferred", ucd="src.redshift", unit="None", value=str(z))
-        redshift_inferred.Description = "Redshift estimated using z = DM/1200.0 (Ioka 2003)"
+        redshift_inferred.Description = "Redshift estimated using z = DM/1000.0"
 
         v.What.append(vp.Group(params=[mw_dm, mw_model, redshift_inferred], name="advanced parameters"))
 

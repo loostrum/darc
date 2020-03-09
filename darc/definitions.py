@@ -3,9 +3,8 @@
 import os
 import astropy.units as u
 
-# config
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(ROOT_DIR, 'config.yaml')
+# config file name; assumed to be in same directory as this file
+CONFIG_FILE = 'config.yaml'
 
 # hosts
 MASTER = "arts041"

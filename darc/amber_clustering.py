@@ -28,10 +28,18 @@ class AMBERClusteringException(Exception):
 
 class AMBERClustering(DARCBase):
     """
-    Cluster AMBER clusters
+    Trigger IQUV / LOFAR based on AMBER candidates
+
+    1. Cluster incoming triggers
+    2. Apply thresholds (separate for known and new sources, and for IQUV vs LOFAR)
+    3. Put IQUV triggers on output queue
+    4. Put LOFAR triggers on remote VOEvent queue
     """
 
     def __init__(self, connect_vo=True):
+        """
+        :param bool connect_vo: Whether or not to connect to VOEvent queue on master node
+        """
         super(AMBERClustering, self).__init__()
         self.needs_source_queue = True
         self.needs_target_queue = True
@@ -68,6 +76,7 @@ class AMBERClustering(DARCBase):
     def _load_source_list(self):
         """
         Load the list with known source DMs
+
         :return: source list with dict per category
         """
         try:
@@ -80,6 +89,8 @@ class AMBERClustering(DARCBase):
     def process_command(self, command):
         """
         Process command received from queue
+
+        :param str command: Command to process
         """
         if command['command'] == 'trigger':
             if not self.observation_running:
@@ -92,6 +103,8 @@ class AMBERClustering(DARCBase):
     def start_observation(self, obs_config):
         """
         Parse obs config and start listening for amber triggers on queue
+
+        :param dict obs_config: Observation configuration
         """
 
         # clean any old triggers
@@ -161,6 +174,7 @@ class AMBERClustering(DARCBase):
     def _get_source(self):
         """
         Try to get DM for a known source
+
         :return: DM for known source, else None
         """
         # get source name from parset
@@ -200,17 +214,19 @@ class AMBERClustering(DARCBase):
                         width_max=np.inf, snr_min=8, src_type=None, dmgal=0, pointing=None):
         """
         Cluster triggers and run IQUV and/or LOFAR triggering
-        :param triggers: list of raw triggers
-        :param sys_params: dict of system parameters (dt, delta_nu_MHz, nu_GHz)
-        :param utc_start: start time of observation
-        :param dm_min: minimum DM (default: 0)
-        :param dm_max: maximum DM (default: inf)
-        :param dm_src: DM of known source (default: None)
-        :param width_max: maximum width (default: inf)
-        :param snr_min: mininum S/N (default: 8)
-        :param src_type: Source type (pulsar, frb, None)
-        :param dmgal: galactic maximum DM
-        :param pointing: SkyCoord object with pointing for LOFAR triggering (default: None)
+
+        :param list triggers: Raw triggers
+        :param dict sys_params: System parameters (dt, delta_nu_MHz, nu_GHz)
+        :param str utc_start: start time of observation, in format readable by astropy.time.Time
+        :param float dm_min: minimum DM (default: 0)
+        :param float dm_max: maximum DM (default: inf)
+        :param float dm_src: DM of known source (default: None)
+        :param float width_max: maximum width (default: inf)
+        :param float snr_min: mininum S/N (default: 8)
+        :param str src_type: Source type (pulsar, frb, None)
+        :param float dmgal: galactic maximum DM
+        :param astropy.coordinates.SkyCoord pointing: Pointing for LOFAR triggering (default: None)
+
         """
         # cluster using IQUV thresholds
         # LOFAR thresholds are assumed to be more strict for every parameter
@@ -351,6 +367,7 @@ class AMBERClustering(DARCBase):
     def _process_triggers(self):
         """
         Read thresholds (DM, width, S/N) for clustering
+
         Continuously read AMBER triggers from queue and start processing for known and/or new sources
         """
 
@@ -466,6 +483,7 @@ class AMBERClustering(DARCBase):
     def _get_pointing(self):
         """
         Get pointing of this CB from parset
+
         :return: pointing SkyCoord
         """
         # read parset
@@ -502,7 +520,8 @@ class AMBERClustering(DARCBase):
     def _get_ymw16(self, pointing):
         """
         Get YMW16 DM from pointing
-        :param pointing: pointing SkyCoord
+
+        :param astropy.coordinates.SkyCoord pointing: Compound beam pointing
         :return: YMW16 DM
         """
         # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
@@ -525,7 +544,8 @@ class AMBERClustering(DARCBase):
     def _load_parset(self, obs_config):
         """
         Load the observation parset
-        :param obs_config: Observation config
+
+        :param dict obs_config: Observation config
         :return: parset as dict
         """
         try:

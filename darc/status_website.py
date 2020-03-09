@@ -20,7 +20,14 @@ class StatusWebsiteException(Exception):
 
 
 class StatusWebsite(threading.Thread):
+    """
+    Generate a HTML page with the status of each service
+    across the ARTS cluster at regular intervals
+    """
+
     def __init__(self):
+        """
+        """
         threading.Thread.__init__(self)
         self.stop_event = threading.Event()
         self.daemon = True
@@ -67,6 +74,11 @@ class StatusWebsite(threading.Thread):
 
     def run(self):
         """
+        Main loop:
+
+        #. Get status of all services across all nodes
+        #. Publish HTML page with statuses
+        #. Generate offline page upon exit
         """
         while not self.stop_event.is_set():
             self.logger.info("Getting status of all services")
@@ -95,13 +107,15 @@ class StatusWebsite(threading.Thread):
 
     def stop(self):
         """
-        Stop the service
+        Stop this service
         """
         self.stop_event.set()
 
     def publish_status(self, statuses):
         """
         Publish status as simple html webpage
+
+        :param dict statuses: Status of each service across all nodes
         """ 
 
         header, footer = self.get_template()
@@ -171,9 +185,14 @@ class StatusWebsite(threading.Thread):
         with open(web_file, 'w') as f:
             f.write(webpage)
 
-    def get_template(self):
+    @staticmethod
+    def get_template():
         """
-        Return the HTML template
+        Return HTML template
+
+        Split into header and footer
+
+        :return: header, footer
         """
 
         header = dedent("""

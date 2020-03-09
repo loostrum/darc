@@ -69,20 +69,20 @@ amber_clustering:
 voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
-    send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
-    server_port: 52000
-    server_auth: "9S5JNp9MgM"
-    broker_host: "phobos.astron.nl"
-    broker_port: 8098
     interval: 1.0  # how long to keep gathering triggers after one arrives
+    send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
+    server_port: 5200   # Port the VOEvent service listens to
+    server_auth:       # choose a password for the VOEvent service and put it here (str)
+    broker_host:       # Hostname of the external VOEvent broker (str)
+    broker_port:       # the port the external VOEvent broker listens to (int)
 
 # DADA triggers
 dada_trigger:
     log_file: "{home}/darc/log/dada_trigger.{hostname}.log"
-    port_i: 30000
-    port_iquv: 30001
-    min_window_size: 2.048  # minimum trigger duration
-    delay_end: 2.048  # how much extra to store in addition to DM delay
+    port_i: 30000  # dada_dbevent port used for Stokes I triggers
+    port_iquv: 30001  # dada_dbevent port used for Stokes IQUV triggers
+    min_window_size: 2.048  # minimum trigger duration (s)
+    delay_end: 2.048  # how much extra to store in addition to DM delay (s)
 
 # SB generator
 sb_generator:

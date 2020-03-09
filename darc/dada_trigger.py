@@ -19,13 +19,16 @@ class DADATrigger(DARCBase):
     """
 
     def __init__(self):
+        """
+        """
         super(DADATrigger, self).__init__()
         self.thread = None
 
     def process_command(self, command):
         """
         Process command received from queue
-        :param command: command dict
+
+        :param dict command: command with arguments
         """
         if command['command'] == 'trigger':
             # trigger received, send to dada_dbevent
@@ -37,7 +40,7 @@ class DADATrigger(DARCBase):
 
     def cleanup(self):
         """
-        Remove any remaining threads
+        Remove all trigger-sending threads
         """
         if self.thread:
             self.thread.join()
@@ -45,7 +48,8 @@ class DADATrigger(DARCBase):
     def send_event(self, triggers):
         """
         Send trigger to dada_dbevent
-        :param triggers: list of trigger dictionaries
+
+        :param list triggers: list of trigger dictionaries
         """
         self.logger.info("Received {} trigger(s):".format(len(triggers)))
         self.logger.info(triggers)
@@ -117,8 +121,9 @@ class DADATrigger(DARCBase):
     def send_events(self, event, stokes):
         """
         Send stokes I or IQUV events
-        :param event: event to send (string)
-        :param stokes: I or IQUV
+
+        :param str event: raw event to send
+        :param str stokes: I or IQUV
         :return: 
         """
         # open socket

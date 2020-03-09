@@ -26,10 +26,15 @@ class ProcessorException(Exception):
 
 class Processor(DARCBase):
     """
-    Process dada events
+    Real-time processing of clustered candidates
+    through Stokes I triggers.
+
+    **This module is unfinished and not functional**
     """
 
     def __init__(self):
+        """
+        """
         super(Processor, self).__init__()
         self.needs_target_queue = True
         self.thread = None
@@ -47,11 +52,15 @@ class Processor(DARCBase):
 
     # No commands other than start/stop observation
     def process_command(self, command):
+        """
+        """
         pass
 
     def start_observation(self, obs_config):
         """
         Start observation
+
+        :param dict obs_config: Observation config
         """
         if self.thread:
             # old obs thread exists, stop it
@@ -71,7 +80,8 @@ class Processor(DARCBase):
     def read_and_process_data(self, obs_config):
         """
         Read ringbuffer pages and process them
-        :param obs_config: observation config dict
+
+        :param dict obs_config: Observation config
         """
         # initialize reader
         reader = psrdada.Reader()
@@ -110,11 +120,15 @@ class Processor(DARCBase):
     def lofar_trigger(self, trigger):
         """
         Contact VOEvent server to send LOFAR trigger
+
+        :param dict trigger: Trigger to send
         """
         pass
 
     def iquv_trigger(self, trigger):
         """
         Trigger IQUV data dump
+
+        :param dict trigger: Trigger to send
         """
         pass

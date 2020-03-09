@@ -17,10 +17,13 @@ class AMBERListenerException(Exception):
 
 class AMBERListener(DARCBase):
     """
-    Listens to AMBER triggers and puts them on a queue.
+    Continuously read AMBER candidate files from disk and put
+    candidates on output queue.
     """
 
     def __init__(self):
+        """
+        """
         super(AMBERListener, self).__init__()
         self.needs_target_queue = True
 
@@ -30,8 +33,8 @@ class AMBERListener(DARCBase):
     def start_observation(self, obs_config):
         """
         Start an observation
-        :param obs_config: observation config dict
-        :return:
+
+        :param dict obs_config: observation config dict
         """
         # Stop any running observation
         if self.observation_events or self.observation_threads:
@@ -68,7 +71,7 @@ class AMBERListener(DARCBase):
 
     def stop_observation(self):
         """
-        Stop any running observation
+        Stop observation
         """
         for event in self.observation_events:
             event.set()
@@ -84,8 +87,9 @@ class AMBERListener(DARCBase):
     def _follow_file(self, fname, event):
         """
         Tail a file an put lines on queue
-        :param fname: file to follow
-        :param event: stop event
+
+        :param str fname: file to follow
+        :param threading.Event event: stop event
         """
         # wait until the file exists, with a timeout
         start = time()

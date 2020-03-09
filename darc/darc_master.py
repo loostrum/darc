@@ -31,9 +31,14 @@ class DARCMasterException(Exception):
 
 
 class DARCMaster(object):
+    """
+    DARC master service that controls all other services and queues
+
+    Interact with this service through the 'darc' executable
+    """
     def __init__(self, config_file=CONFIG_FILE):
         """
-        Setup queues, config, logging
+        :param str config_file: path to DARC configuration file
         """
         # setup stop event for master
         self.stop_event = threading.Event()
@@ -141,9 +146,9 @@ class DARCMaster(object):
 
     def run(self):
         """
-        Listen for message on the command socket
+        Main loop
+        Listen for messages on the command socket and process them
         """
-
         # wait for commands
         self.command_socket.listen(5)
         self.logger.info("Waiting for commands")
@@ -185,8 +190,9 @@ class DARCMaster(object):
     def parse_message(self, raw_message):
         """
         Parse raw received message
-        :param raw_message: message as single string
-        :return: status (str), reply (dict)
+
+        :param str raw_message: message as single string
+        :return: status, reply
         """
 
         try:
@@ -209,10 +215,12 @@ class DARCMaster(object):
 
     def process_message(self, service, command, payload):
         """
-        :param service: service to interact with
-        :param command: command to run
+        Process received message
+
+        :param str service: service to interact with
+        :param str command: command to run
         :param payload: payload for command
-        :return: status (str), reply (dict)
+        :return: status, reply
         """
 
         # First check for commands that do not require service argument
@@ -288,7 +296,9 @@ class DARCMaster(object):
 
     def check_status(self, service):
         """
-        :param service: Service to check status of
+        Check status of a service
+
+        :param str service: Service to check status of
         :return: status, reply
         """
 
@@ -311,8 +321,10 @@ class DARCMaster(object):
 
     def start_service(self, service):
         """
-        :param service: service to start
-        :return: status
+        Start a service
+
+        :param str service: service to start
+        :return: status, reply
         """
 
         # settings for specific services
@@ -381,7 +393,9 @@ class DARCMaster(object):
 
     def stop_service(self, service):
         """
-        :param service: service to stop
+        Stop a service
+
+        :param str service: service to stop
         :return: status, reply
         """
 
@@ -423,7 +437,10 @@ class DARCMaster(object):
 
     def restart_service(self, service):
         """
-        :param service: service to restart
+        Restart a service
+
+        :param str service: service to restart
+        :return: status, reply
         """
         status = 'Success'
         _status, reply_stop = self.stop_service(service)
@@ -437,7 +454,9 @@ class DARCMaster(object):
 
     def create_thread(self, service):
         """
-        :param service: service to create a new thread for
+        Initialise a service thread
+
+        :param str service: service to create a new thread for
         """
         if service in self.service_mapping.keys():
             # Instantiate a new instance of the class
@@ -448,6 +467,8 @@ class DARCMaster(object):
     def stop(self):
         """
         Stop all services and exit
+
+        :return: status, reply
         """
         self.logger.info("Stopping all services")
         for service in self.services:
@@ -460,7 +481,9 @@ class DARCMaster(object):
     def start_observation(self, config_file):
         """
         Start an observation
-        :param config_file: Path to observation config file
+
+        :param str config_file: Path to observation config file
+        :return: status, reply
         """
 
         self.logger.info("Received start_observation command with config file {}".format(config_file))
@@ -524,7 +547,8 @@ class DARCMaster(object):
     def stop_observation(self, abort=False):
         """
         Stop an observation
-        :param abort: whether to abort the observation
+
+        :param bool abort: whether to abort the observation
         :return: status, reply message
         """
         # call stop_observation for all relevant services through their queues
@@ -543,7 +567,8 @@ class DARCMaster(object):
     def _load_yaml(self, config_file):
         """
         Load yaml file and convert to observation config
-        :param config_file: Path to yaml file
+
+        :param str config_file: Path to yaml file
         :return: observation config dict
         """
         self.logger.info("Loading yaml config {}".format(config_file))
@@ -558,8 +583,9 @@ class DARCMaster(object):
     def _load_parset(self, config_file):
         """
         Load parset file and convert to observation config
-        :param config_file: Path to parset file
-        :return: observation config dict
+
+        :param str config_file: Path to parset file
+        :return: observation configuration
         """
         self.logger.info("Loading parset {}".format(config_file))
         if not os.path.isfile(config_file):
@@ -577,7 +603,8 @@ class DARCMaster(object):
     def _lofar_cmd(self, command):
         """
         Check status of LOFAR triggering, or enable/disable it
-        :param command: command to run
+
+        :param str command: command to run
         :return: status, reply
         """
         vo_generator = self.threads['voevent_generator']
@@ -626,6 +653,9 @@ class DARCMaster(object):
 
 
 def main():
+    """
+    Run DARC Master
+    """
     master = DARCMaster()
     master.run()
 
