@@ -39,31 +39,43 @@
 <dt id="darc.base.DARCBase">
 <em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
-<p>DARC Base class
-Provides common methods</p>
-<p>Initialisation</p>
+<p>DARC Base class</p>
+<p>Provides common methods to services</p>
 <dl class="method">
 <dt id="darc.base.DARCBase.cleanup">
 <code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.cleanup" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Stub for commands to run upon service stop, defaults to self.stop_observation</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.process_command">
 <code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.process_command" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Process command from queue, other than start_observation and stop_observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>list</em>) – process command arguments</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – process command keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop</p>
+<p>Receive commands on input queue, calls self.start_observation, self.stop_observation,
+else self.process_command</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.set_source_queue">
 <code class="sig-name descname">set_source_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.set_source_queue" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Set input queue</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>queue</strong> – Input queue</p>
+<dd class="field-odd"><p><strong>queue</strong> (<em>queues.Queue</em>) – Input queue</p>
 </dd>
 </dl>
 </dd></dl>
@@ -71,9 +83,10 @@ Provides common methods</p>
 <dl class="method">
 <dt id="darc.base.DARCBase.set_target_queue">
 <code class="sig-name descname">set_target_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.set_target_queue" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Set output queue</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>queue</strong> – Output queue</p>
+<dd class="field-odd"><p><strong>queue</strong> (<em>queues.Queue</em>) – Output queue</p>
 </dd>
 </dl>
 </dd></dl>
@@ -81,18 +94,38 @@ Provides common methods</p>
 <dl class="method">
 <dt id="darc.base.DARCBase.start_observation">
 <code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Start observation stub, should be overridden by subclass if commands need to be executed at
+observation start</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>list</em>) – start_observation arguments</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – start_observation keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.stop">
 <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the stop event</p>
+<dd><p>Stop this service</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.stop_observation">
 <code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop_observation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Stop observation stub, should be overridden by subclass if commands need to be executed at
+observation stop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>list</em>) – stop_observation arguments</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – stop_observation keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -102,23 +135,27 @@ Provides common methods</p>
 <dl class="function">
 <dt id="darc.control.main">
 <code class="sig-prename descclassname">darc.control.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>DARC command line interface</p>
+<p>This function is called by the darc executable</p>
+<p>Run darc –help for usage</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="darc.control.send_command">
 <code class="sig-prename descclassname">darc.control.</code><code class="sig-name descname">send_command</code><span class="sig-paren">(</span><em class="sig-param">timeout</em>, <em class="sig-param">service</em>, <em class="sig-param">command</em>, <em class="sig-param">payload=None</em>, <em class="sig-param">host='localhost'</em>, <em class="sig-param">port=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.send_command" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Send a command to the DARC master service</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>timeout</strong> – Timeout for reply in seconds</p></li>
-<li><p><strong>service</strong> – Service to send command to</p></li>
-<li><p><strong>command</strong> – Which command to send</p></li>
-<li><p><strong>payload</strong> – Payload for command (optional)</p></li>
-<li><p><strong>host</strong> – Hostname (default: localhost)</p></li>
+<li><p><strong>timeout</strong> (<em>float</em>) – Timeout for reply in seconds</p></li>
+<li><p><strong>service</strong> (<em>str</em>) – Service to send command to</p></li>
+<li><p><strong>command</strong> (<em>str</em>) – Which command to send</p></li>
+<li><p><strong>payload</strong> (<em>str</em>) – Payload for command (optional)</p></li>
+<li><p><strong>host</strong> (<em>str</em>) – Hostname (default: localhost)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>reply from DARC master</p>
 </dd>
 </dl>
 </dd></dl>
@@ -126,6 +163,90 @@ Provides common methods</p>
 </div>
 <div class="section" id="module-darc.definitions">
 <span id="darc-definitions"></span><h2>darc.definitions<a class="headerlink" href="#module-darc.definitions" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="darc.definitions.AP_EFF">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">AP_EFF</code><em class="property"> = 0.6</em><a class="headerlink" href="#darc.definitions.AP_EFF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS aperture efficiency</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.BANDWIDTH">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">BANDWIDTH</code><em class="property"> = &lt;Quantity 300. MHz&gt;</em><a class="headerlink" href="#darc.definitions.BANDWIDTH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS bandwidth</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.CONFIG_FILE">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = 'config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Config file name</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.DISH_DIAM">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">DISH_DIAM</code><em class="property"> = &lt;Quantity 25. m&gt;</em><a class="headerlink" href="#darc.definitions.DISH_DIAM" title="Permalink to this definition">¶</a></dt>
+<dd><p>WSRT dish diameter</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.MASTER">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">MASTER</code><em class="property"> = 'arts041'</em><a class="headerlink" href="#darc.definitions.MASTER" title="Permalink to this definition">¶</a></dt>
+<dd><p>ARTS master name</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.NCHAN">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">NCHAN</code><em class="property"> = 1536</em><a class="headerlink" href="#darc.definitions.NCHAN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS number of channels</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.NDISH">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">NDISH</code><em class="property"> = 8</em><a class="headerlink" href="#darc.definitions.NDISH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS number of dishes in use</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.NUMCB">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">NUMCB</code><em class="property"> = 40</em><a class="headerlink" href="#darc.definitions.NUMCB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS number of compound beams</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.TSAMP">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">TSAMP</code><em class="property"> = &lt;Quantity 8.192e-05 s&gt;</em><a class="headerlink" href="#darc.definitions.TSAMP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS sampling time</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.TSYS">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">TSYS</code><em class="property"> = &lt;Quantity 85. K&gt;</em><a class="headerlink" href="#darc.definitions.TSYS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apertif/ARTS system temperature</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.WORKERS">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">WORKERS</code><em class="property"> = ['arts001', 'arts002', 'arts003', 'arts004', 'arts005', 'arts006', 'arts007', 'arts008', 'arts009', 'arts010', 'arts011', 'arts012', 'arts013', 'arts014', 'arts015', 'arts016', 'arts017', 'arts018', 'arts019', 'arts020', 'arts021', 'arts022', 'arts023', 'arts024', 'arts025', 'arts026', 'arts027', 'arts028', 'arts029', 'arts030', 'arts031', 'arts032', 'arts033', 'arts034', 'arts035', 'arts036', 'arts037', 'arts038', 'arts039', 'arts040']</em><a class="headerlink" href="#darc.definitions.WORKERS" title="Permalink to this definition">¶</a></dt>
+<dd><p>ARTS worker names</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.WSRT_ALT">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">WSRT_ALT</code><em class="property"> = &lt;Quantity 16. m&gt;</em><a class="headerlink" href="#darc.definitions.WSRT_ALT" title="Permalink to this definition">¶</a></dt>
+<dd><p>WSRT altitude</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.WSRT_LAT">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">WSRT_LAT</code><em class="property"> = &lt;Quantity 52.915184 deg&gt;</em><a class="headerlink" href="#darc.definitions.WSRT_LAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>WSRT latitude</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="darc.definitions.WSRT_LON">
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">WSRT_LON</code><em class="property"> = &lt;Quantity 6.60387 deg&gt;</em><a class="headerlink" href="#darc.definitions.WSRT_LON" title="Permalink to this definition">¶</a></dt>
+<dd><p>WSRT longitude</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-darc.logger">
 <span id="darc-logger"></span><h2>darc.logger<a class="headerlink" href="#module-darc.logger" title="Permalink to this headline">¶</a></h2>
@@ -136,8 +257,9 @@ Provides common methods</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>log_file</strong> – Path to log file</p></li>
-<li><p><strong>level</strong> – log level (default: DEBUG)</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name to use in log prints</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – Path to log file</p></li>
+<li><p><strong>level</strong> (<em>int</em>) – log level (default: logging.DEBUG)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -153,50 +275,90 @@ Provides common methods</p>
 <dt id="darc.sb_generator.SBGenerator">
 <em class="property">class </em><code class="sig-prename descclassname">darc.sb_generator.</code><code class="sig-name descname">SBGenerator</code><span class="sig-paren">(</span><em class="sig-param">fname=None</em>, <em class="sig-param">science_case=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Synthesized beam generator</p>
+<p>__init__ should be called by cls.from_science_case or cls.from_table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> – path to synthesized beam table</p></li>
+<li><p><strong>science_case</strong> – ARTS science case (3 or 4)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator._load_table">
 <code class="sig-name descname">_load_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator._load_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load the SB table</p>
+<dd><p>Load SB table</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator.from_science_case">
 <em class="property">classmethod </em><code class="sig-name descname">from_science_case</code><span class="sig-paren">(</span><em class="sig-param">science_case</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initalize default table for given science cases
-:param science_case: science case (3 or 4)
-:return: SBGenerator object</p>
+<dd><p>Initalize default table for given science case</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>science_case</strong> (<em>int</em>) – science case (3 or 4)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SBGenerator object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator.from_table">
 <em class="property">classmethod </em><code class="sig-name descname">from_table</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initalize with provided SB table
-:param fname: Path to SB table
-:return: SBGenerator object</p>
+<dd><p>Initalize with provided SB table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – Path to SB table</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SBGenerator object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator.get_map">
 <code class="sig-name descname">get_map</code><span class="sig-paren">(</span><em class="sig-param">sb</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.get_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return mapping of requested SB
-:param sb: beam to return mapping for
-:return: SB mapping for requested beam</p>
+<dd><p>Return mapping of requested SB</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sb</strong> (<em>int</em>) – beam to return mapping for</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SB mapping for requested beam</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator.reversed">
 <em class="property">property </em><code class="sig-name descname">reversed</code><a class="headerlink" href="#darc.sb_generator.SBGenerator.reversed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Whether or not the SB table is reversed for use on filterbank data
-:return: reversed (bool)</p>
+<dd><p>Whether or not the SB table is reversed for use on filterbank data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>reversed (bool)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.sb_generator.SBGenerator.synthesize_beam">
 <code class="sig-name descname">synthesize_beam</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">sb</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.synthesize_beam" title="Permalink to this definition">¶</a></dt>
-<dd><p>Synthesize beam
-:param data: TAB data with shape [TAB, freq, time]
-:param sb: SB index
-:return: SB data with shape [freq, time]</p>
+<dd><p>Synthesize beam</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – TAB data with shape [TAB, freq, time]</p></li>
+<li><p><strong>sb</strong> (<em>int</em>) – SB index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SB data with shape [freq, time]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -213,97 +375,159 @@ Provides common methods</p>
 <dl class="function">
 <dt id="darc.util.clear_queue">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">clear_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.clear_queue" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read all remaining items in a queue and discard them
-:param queue: queue to clear</p>
+<dd><p>Read all remaining items in a queue and discard them</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>queue</strong> (<em>queue.Queue</em>) – queue to clear</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.decode_parset">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">decode_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_bytes</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.decode_parset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode parset into string
-:param parset_bytes: raw parset bytes
-:return: parset as string</p>
+<dd><p>Decode parset into string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parset_bytes</strong> (<em>bytes</em>) – raw parset bytes</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parset as string</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.encode_parset">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">encode_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_str</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.encode_parset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Encode parset string into bytes
-:param parset_str: parset as one string
-:return: encoded parset as bytes</p>
+<dd><p>Encode parset string into bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parset_str</strong> (<em>str</em>) – parset as one string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>encoded parset as bytes</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.get_flux">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">get_flux</code><span class="sig-paren">(</span><em class="sig-param">snr</em>, <em class="sig-param">width</em>, <em class="sig-param">ndish=8</em>, <em class="sig-param">npol=2</em>, <em class="sig-param">coherent=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_flux" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute single pulse flux density using radiometer equation
-:param snr: S/N
-:param width: Width (with unit)
-:param ndish: Number of dishes used (default: 8)
-:param npol: Number of polarizations (default: 2)
-:param coherent: Using coherent beamforming (default: True)
-:return: Peak flux density with unit</p>
+<dd><p>Compute single pulse flux density using radiometer equation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>snr</strong> (<em>float</em>) – S/N</p></li>
+<li><p><strong>width</strong> (<em>astropy.units.quantity.Quantity</em>) – Width</p></li>
+<li><p><strong>ndish</strong> (<em>int</em>) – Number of dishes used (default: 8)</p></li>
+<li><p><strong>npol</strong> (<em>int</em>) – Number of polarizations (default: 2)</p></li>
+<li><p><strong>coherent</strong> (<em>bool</em>) – Using coherent beamforming (default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Peak flux density (astropy.units.quantity.Quantity)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.ha_to_proj">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ha_to_proj</code><span class="sig-paren">(</span><em class="sig-param">ha</em>, <em class="sig-param">dec</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ha_to_proj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert WSRT HA, Dec to parallactic angle
-This is the SB rotation w.r.t. the RA-Dec frame
-:param ha: hour angle with unit
-:param dec: declination with unit</p>
+<dd><p>Convert WSRT HA, Dec to parallactic angle</p>
+<p>This is the SB rotation w.r.t. the RA-Dec frame
+:param astropy.units.quantity.Quantity ha: hour angle with unit
+:param astropy.units.quantity.Quantity dec: declination with unit</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.ha_to_ra">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ha_to_ra</code><span class="sig-paren">(</span><em class="sig-param">ha</em>, <em class="sig-param">dec</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ha_to_ra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert WSRT HA, Dec to J2000 RA, Dec
-:param ha: hour angle with unit
-:param dec: declination with unit
-:param t: UT time (string or astropy.time.Time)
-:return: SkyCoord object of J2000 coordinates</p>
+<dd><p>Convert WSRT HA, Dec to J2000 RA, Dec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ha</strong> (<em>astropy.units.quantity.Quantity</em>) – hour angle with unit</p></li>
+<li><p><strong>dec</strong> (<em>astropy.units.quantity.Quantity</em>) – declination with unit</p></li>
+<li><p><strong>t</strong> (<em>str/astropy.time.Time</em>) – UTC time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SkyCoord object of J2000 coordinates</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.makedirs">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">makedirs</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.makedirs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mimic os.makedirs, but do not error when directory already exists
-:param path: path to create</p>
+<dd><p>Mimic os.makedirs, but do not error when directory already exists</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to recursively create</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.parse_parset">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">parse_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_str</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.parse_parset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse parset into dict with proper types
-:param parset_str: raw parset as string
-:return: parset as dict</p>
+<dd><p>Parse parset into dict with proper types</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parset_str</strong> (<em>str</em>) – raw parset as string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parset as dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.ra_to_ha">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ra_to_ha</code><span class="sig-paren">(</span><em class="sig-param">ra</em>, <em class="sig-param">dec</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ra_to_ha" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert J2000 RA, Dec to WSRT HA, Dec
-:param ra: right ascension with unit
-:param dec: declination with unit
-:param t: UT time (string or astropy.time.Time)
-:return: SkyCoord object of apparent HA, Dec coordinates</p>
+<dd><p>Convert J2000 RA, Dec to WSRT HA, Dec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>astropy.units.quantity.Quantity</em>) – right ascension with unit</p></li>
+<li><p><strong>dec</strong> (<em>astropy.units.quantity.Quantity</em>) – declination with unit</p></li>
+<li><p><strong>t</strong> (<em>str/astropy.time.Time</em>) – UTC time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SkyCoord object of apparent HA, Dec coordinates</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.sleepuntil_utc">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">sleepuntil_utc</code><span class="sig-paren">(</span><em class="sig-param">end_time</em>, <em class="sig-param">event=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.sleepuntil_utc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sleep until specified time.
-:param end_time: sleep until this time (datetime or astropy.time.Time object)
-:param event: If specified, uses event.wait instead of time.sleep</p>
+<dd><p>Sleep until specified time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>end_time</strong> (<em>datetime.datetime/astropy.time.Time</em>) – sleep until this time</p></li>
+<li><p><strong>event</strong> (<em>threading.Event</em>) – ff specified, uses event.wait instead of time.sleep</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="darc.util.tail">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">tail</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">event</em>, <em class="sig-param">interval=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.tail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read all lines of a file, then tail until stop event is set
-:param f: handle to file to tail
-:param event: stop event
-:param interval: sleep time between checks for new lines (default: .1)</p>
+<dd><p>Read all lines of a file, then tail until stop event is set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>filehandle</em>) – handle to file to tail</p></li>
+<li><p><strong>event</strong> – stop event</p></li>
+<li><p><strong>interval</strong> – sleep time between checks for new lines (default: .1)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
