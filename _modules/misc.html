@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Miscellaneous &#8212; DARC 1.0.3 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="DARC services" href="services.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="miscellaneous">
+<h1>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-darc.base">
+<span id="darc-base"></span><h2>darc.base<a class="headerlink" href="#module-darc.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.base.DARCBase">
+<em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>DARC Base class
+Provides common methods</p>
+<p>Initialisation</p>
+<dl class="method">
+<dt id="darc.base.DARCBase.cleanup">
+<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.process_command">
+<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.process_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.set_source_queue">
+<code class="sig-name descname">set_source_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.set_source_queue" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>queue</strong> – Input queue</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.set_target_queue">
+<code class="sig-name descname">set_target_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.set_target_queue" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>queue</strong> – Output queue</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the stop event</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.base.DARCBase.stop_observation">
+<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop_observation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.control">
+<span id="darc-control"></span><h2>darc.control<a class="headerlink" href="#module-darc.control" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="darc.control.main">
+<code class="sig-prename descclassname">darc.control.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="darc.control.send_command">
+<code class="sig-prename descclassname">darc.control.</code><code class="sig-name descname">send_command</code><span class="sig-paren">(</span><em class="sig-param">timeout</em>, <em class="sig-param">service</em>, <em class="sig-param">command</em>, <em class="sig-param">payload=None</em>, <em class="sig-param">host='localhost'</em>, <em class="sig-param">port=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.send_command" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timeout</strong> – Timeout for reply in seconds</p></li>
+<li><p><strong>service</strong> – Service to send command to</p></li>
+<li><p><strong>command</strong> – Which command to send</p></li>
+<li><p><strong>payload</strong> – Payload for command (optional)</p></li>
+<li><p><strong>host</strong> – Hostname (default: localhost)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.definitions">
+<span id="darc-definitions"></span><h2>darc.definitions<a class="headerlink" href="#module-darc.definitions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-darc.logger">
+<span id="darc-logger"></span><h2>darc.logger<a class="headerlink" href="#module-darc.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="darc.logger.get_logger">
+<code class="sig-prename descclassname">darc.logger.</code><code class="sig-name descname">get_logger</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">log_file</em>, <em class="sig-param">level=10</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create logger</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>log_file</strong> – Path to log file</p></li>
+<li><p><strong>level</strong> – log level (default: DEBUG)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>logger</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.sb_generator">
+<span id="darc-sb-generator"></span><h2>darc.sb_generator<a class="headerlink" href="#module-darc.sb_generator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.sb_generator.SBGenerator">
+<em class="property">class </em><code class="sig-prename descclassname">darc.sb_generator.</code><code class="sig-name descname">SBGenerator</code><span class="sig-paren">(</span><em class="sig-param">fname=None</em>, <em class="sig-param">science_case=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator._load_table">
+<code class="sig-name descname">_load_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator._load_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the SB table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator.from_science_case">
+<em class="property">classmethod </em><code class="sig-name descname">from_science_case</code><span class="sig-paren">(</span><em class="sig-param">science_case</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initalize default table for given science cases
+:param science_case: science case (3 or 4)
+:return: SBGenerator object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator.from_table">
+<em class="property">classmethod </em><code class="sig-name descname">from_table</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initalize with provided SB table
+:param fname: Path to SB table
+:return: SBGenerator object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator.get_map">
+<code class="sig-name descname">get_map</code><span class="sig-paren">(</span><em class="sig-param">sb</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.get_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return mapping of requested SB
+:param sb: beam to return mapping for
+:return: SB mapping for requested beam</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator.reversed">
+<em class="property">property </em><code class="sig-name descname">reversed</code><a class="headerlink" href="#darc.sb_generator.SBGenerator.reversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not the SB table is reversed for use on filterbank data
+:return: reversed (bool)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.sb_generator.SBGenerator.synthesize_beam">
+<code class="sig-name descname">synthesize_beam</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">sb</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.synthesize_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synthesize beam
+:param data: TAB data with shape [TAB, freq, time]
+:param sb: SB index
+:return: SB data with shape [freq, time]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.sb_generator.SBGeneratorException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.sb_generator.</code><code class="sig-name descname">SBGeneratorException</code><a class="headerlink" href="#darc.sb_generator.SBGeneratorException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.util">
+<span id="darc-util"></span><h2>darc.util<a class="headerlink" href="#module-darc.util" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="darc.util.clear_queue">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">clear_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.clear_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all remaining items in a queue and discard them
+:param queue: queue to clear</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.decode_parset">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">decode_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_bytes</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.decode_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode parset into string
+:param parset_bytes: raw parset bytes
+:return: parset as string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.encode_parset">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">encode_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_str</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.encode_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encode parset string into bytes
+:param parset_str: parset as one string
+:return: encoded parset as bytes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.get_flux">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">get_flux</code><span class="sig-paren">(</span><em class="sig-param">snr</em>, <em class="sig-param">width</em>, <em class="sig-param">ndish=8</em>, <em class="sig-param">npol=2</em>, <em class="sig-param">coherent=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute single pulse flux density using radiometer equation
+:param snr: S/N
+:param width: Width (with unit)
+:param ndish: Number of dishes used (default: 8)
+:param npol: Number of polarizations (default: 2)
+:param coherent: Using coherent beamforming (default: True)
+:return: Peak flux density with unit</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.ha_to_proj">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ha_to_proj</code><span class="sig-paren">(</span><em class="sig-param">ha</em>, <em class="sig-param">dec</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ha_to_proj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert WSRT HA, Dec to parallactic angle
+This is the SB rotation w.r.t. the RA-Dec frame
+:param ha: hour angle with unit
+:param dec: declination with unit</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.ha_to_ra">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ha_to_ra</code><span class="sig-paren">(</span><em class="sig-param">ha</em>, <em class="sig-param">dec</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ha_to_ra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert WSRT HA, Dec to J2000 RA, Dec
+:param ha: hour angle with unit
+:param dec: declination with unit
+:param t: UT time (string or astropy.time.Time)
+:return: SkyCoord object of J2000 coordinates</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.makedirs">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">makedirs</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mimic os.makedirs, but do not error when directory already exists
+:param path: path to create</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.parse_parset">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">parse_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_str</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.parse_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse parset into dict with proper types
+:param parset_str: raw parset as string
+:return: parset as dict</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.ra_to_ha">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ra_to_ha</code><span class="sig-paren">(</span><em class="sig-param">ra</em>, <em class="sig-param">dec</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ra_to_ha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert J2000 RA, Dec to WSRT HA, Dec
+:param ra: right ascension with unit
+:param dec: declination with unit
+:param t: UT time (string or astropy.time.Time)
+:return: SkyCoord object of apparent HA, Dec coordinates</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.sleepuntil_utc">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">sleepuntil_utc</code><span class="sig-paren">(</span><em class="sig-param">end_time</em>, <em class="sig-param">event=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.sleepuntil_utc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sleep until specified time.
+:param end_time: sleep until this time (datetime or astropy.time.Time object)
+:param event: If specified, uses event.wait instead of time.sleep</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.util.tail">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">tail</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">event</em>, <em class="sig-param">interval=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.tail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all lines of a file, then tail until stop event is set
+:param f: handle to file to tail
+:param event: stop event
+:param interval: sleep time between checks for new lines (default: .1)</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="services.html">DARC services</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Miscellaneous</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.base">darc.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.control">darc.control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.definitions">darc.definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.logger">darc.logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.sb_generator">darc.sb_generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.util">darc.util</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="services.html" title="previous chapter">DARC services</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/misc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>DARC services &#8212; DARC 1.0.3 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Miscellaneous" href="misc.html" />
+    <link rel="prev" title="Welcome to DARC’s documentation" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="darc-services">
+<h1>DARC services<a class="headerlink" href="#darc-services" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-darc.amber_clustering">
+<span id="darc-amber-clustering"></span><h2>darc.amber_clustering<a class="headerlink" href="#module-darc.amber_clustering" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.amber_clustering.AMBERClustering">
+<em class="property">class </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClustering</code><span class="sig-paren">(</span><em class="sig-param">connect_vo=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<p>Trigger IQUV / LOFAR based on AMBER candidates</p>
+<ol class="arabic simple">
+<li><p>Cluster incoming triggers</p></li>
+<li><p>Apply thresholds (separate for known and new sources, and for IQUV vs LOFAR)</p></li>
+<li><p>Put IQUV triggers on output queue</p></li>
+<li><p>Put LOFAR triggers on remote VOEvent queue</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>connect_vo</strong> (<em>bool</em>) – Whether or not to connect to VOEvent queue on master node</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._check_triggers">
+<code class="sig-name descname">_check_triggers</code><span class="sig-paren">(</span><em class="sig-param">triggers</em>, <em class="sig-param">sys_params</em>, <em class="sig-param">utc_start</em>, <em class="sig-param">dm_min=0</em>, <em class="sig-param">dm_max=inf</em>, <em class="sig-param">dm_src=None</em>, <em class="sig-param">width_max=inf</em>, <em class="sig-param">snr_min=8</em>, <em class="sig-param">src_type=None</em>, <em class="sig-param">dmgal=0</em>, <em class="sig-param">pointing=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._check_triggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster triggers and run IQUV and/or LOFAR triggering</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>triggers</strong> (<em>list</em>) – Raw triggers</p></li>
+<li><p><strong>sys_params</strong> (<em>dict</em>) – System parameters (dt, delta_nu_MHz, nu_GHz)</p></li>
+<li><p><strong>utc_start</strong> (<em>str</em>) – start time of observation, in format readable by astropy.time.Time</p></li>
+<li><p><strong>dm_min</strong> (<em>float</em>) – minimum DM (default: 0)</p></li>
+<li><p><strong>dm_max</strong> (<em>float</em>) – maximum DM (default: inf)</p></li>
+<li><p><strong>dm_src</strong> (<em>float</em>) – DM of known source (default: None)</p></li>
+<li><p><strong>width_max</strong> (<em>float</em>) – maximum width (default: inf)</p></li>
+<li><p><strong>snr_min</strong> (<em>float</em>) – mininum S/N (default: 8)</p></li>
+<li><p><strong>src_type</strong> (<em>str</em>) – Source type (pulsar, frb, None)</p></li>
+<li><p><strong>dmgal</strong> (<em>float</em>) – galactic maximum DM</p></li>
+<li><p><strong>pointing</strong> (<em>astropy.coordinates.SkyCoord</em>) – Pointing for LOFAR triggering (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._get_pointing">
+<code class="sig-name descname">_get_pointing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_pointing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get pointing of this CB from parset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>pointing SkyCoord</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._get_source">
+<code class="sig-name descname">_get_source</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to get DM for a known source</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>DM for known source, else None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._get_ymw16">
+<code class="sig-name descname">_get_ymw16</code><span class="sig-paren">(</span><em class="sig-param">pointing</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_ymw16" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get YMW16 DM from pointing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pointing</strong> (<em>astropy.coordinates.SkyCoord</em>) – Compound beam pointing</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>YMW16 DM</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._load_parset">
+<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the observation parset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parset as dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._load_source_list">
+<code class="sig-name descname">_load_source_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_source_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the list with known source DMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>source list with dict per category</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering._process_triggers">
+<code class="sig-name descname">_process_triggers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._process_triggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read thresholds (DM, width, S/N) for clustering</p>
+<p>Continuously read AMBER triggers from queue and start processing for known and/or new sources</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering.process_command">
+<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.process_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process command received from queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – Command to process</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse obs config and start listening for amber triggers on queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation configuration</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering.stop_observation">
+<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.stop_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop observation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering.voevent_connector">
+<em class="property">static </em><code class="sig-name descname">voevent_connector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.voevent_connector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the VOEvent generator on the master node</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.amber_clustering.AMBERClusteringException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClusteringException</code><a class="headerlink" href="#darc.amber_clustering.AMBERClusteringException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.amber_listener">
+<span id="darc-amber-listener"></span><h2>darc.amber_listener<a class="headerlink" href="#module-darc.amber_listener" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.amber_listener.AMBERListener">
+<em class="property">class </em><code class="sig-prename descclassname">darc.amber_listener.</code><code class="sig-name descname">AMBERListener</code><a class="headerlink" href="#darc.amber_listener.AMBERListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<p>Continuously read AMBER candidate files from disk and put
+candidates on output queue.</p>
+<dl class="method">
+<dt id="darc.amber_listener.AMBERListener._follow_file">
+<code class="sig-name descname">_follow_file</code><span class="sig-paren">(</span><em class="sig-param">fname</em>, <em class="sig-param">event</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener._follow_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tail a file an put lines on queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – file to follow</p></li>
+<li><p><strong>event</strong> (<em>threading.Event</em>) – stop event</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_listener.AMBERListener.process_command">
+<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.process_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_listener.AMBERListener.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start an observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – observation config dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_listener.AMBERListener.stop_observation">
+<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.stop_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop observation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.amber_listener.AMBERListenerException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.amber_listener.</code><code class="sig-name descname">AMBERListenerException</code><a class="headerlink" href="#darc.amber_listener.AMBERListenerException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.dada_trigger">
+<span id="darc-dada-trigger"></span><h2>darc.dada_trigger<a class="headerlink" href="#module-darc.dada_trigger" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.dada_trigger.DADATrigger">
+<em class="property">class </em><code class="sig-prename descclassname">darc.dada_trigger.</code><code class="sig-name descname">DADATrigger</code><a class="headerlink" href="#darc.dada_trigger.DADATrigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<p>Generate and send dada_dbevent triggers</p>
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.cleanup">
+<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all trigger-sending threads</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.process_command">
+<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.process_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process command received from queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>dict</em>) – command with arguments</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.send_event">
+<code class="sig-name descname">send_event</code><span class="sig-paren">(</span><em class="sig-param">triggers</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send trigger to dada_dbevent</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>triggers</strong> (<em>list</em>) – list of trigger dictionaries</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.send_events">
+<code class="sig-name descname">send_events</code><span class="sig-paren">(</span><em class="sig-param">event</em>, <em class="sig-param">stokes</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send stokes I or IQUV events</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>str</em>) – raw event to send</p></li>
+<li><p><strong>stokes</strong> (<em>str</em>) – I or IQUV</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.dada_trigger.DADATriggerException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.dada_trigger.</code><code class="sig-name descname">DADATriggerException</code><a class="headerlink" href="#darc.dada_trigger.DADATriggerException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.darc_master">
+<span id="darc-darc-master"></span><h2>darc.darc_master<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.darc_master.DARCMaster">
+<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param">config_file='config.yaml'</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>DARC master service that controls all other services and queues</p>
+<p>Interact with this service through the ‘darc’ executable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – path to DARC configuration file</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster._load_config">
+<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster._load_parset">
+<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load parset file and convert to observation config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – Path to parset file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>observation configuration</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster._load_yaml">
+<code class="sig-name descname">_load_yaml</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_yaml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load yaml file and convert to observation config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – Path to yaml file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>observation config dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster._lofar_cmd">
+<code class="sig-name descname">_lofar_cmd</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._lofar_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check status of LOFAR triggering, or enable/disable it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – command to run</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.check_status">
+<code class="sig-name descname">check_status</code><span class="sig-paren">(</span><em class="sig-param">service</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.check_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check status of a service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>service</strong> (<em>str</em>) – Service to check status of</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.create_thread">
+<code class="sig-name descname">create_thread</code><span class="sig-paren">(</span><em class="sig-param">service</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.create_thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise a service thread</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>service</strong> (<em>str</em>) – service to create a new thread for</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.parse_message">
+<code class="sig-name descname">parse_message</code><span class="sig-paren">(</span><em class="sig-param">raw_message</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.parse_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse raw received message</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw_message</strong> (<em>str</em>) – message as single string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.process_message">
+<code class="sig-name descname">process_message</code><span class="sig-paren">(</span><em class="sig-param">service</em>, <em class="sig-param">command</em>, <em class="sig-param">payload</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.process_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process received message</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>service</strong> (<em>str</em>) – service to interact with</p></li>
+<li><p><strong>command</strong> (<em>str</em>) – command to run</p></li>
+<li><p><strong>payload</strong> – payload for command</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.restart_service">
+<code class="sig-name descname">restart_service</code><span class="sig-paren">(</span><em class="sig-param">service</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.restart_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restart a service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>service</strong> (<em>str</em>) – service to restart</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop
+Listen for messages on the command socket and process them</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start an observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – Path to observation config file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.start_service">
+<code class="sig-name descname">start_service</code><span class="sig-paren">(</span><em class="sig-param">service</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start a service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>service</strong> (<em>str</em>) – service to start</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop all services and exit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.stop_observation">
+<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param">abort=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop an observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – whether to abort the observation</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply message</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.darc_master.DARCMaster.stop_service">
+<code class="sig-name descname">stop_service</code><span class="sig-paren">(</span><em class="sig-param">service</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop a service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>service</strong> (<em>str</em>) – service to stop</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status, reply</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.darc_master.DARCMasterException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMasterException</code><a class="headerlink" href="#darc.darc_master.DARCMasterException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="darc.darc_master.main">
+<code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run DARC Master</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.offline_processing">
+<span id="darc-offline-processing"></span><h2>darc.offline_processing<a class="headerlink" href="#module-darc.offline_processing" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.offline_processing.OfflineProcessing">
+<em class="property">class </em><code class="sig-prename descclassname">darc.offline_processing.</code><code class="sig-name descname">OfflineProcessing</code><a class="headerlink" href="#darc.offline_processing.OfflineProcessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>Full offline processing pipeline:</p>
+<ol class="arabic simple">
+<li><p>Candidate clustering</p></li>
+<li><p>Extraction of filterbank data</p></li>
+<li><p>ML classification</p></li>
+<li><p>Email to astronomers</p></li>
+</ol>
+<p>Also includes:</p>
+<ul class="simple">
+<li><p>Automated pulsar folding</p></li>
+<li><p>Automated run of calibration tools for drift scans</p></li>
+</ul>
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._classify">
+<code class="sig-name descname">_classify</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">input_file</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._classify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the ML classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>input_file</strong> (<em>str</em>) – HDF5 file to process</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>prefix of output figure path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._cluster">
+<code class="sig-name descname">_cluster</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">filterbank_name</em>, <em class="sig-param">tab=None</em>, <em class="sig-param">ind=None</em>, <em class="sig-param">sbmin=None</em>, <em class="sig-param">sbmax=None</em>, <em class="sig-param">out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run triggers.py, which takes care of clustering and extracting filterbank data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>filterbank_name</strong> (<em>str</em>) – Full path to filterbank file (TAB/IAB) or prefix (SB) to use</p></li>
+<li><p><strong>tab</strong> (<em>int</em>) – TAB number to process (0 for IAB, absent/None for SB)</p></li>
+<li><p><strong>ind</strong> (<em>int</em>) – Index of out array where to store results</p></li>
+<li><p><strong>sbmin</strong> (<em>int</em>) – First SB to process (SB mode only)</p></li>
+<li><p><strong>sbmax</strong> (<em>int</em>) – Last SB to process (SB mode only)</p></li>
+<li><p><strong>out</strong> (<em>np.ndarray</em>) – output array where return value is put at index &lt;ind&gt; (optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of grouped candidates (put in out array, else returned)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._fold_pulsar">
+<code class="sig-name descname">_fold_pulsar</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._fold_pulsar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fold pulsar with PRESTO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>) – pulsar name including B or J</p></li>
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._gather_results">
+<code class="sig-name descname">_gather_results</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._gather_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather output results and put in central location</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – number of candidates, output prefixes; these are added to obs_config</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._get_coordinates">
+<code class="sig-name descname">_get_coordinates</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate coordinates file from the pointing directions</p>
+<p>File contains RA, Dec, gl, gb for each CB used in this observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._get_overview">
+<code class="sig-name descname">_get_overview</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate observation overview file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._get_ymw16">
+<code class="sig-name descname">_get_ymw16</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_ymw16" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get YMW16 DM</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>YMW16 DM</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._load_parset">
+<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._load_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the observation parset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parset as dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._merge_hdf5">
+<code class="sig-name descname">_merge_hdf5</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge HDF5 files generated by clustering</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – Filename of merged HDF5 data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of triggers in combined HDF5 file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._merge_plots">
+<code class="sig-name descname">_merge_plots</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_plots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge classifier output plots into one pdf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._merge_triggers">
+<code class="sig-name descname">_merge_triggers</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_triggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge AMBER triggers into one file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._run_calibration_tools">
+<code class="sig-name descname">_run_calibration_tools</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._run_calibration_tools" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>) – Source name (like 3C296, <em>not</em> 3C286drift0107)</p></li>
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._start_observation_master">
+<code class="sig-name descname">_start_observation_master</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start observation on master node</p>
+<p>Generated observation summary and send email once all workers are done</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._start_observation_worker">
+<code class="sig-name descname">_start_observation_worker</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start observation on worker node:</p>
+<ol class="arabic simple">
+<li><p>Candidate clustering</p></li>
+<li><p>Extraction of filterbank data</p></li>
+<li><p>ML classification</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for start_observation command, then run offline processing pipeline.
+Executed commands depend on whether this is a worker node or the master node.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing.set_source_queue">
+<code class="sig-name descname">set_source_queue</code><span class="sig-paren">(</span><em class="sig-param">queue</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.set_source_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set input queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>queue</strong> (<em>queues.Queue</em>) – Source of start_observation commands</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.offline_processing.OfflineProcessingException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.offline_processing.</code><code class="sig-name descname">OfflineProcessingException</code><a class="headerlink" href="#darc.offline_processing.OfflineProcessingException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.processor">
+<span id="darc-processor"></span><h2>darc.processor<a class="headerlink" href="#module-darc.processor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.processor.Processor">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">Processor</code><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<p>Real-time processing of clustered candidates
+through Stokes I triggers.</p>
+<p><strong>This module is unfinished and not functional</strong></p>
+<dl class="method">
+<dt id="darc.processor.Processor.iquv_trigger">
+<code class="sig-name descname">iquv_trigger</code><span class="sig-paren">(</span><em class="sig-param">trigger</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.iquv_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trigger IQUV data dump</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trigger</strong> (<em>dict</em>) – Trigger to send</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.processor.Processor.lofar_trigger">
+<code class="sig-name descname">lofar_trigger</code><span class="sig-paren">(</span><em class="sig-param">trigger</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.lofar_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contact VOEvent server to send LOFAR trigger</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trigger</strong> (<em>dict</em>) – Trigger to send</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.processor.Processor.process_command">
+<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.process_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="darc.processor.Processor.read_and_process_data">
+<code class="sig-name descname">read_and_process_data</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.read_and_process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read ringbuffer pages and process them</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.processor.Processor.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start observation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.processor.Processor.stop_observation">
+<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop observation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.processor.ProcessorException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">ProcessorException</code><a class="headerlink" href="#darc.processor.ProcessorException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.status_website">
+<span id="darc-status-website"></span><h2>darc.status_website<a class="headerlink" href="#module-darc.status_website" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.status_website.StatusWebsite">
+<em class="property">class </em><code class="sig-prename descclassname">darc.status_website.</code><code class="sig-name descname">StatusWebsite</code><a class="headerlink" href="#darc.status_website.StatusWebsite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>Generate a HTML page with the status of each service
+across the ARTS cluster at regular intervals</p>
+<dl class="method">
+<dt id="darc.status_website.StatusWebsite.get_template">
+<em class="property">static </em><code class="sig-name descname">get_template</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.get_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return HTML template</p>
+<p>Split into header and footer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>header, footer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.status_website.StatusWebsite.make_offline_page">
+<code class="sig-name descname">make_offline_page</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.make_offline_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create page for when status website is offline</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.status_website.StatusWebsite.publish_status">
+<code class="sig-name descname">publish_status</code><span class="sig-paren">(</span><em class="sig-param">statuses</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.publish_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publish status as simple html webpage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>statuses</strong> (<em>dict</em>) – Status of each service across all nodes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.status_website.StatusWebsite.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop:</p>
+<ol class="arabic simple">
+<li><p>Get status of all services across all nodes</p></li>
+<li><p>Publish HTML page with statuses</p></li>
+<li><p>Generate offline page upon exit</p></li>
+</ol>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.status_website.StatusWebsite.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.status_website.StatusWebsiteException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.status_website.</code><code class="sig-name descname">StatusWebsiteException</code><a class="headerlink" href="#darc.status_website.StatusWebsiteException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.voevent_generator">
+<span id="darc-voevent-generator"></span><h2>darc.voevent_generator<a class="headerlink" href="#module-darc.voevent_generator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.voevent_generator.VOEventGenerator">
+<em class="property">class </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventGenerator</code><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>Convert incoming triggers to VOEvent and send to
+the VOEvent broker</p>
+<dl class="method">
+<dt id="darc.voevent_generator.VOEventGenerator._NewVOEvent">
+<code class="sig-name descname">_NewVOEvent</code><span class="sig-paren">(</span><em class="sig-param">dm</em>, <em class="sig-param">dm_err</em>, <em class="sig-param">width</em>, <em class="sig-param">snr</em>, <em class="sig-param">flux</em>, <em class="sig-param">ra</em>, <em class="sig-param">dec</em>, <em class="sig-param">semiMaj</em>, <em class="sig-param">semiMin</em>, <em class="sig-param">ymw16</em>, <em class="sig-param">name</em>, <em class="sig-param">importance</em>, <em class="sig-param">utc</em>, <em class="sig-param">gl</em>, <em class="sig-param">gb</em>, <em class="sig-param">gain</em>, <em class="sig-param">dt=0.08192</em>, <em class="sig-param">delta_nu_MHz=0.1953125</em>, <em class="sig-param">nu_GHz=1.37</em>, <em class="sig-param">posang=0</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._NewVOEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a VOEvent</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>float</em>) – Dispersion measure (pc cm**-3)</p></li>
+<li><p><strong>dm_err</strong> (<em>float</em>) – Error on DM (pc cm**-3)</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – Pulse width (ms)</p></li>
+<li><p><strong>snr</strong> (<em>float</em>) – Signal-to-noise ratio</p></li>
+<li><p><strong>flux</strong> (<em>float</em>) – flux density (mJy)</p></li>
+<li><p><strong>ra</strong> (<em>float</em>) – Right ascension (deg)</p></li>
+<li><p><strong>dec</strong> (<em>float</em>) – Declination (deg)</p></li>
+<li><p><strong>semiMaj</strong> (<em>float</em>) – Localisation region semi-major axis (arcmin)</p></li>
+<li><p><strong>semiMin</strong> (<em>float</em>) – Localisation region semi-minor axis (arcmin)</p></li>
+<li><p><strong>ymw16</strong> (<em>float</em>) – YMW16 DM (pc cm**-3)</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Source name</p></li>
+<li><p><strong>importance</strong> (<em>float</em>) – Trigger importance (0-1)</p></li>
+<li><p><strong>utc</strong> (<em>str</em>) – UTC arrival time</p></li>
+<li><p><strong>gl</strong> (<em>float</em>) – Galactic longitude (deg)</p></li>
+<li><p><strong>gb</strong> (<em>float</em>) – Galactic latitude (deg)</p></li>
+<li><p><strong>gain</strong> (<em>float</em>) – Telescope gain (K Jy**-1)</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Telescope time resolution (ms)</p></li>
+<li><p><strong>delta_nu_MHz</strong> (<em>float</em>) – Telescope frequency channel width (MHz)</p></li>
+<li><p><strong>nu_GHz</strong> (<em>float</em>) – Telescope centre frequency (GHz)</p></li>
+<li><p><strong>posang</strong> (<em>float</em>) – Localisation region position angle (deg)</p></li>
+<li><p><strong>test</strong> (<em>bool</em>) – Whether to send a test event or observation event</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.voevent_generator.VOEventGenerator._select_trigger">
+<em class="property">static </em><code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param">triggers</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._select_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select trigger with highest S/N from a list of triggers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>triggers</strong> (<em>list</em>) – one dict per trigger</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trigger with highest S/N</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.voevent_generator.VOEventGenerator.create_and_send">
+<code class="sig-name descname">create_and_send</code><span class="sig-paren">(</span><em class="sig-param">trigger</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.create_and_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create voevent</p>
+<p>Event is only sent if enabled in config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trigger</strong> (<em>list/dict</em>) – Trigger event(s). dict if one event, list of dicts if multiple events</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.voevent_generator.VOEventGenerator.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+<p>Read triggers from queue and process them</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.voevent_generator.VOEventGenerator.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.voevent_generator.VOEventGeneratorException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventGeneratorException</code><a class="headerlink" href="#darc.voevent_generator.VOEventGeneratorException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="darc.voevent_generator.VOEventQueueServer">
+<em class="property">class </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventQueueServer</code><span class="sig-paren">(</span><em class="sig-param">address=None</em>, <em class="sig-param">authkey=None</em>, <em class="sig-param">serializer='pickle'</em>, <em class="sig-param">ctx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventQueueServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
+<p>Server for VOEvent input queue</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DARC services</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.amber_clustering">darc.amber_clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.amber_listener">darc.amber_listener</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.dada_trigger">darc.dada_trigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.darc_master">darc.darc_master</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.offline_processing">darc.offline_processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.processor">darc.processor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.status_website">darc.status_website</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.voevent_generator">darc.voevent_generator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to DARC’s documentation</a></li>
+      <li>Next: <a href="misc.html" title="next chapter">Miscellaneous</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/services.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
