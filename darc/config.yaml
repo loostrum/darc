@@ -72,9 +72,9 @@ voevent_generator:
     interval: 1.0  # how long to keep gathering triggers after one arrives
     send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
     server_port: 5200   # Port the VOEvent service listens to
-    server_auth:       # choose a password for the VOEvent service and put it here (str)
-    broker_host:       # Hostname of the external VOEvent broker (str)
-    broker_port:       # the port the external VOEvent broker listens to (int)
+    server_auth: "pass"  # choose a password for the VOEvent service and put it here (str)
+    broker_host: "localhost"  # Hostname of the external VOEvent broker (str)
+    broker_port: 9000  # the port the external VOEvent broker listens to (int)
 
 # DADA triggers
 dada_trigger:
