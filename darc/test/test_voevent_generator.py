@@ -13,7 +13,6 @@ class TestVOEventGenerator(unittest.TestCase):
         """
         Test that the VOEvent generator converts a trigger into a VOEvent
         """
-
         # init VOEvent Generator
         generator = VOEventGenerator()
         # overwrite server location
@@ -28,11 +27,11 @@ class TestVOEventGenerator(unittest.TestCase):
         trigger_utc = '2019-01-02T18:00:00.0'
         triggers = [{'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 10, 'flux': 0.5,
                      'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
-                     'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
+                     'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21', 'cb': 0,
                      'importance': 0.1, 'utc': '2019-01-01T18:00:00.0', 'test': True},
                     {'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 50, 'flux': 0.5,
                      'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
-                     'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21',
+                     'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21', 'cb': 17,
                      'importance': 0.1, 'utc': trigger_utc, 'test':True}]
 
         # get the queue
