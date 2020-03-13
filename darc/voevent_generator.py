@@ -120,10 +120,7 @@ class VOEventGenerator(threading.Thread):
                 if additional_triggers:
                     trigger = [trigger] + additional_triggers
 
-            if not self.send_events:
-                self.logger.warning("Trigger received but sending VOEvents is disabled")
-            else:
-                self.create_and_send(trigger)
+            self.create_and_send(trigger)
 
         # stop the queue server
         self.voevent_server.shutdown()
@@ -142,8 +139,14 @@ class VOEventGenerator(threading.Thread):
         if isinstance(trigger, list):
             self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
             trigger = self._select_trigger(trigger)
+        else:
+            self.logger.info("Received 1 trigger")
 
         self.logger.info("Trigger: {}".format(trigger))
+
+        if not self.send_events:
+            self.logger.warning("Sending VOEvents is disabled, not sending trigger")
+            return
 
         # trigger should be a dict
         if not isinstance(trigger, dict):
