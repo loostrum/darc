@@ -353,6 +353,7 @@ class AMBERClustering(DARCBase):
                                  'flux': flux,  # Jy
                                  'ra': pointing.ra.deg,  # decimal deg
                                  'dec': pointing.dec.deg,  # decimal deg
+                                 'cb': self.obs_config['beam'],
                                  'ymw16': dmgal,
                                  'semiMaj': 15,  # arcmin, CB
                                  'semiMin': 15,  # arcmin, CB

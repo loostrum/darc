@@ -120,10 +120,7 @@ class VOEventGenerator(threading.Thread):
                 if additional_triggers:
                     trigger = [trigger] + additional_triggers
 
-            if not self.send_events:
-                self.logger.warning("Trigger received but sending VOEvents is disabled")
-            else:
-                self.create_and_send(trigger)
+            self.create_and_send(trigger)
 
         # stop the queue server
         self.voevent_server.shutdown()
@@ -141,14 +138,25 @@ class VOEventGenerator(threading.Thread):
         # if multiple triggers are received, select one
         if isinstance(trigger, list):
             self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
-            trigger = self._select_trigger(trigger)
+            trigger, num_unique_cb = self._select_trigger(trigger)
+            self.logger.info("Number of unique CBs: {}".format(num_unique_cb))
+        else:
+            self.logger.info("Received 1 trigger")
 
         self.logger.info("Trigger: {}".format(trigger))
+
+        if not self.send_events:
+            self.logger.warning("Sending VOEvents is disabled, not sending trigger")
+            return
 
         # trigger should be a dict
         if not isinstance(trigger, dict):
             self.logger.error("Trigger is not a dict")
             return
+
+        # remove keys that are not used by NewVOEvent
+        for key in ['cb']:
+            trigger.pop(key, None)
 
         # check if all required params are present
         # others are calculated
@@ -204,18 +212,22 @@ class VOEventGenerator(threading.Thread):
         Select trigger with highest S/N from a list of triggers
 
         :param list triggers: one dict per trigger
-        :return: trigger with highest S/N
+        :return: trigger with highest S/N and number of unique CBs in trigger list
         """
         max_snr = 0
         index = None
+        cbs = []
         # loop over triggers and check if current trigger has highest S/N
         for i, trigger in enumerate(triggers):
             snr = trigger['snr']
             if snr > max_snr:
                 max_snr = snr
                 index = i
+            # save CB
+            cbs.append(trigger['cb'])
+        num_unique_cb = len(list(set(cbs)))
         # index is now index of trigger with highest S/N
-        return triggers[index]
+        return triggers[index], num_unique_cb
 
     def _NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
                     ymw16, name, importance, utc, gl, gb, gain,
