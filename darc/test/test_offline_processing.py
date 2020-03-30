@@ -38,14 +38,21 @@ class TestOfflineProcessing(unittest.TestCase):
 
         duration = 300.032
         startpacket = int((Time.now().unix - duration) * 781250)
-        # endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
+        endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+        # generate parset
+        parset = {'task.stopTime': endtime,
+                  'task.source.name': 'FAKE',
+                  'task.source.beam': '0',
+                  'task.beamSet.0.compoundBeam.0.phaseCenter': '[256.00deg, 65.00deg]',
+                  'task.directionReferenceFrame': 'J2000'}
 
         config = {'ntabs': 12, 'nsynbeams': 71, 'beam': 0, 'mode': 'TAB',
                   'amber_dir': amber_dir, 'output_dir': output_dir,
                   'duration': 300.032, 'startpacket': startpacket, 
                   'result_dir': result_dir, 'min_freq': min_freq,
                   'datetimesource': '2019-01-01-00:00:00.FAKE',
-                  'freq': freq}
+                  'freq': freq, 'parset': parset}
         return config
 
     def test_worker_processing_tab(self):
@@ -93,8 +100,9 @@ class TestOfflineProcessing(unittest.TestCase):
             proc.process_sb = False
 
             # override config
+            proc.host_type = 'worker'
             proc.config['nfreq_plot'] = 32
-            proc.config['snrmin_processing'] = 10
+            proc.config['snrmin_processing'] = 45
             proc.config['snrmin_processing_local'] = 5
             proc.config['dmmin'] = 20
             proc.config['dmmax'] = 5000
@@ -151,8 +159,8 @@ class TestOfflineProcessing(unittest.TestCase):
         fname_pdf = "CB00_candidates_summary.pdf"
 
         # set expected output for yaml
-        expected_output_yaml = {'ncand_abovethresh': 104, 'ncand_classifier': 89, 'ncand_raw': 2048,
-                                'ncand_skipped': 109, 'ncand_trigger': 213}
+        expected_output_yaml = {'ncand_abovethresh': 5, 'ncand_classifier': 5, 'ncand_raw': 33763,
+                                'ncand_skipped': 13, 'ncand_trigger': 18}
         # read expected output for txt
         with open(os.path.join(TESTDIR, fname_txt_in)) as f:
             expected_output_txt = f.read().strip().split()
@@ -170,8 +178,9 @@ class TestOfflineProcessing(unittest.TestCase):
             proc.process_sb = True
 
             # override config
+            proc.host_type = 'worker'
             proc.config['nfreq_plot'] = 32
-            proc.config['snrmin_processing'] = 10
+            proc.config['snrmin_processing'] = 45
             proc.config['snrmin_processing_local'] = 5
             proc.config['dmmin'] = 20
             proc.config['dmmax'] = 5000
