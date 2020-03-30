@@ -42,7 +42,7 @@ class TestFullRun(unittest.TestCase):
         """
         print("Setup")
         # observation settings
-        files = glob.glob('/tank/data/sky/B0329+54/2019-06-25-11:17:00.B0329+54/dada/*.dada')
+        files = glob.glob('/tank/data/sky/B1933+16/20200211_dump/dada/*.dada')
         self.assertTrue(len(files) > 0)
         output_dir = '/tank/users/oostrum/test_full_run'
         amber_dir = os.path.join(output_dir, 'amber')
@@ -52,14 +52,14 @@ class TestFullRun(unittest.TestCase):
         util.makedirs(amber_dir)
 
         # load the encoded parset
-        with open('/tank/data/sky/B0329+54/2019-06-25-11:17:00.B0329+54/parset', 'r') as f:
+        with open('/tank/data/sky/B1933+16/20200211_dump/parset', 'r') as f:
             parset = f.read().strip()
 
         # nreader: one for each programme readding from the buffer, i.e. 3x AMBER
         self.settings = {'resolution': 1536*12500*12, 'nbuf': 5, 'key_i': 'aaaa',
-                         'hdr_size': 4096, 'dada_files': files, 'nreader': 3,
-                         'freq': 1280, 'amber_dir': amber_dir, 'nbatch': len(files)*10,
-                         'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1129.70092773,
+                         'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
+                         'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files)*10,
+                         'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1219.70092773,
                          'parset': parset}
 
         # store custom config file
@@ -145,7 +145,7 @@ class TestFullRun(unittest.TestCase):
                     # read header, strip empty bytes, convert to string, remove last newline
                     raw_hdr = f.read(self.settings['hdr_size']).rstrip(b'\x00').decode().strip()
                     # convert to dict by splitting on newline, then whitespace
-                    hdr = dict([line.split(maxsplit=1) for line in raw_hdr.split('\n')])
+                    hdr = dict([line.split(maxsplit=1) for line in raw_hdr.split('\n') if line ])
                     dada_writer.setHeader(hdr)
                 else:
                     # skip header
