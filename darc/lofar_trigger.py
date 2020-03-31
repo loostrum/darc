@@ -143,7 +143,7 @@ class LOFARTrigger(threading.Thread):
             return
 
         # check if all required params are present
-        keys = ['dm', 'utc']
+        keys = ['dm', 'utc', 'snr', 'cb']
         for key in keys:
             if key not in trigger.keys():
                 self.logger.error("Parameter missing from trigger: {}".format(key))
