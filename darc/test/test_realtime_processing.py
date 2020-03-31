@@ -91,8 +91,8 @@ class TestFullRun(unittest.TestCase):
         self.listener.start()
 
         # init amber clustering thread
-        # do not connect to VOEvent server
-        self.clustering = AMBERClustering(connect_vo=False)
+        # do not connect to VOEvent server nor LOFAR trigger system
+        self.clustering = AMBERClustering(connect_vo=False, connect_lofar=False)
         self.clustering.set_source_queue(self.listener.target_queue)
         self.clustering.set_target_queue(mp.Queue())
         self.clustering.start()
