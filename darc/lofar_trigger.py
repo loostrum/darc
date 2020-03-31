@@ -202,9 +202,9 @@ class LOFARTrigger(threading.Thread):
 
         # calculate pulse arrival time at LOFAR
         # AMBER uses top of band
-        fhi = nu_GHz + .5*BANDWIDTH
+        fhi = nu_GHz*u.GHz + .5*BANDWIDTH
         # LOFAR is referenced to 200 MHz
-        flo = 200*u.MHz
+        flo = 200.*u.MHz
         dm_delay = util.dm_to_delay(dm, flo, fhi)
         # LOFAR TBB buffer size is 5 seconds, aim to have pulse in centre
         lofar_buffer_delay = 2.5*u.s
@@ -216,16 +216,16 @@ class LOFARTrigger(threading.Thread):
         tstop_ms = int(np.round(tstop_remainder*1000))
 
         # dm is sent as int, multiplied by ten to preserve one decimal place
-        dm_int = int(np.round(10 * dm))
+        dm_int = int(np.round(10 * dm.to(u.pc/u.cm**3).value))
 
         # test event or real event
         if test:
-            test_flag = '\x54'
+            test_flag = b'\x54'
         else:
-            test_flag = '\x53'
+            test_flag = b'\x53'
 
         # struct format
         fmt = '>cciHHc'
 
         # create and return the struct
-        return struct.pack(fmt, '\x99', '\xA0', tstop_s, tstop_ms, dm_int, test_flag)
+        return struct.pack(fmt, b'\x99', b'\xA0', tstop_s, tstop_ms, dm_int, test_flag)
