@@ -4,8 +4,14 @@ import os
 import astropy.units as u
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-#: Config file name
-CONFIG_FILE = 'config.yaml'
+
+# try to find config file in home directory
+config_file = os.path.join(os.path.expanduser('~'), 'darc', 'config.yaml')
+if not os.path.isfile(config_file):
+    # switch to default config file
+    config_file = os.path.join(ROOT_DIR, 'config.yaml')
+#: Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package
+CONFIG_FILE = config_file
 
 #: ARTS master name
 MASTER = "arts041"

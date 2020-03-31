@@ -14,7 +14,7 @@ from time import sleep, time
 from shutil import copy2
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import MASTER, WORKERS, ROOT_DIR, CONFIG_FILE
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
@@ -65,7 +65,7 @@ class DARCMaster(object):
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # Load config file
-        self.config_file = os.path.join(ROOT_DIR, config_file)
+        self.config_file = config_file
         self._load_config()
 
         # store hostname
@@ -143,6 +143,9 @@ class DARCMaster(object):
             except KeyError:
                 _service_class = self.service_mapping[service]
                 self.threads[service] = _service_class()
+
+        # print config file path
+        self.logger.info("Loaded config from {}".format(self.config_file))
 
     def run(self):
         """
