@@ -88,7 +88,7 @@ class LOFARTrigger(threading.Thread):
         # wait for events until stop is set
         while not self.stop_event.is_set():
             try:
-                trigger = self.triger_queue.get(timeout=.1)
+                trigger = self.trigger_queue.get(timeout=.1)
             except Empty:
                 continue
             else:
@@ -151,9 +151,18 @@ class LOFARTrigger(threading.Thread):
         # test key; assert false if not present
         if 'test' not in trigger.keys():
             trigger['test'] = False
+        # frequency key, assert 1.37 GHz if not present
+        if 'nu_GHz' not in trigger.keys():
+            trigger['nu_GHz'] = 1.37
+        # remove unused keys
+        trigger_generator_keys = ['dm', 'utc', 'nu_GHz', 'test']
+        # run on copy of dict because dict could change in the loop
+        for key in trigger.copy().keys():
+            if key not in trigger_generator_keys:
+                trigger.pop(key, None)
 
         # create trigger struct to send
-        packet = self._new_trigger(trigger['dm'], trigger['utc'], trigger['test'])
+        packet = self._new_trigger(**trigger)
         # send
         try:
             # open a UDP socket
@@ -199,10 +208,13 @@ class LOFARTrigger(threading.Thread):
         :param float nu_GHz: Apertif centre frequency (GHz)
         :param bool test: Whether to send a test event or observation event
         """
+        # add units
+        nu_GHz *= u.GHz
+        dm *= u.pc*u.cm**-3
 
         # calculate pulse arrival time at LOFAR
         # AMBER uses top of band
-        fhi = nu_GHz*u.GHz + .5*BANDWIDTH
+        fhi = nu_GHz + .5*BANDWIDTH
         # LOFAR is referenced to 200 MHz
         flo = 200.*u.MHz
         dm_delay = util.dm_to_delay(dm, flo, fhi)
