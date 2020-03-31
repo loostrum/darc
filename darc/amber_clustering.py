@@ -17,6 +17,7 @@ from astropy.coordinates import SkyCoord
 
 from darc.base import DARCBase
 from darc.voevent_generator import VOEventQueueServer
+from darc.lofar_trigger import LOFARTriggerQueueServer
 from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
 from darc.external import tools
 from darc import util
@@ -28,23 +29,25 @@ class AMBERClusteringException(Exception):
 
 class AMBERClustering(DARCBase):
     """
-    Trigger IQUV / LOFAR based on AMBER candidates
+    Trigger IQUV / LOFAR / VOEvent system based on AMBER candidates
 
     1. Cluster incoming triggers
     2. Apply thresholds (separate for known and new sources, and for IQUV vs LOFAR)
     3. Put IQUV triggers on output queue
-    4. Put LOFAR triggers on remote VOEvent queue
+    4. Put LOFAR triggers on remote LOFAR trigger queue and on VOEvent queue
     """
 
-    def __init__(self, connect_vo=True):
+    def __init__(self, connect_vo=True, connect_lofar=True):
         """
         :param bool connect_vo: Whether or not to connect to VOEvent queue on master node
+        :param bool connect_lofar: Whether or not to connect to LOFAR trigger queue on master node
         """
         super(AMBERClustering, self).__init__()
         self.needs_source_queue = True
         self.needs_target_queue = True
 
         self.connect_vo = connect_vo
+        self.connect_lofar = connect_lofar
         self.dummy_queue = mp.Queue()
 
         self.threads = {}
@@ -61,7 +64,7 @@ class AMBERClustering(DARCBase):
         if self.connect_vo:
             try:
                 self.vo_queue = self.voevent_connector()
-                self.logger.info("Connected to VOEvent Generator")
+                self.logger.info("Connected to VOEvent Generator on master node")
                 self.have_vo = True
             except Exception as e:
                 self.logger.error("Failed to connect to VOEvent Generator, setting dummy queue ({})".format(e))
@@ -72,6 +75,22 @@ class AMBERClustering(DARCBase):
             self.logger.info("VO Generator connection disabled, setting dummy queue")
             self.vo_queue = mp.Queue()
             self.have_vo = False
+
+        # connect to LOFAR trigger
+        if self.connect_lofar:
+            try:
+                self.lofar_queue = self.lofar_connector()
+                self.logger.info("Connected to LOFAR Trigger on master node")
+                self.have_lofar = True
+            except Exception as e:
+                self.logger.error("Failed to connect to LOFAR Trigger, setting dummy queue ({})".format(e))
+                self.lofar_queue = self.dummy_queue
+                self.have_lofar = False
+        else:
+            # dummy queue
+            self.logger.info("LOFAR Trigger connection disabled, setting dummy queue")
+            self.vo_queue = mp.Queue()
+            self.have_lofar = False
 
     def _load_source_list(self):
         """
@@ -124,12 +143,24 @@ class AMBERClustering(DARCBase):
         if self.connect_vo:
             try:
                 self.vo_queue = self.voevent_connector()
-                self.logger.info("Connected to VOEvent Generator")
+                self.logger.info("Connected to VOEvent Generator on master node")
                 self.have_vo = True
             except Exception as e:
                 self.logger.error("Failed to connect to VOEvent Generator, setting dummy queue ({})".format(e))
                 self.vo_queue = self.dummy_queue
                 self.have_vo = False
+
+        # try connecting to LOFAR trigger serverr if enabled
+        # always do this in case a connection was available before, but failed at some point
+        if self.connect_lofar:
+            try:
+                self.lofar_queue = self.lofar_connector()
+                self.logger.info("Connected to LOFAR Trigger on master node")
+                self.have_lofar = True
+            except Exception as e:
+                self.logger.error("Failed to connect to LOFAR Trigger, setting dummy queue ({})".format(e))
+                self.lofar_queue = self.dummy_queue
+                self.have_lofar = False
 
         # process triggers in thread
         self.threads['processing'] = threading.Thread(target=self._process_triggers)
@@ -165,6 +196,21 @@ class AMBERClustering(DARCBase):
         VOEventQueueServer.register('get_queue')
         with open(CONFIG_FILE, 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
+        port = server_config['server_port']
+        key = server_config['server_auth'].encode()
+        server = VOEventQueueServer(address=(MASTER, port), authkey=key)
+        server.connect()
+        return server.get_queue()
+
+    @staticmethod
+    def lofar_connector():
+        """
+        Connect to the LOFAR triggering system on the master node
+        """
+        # Load LOFAR trigger server settings
+        LOFARTriggerQueueServer.register('get_queue')
+        with open(CONFIG_FILE, 'r') as f:
+            server_config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()
         server = VOEventQueueServer(address=(MASTER, port), authkey=key)
@@ -362,7 +408,9 @@ class AMBERClustering(DARCBase):
                                  'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
-                self.logger.info("Sending LOFAR trigger")
+                self.logger.info("Sending LOFAR trigger to LOFAR Trigger system")
+                self.lofar_queue.put(lofar_trigger)
+                self.logger.info("Sending same trigger to VOEvent system")
                 self.vo_queue.put(lofar_trigger)
 
     def _process_triggers(self):
