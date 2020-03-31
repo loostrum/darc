@@ -7,14 +7,15 @@ darc_master:
     setup_time: 5  # start_observation is sent this long before the actual start time
     stop_timeout: 5  # for stopping services
     mode:  'mixed'  # real-time, offline, or mixed
-    services_master_rt: ["status_website", "voevent_generator"]
+    services_master_rt: ["status_website", "voevent_generator", "lofar_trigger"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website"]
     services_worker_off: ["offline_processing"]
-    services_master_mix: ["offline_processing", "status_website", "voevent_generator"]
+    services_master_mix: ["offline_processing", "status_website", "voevent_generator", "lofar_trigger"]
     services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger"]
     master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload",
-                      "lofar_status", "lofar_enable", "lofar_disable"]
+                      "lofar_status", "lofar_enable", "lofar_disable", "voevent_status", "voevent_enable",
+                      "voevent_disable"]
     service_commands: ["status", "start", "stop", "restart"]
     editor: "vim"
 
@@ -70,11 +71,21 @@ voevent_generator:
     log_file: "{home}/darc/log/voevent_generator.{hostname}.log"
     voevent_dir: "{home}/darc/voevents"
     interval: 1.0  # how long to keep gathering triggers after one arrives
-    send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
+    send_events: False  # the voevent_enable and voevent_disable commands change send_events to True or False
     server_port: 5200   # Port the VOEvent service listens to
     server_auth: "pass"  # choose a password for the VOEvent service and put it here (str)
     broker_host: "localhost"  # Hostname of the external VOEvent broker (str)
     broker_port: 9000  # the port the external VOEvent broker listens to (int)
+
+# LOFAR triggers
+lofar_trigger:
+    log_file: "{home}/darc/log/lofar_trigger.{hostname}.log"
+    interval: 1.0  # how long to keep gathering triggers after one arrives
+    send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
+    server_port: 5201   # Port the LOFAR trigger service listens to
+    server_auth: "pass"  # choose a password for the LOFAR trigger service and put it here (str)
+    lofar_host: "localhost"  # LOFAR server that listens for triggers
+    lofar_port: 31662  # Port the LOFAR server listens to
 
 # DADA triggers
 dada_trigger:

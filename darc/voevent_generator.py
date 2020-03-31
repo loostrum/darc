@@ -248,7 +248,7 @@ class VOEventGenerator(threading.Thread):
         :param float ymw16: YMW16 DM (pc cm**-3)
         :param str name: Source name
         :param float importance: Trigger importance (0-1)
-        :param str utc: UTC arrival time
+        :param str utc: UTC arrival time in ISOT format
         :param float gl: Galactic longitude (deg)
         :param float gb: Galactic latitude (deg)
         :param float gain: Telescope gain (K Jy**-1)
