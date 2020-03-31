@@ -610,13 +610,13 @@ class DARCMaster(object):
 
     def _switch_cmd(self, command):
         """
-        Check status of LOFAR triggering / VOEvent generator, or enable/disable them
+        Check status of LOFAR trigger system / VOEvent generator, or enable/disable them
 
         :param str command: command to run
         :return: status, reply
         """
         if command.startswith('lofar'):
-            service = self.threads['lofar_triggering']
+            service = self.threads['lofar_trigger']
             name = 'LOFAR triggering'
         elif command.startswith('voevent'):
             service = self.threads['voevent_generator']
@@ -633,7 +633,7 @@ class DARCMaster(object):
             try:
                 can_send = service.send_events
                 status = 'Success'
-                reply = '{}} enabled: {}'.format(name, can_send)
+                reply = '{} enabled: {}'.format(name, can_send)
             except Exception as e:
                 self.logger.error("Failed to get {} status ({})".format(name, e))
                 status = 'Error'

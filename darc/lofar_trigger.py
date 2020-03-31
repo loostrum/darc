@@ -163,6 +163,7 @@ class LOFARTrigger(threading.Thread):
 
         # create trigger struct to send
         packet = self._new_trigger(**trigger)
+        self.logger.info("Sending packet: {}".format(packet))
         # send
         try:
             # open a UDP socket
