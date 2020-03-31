@@ -232,9 +232,9 @@ class LOFARTrigger(threading.Thread):
 
         # test event or real event
         if test:
-            test_flag = b'\x54'
+            test_flag = b'T'  # = \x54
         else:
-            test_flag = b'\x53'
+            test_flag = b'S'  # = \x53
 
         # struct format
         fmt = '>cciHHc'
