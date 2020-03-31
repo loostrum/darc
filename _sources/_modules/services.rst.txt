@@ -21,6 +21,11 @@ darc.darc\_master
 
 .. automodule:: darc.darc_master
 
+darc.lofar\_trigger
+------------------------
+
+.. automodule:: darc.lofar_trigger
+
 darc.offline\_processing
 -------------------------------
 

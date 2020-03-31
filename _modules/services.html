@@ -539,6 +539,84 @@ Listen for messages on the command socket and process them</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-darc.lofar_trigger">
+<span id="darc-lofar-trigger"></span><h2>darc.lofar_trigger<a class="headerlink" href="#module-darc.lofar_trigger" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="darc.lofar_trigger.LOFARTrigger">
+<em class="property">class </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTrigger</code><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering</p>
+<dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger._new_trigger">
+<em class="property">static </em><code class="sig-name descname">_new_trigger</code><span class="sig-paren">(</span><em class="sig-param">dm</em>, <em class="sig-param">utc</em>, <em class="sig-param">nu_GHz=1.37</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._new_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a LOFAR trigger struct</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>float</em>) – Dispersion measure (pc cm**-3)</p></li>
+<li><p><strong>utc</strong> (<em>str</em>) – UTC arrival time in ISOT format</p></li>
+<li><p><strong>nu_GHz</strong> (<em>float</em>) – Apertif centre frequency (GHz)</p></li>
+<li><p><strong>test</strong> (<em>bool</em>) – Whether to send a test event or observation event</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger._select_trigger">
+<em class="property">static </em><code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param">triggers</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._select_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select trigger with highest S/N from a list of triggers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>triggers</strong> (<em>list</em>) – one dict per trigger</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trigger with highest S/N and number of unique CBs in trigger list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger.create_and_send">
+<code class="sig-name descname">create_and_send</code><span class="sig-paren">(</span><em class="sig-param">trigger</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.create_and_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create LOFAR trigger struct</p>
+<p>Event is only sent if enabled in config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trigger</strong> (<em>list/dict</em>) – Trigger event(s). dict if one event, list of dicts if multiple events</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+<p>Read triggers from queue and process them</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="darc.lofar_trigger.LOFARTriggerException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTriggerException</code><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="darc.lofar_trigger.LOFARTriggerQueueServer">
+<em class="property">class </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTriggerQueueServer</code><span class="sig-paren">(</span><em class="sig-param">address=None</em>, <em class="sig-param">authkey=None</em>, <em class="sig-param">serializer='pickle'</em>, <em class="sig-param">ctx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerQueueServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
+<p>Server for VOEvent input queue</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-darc.offline_processing">
 <span id="darc-offline-processing"></span><h2>darc.offline_processing<a class="headerlink" href="#module-darc.offline_processing" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -1045,6 +1123,7 @@ the VOEvent broker</p>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.amber_listener">darc.amber_listener</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.dada_trigger">darc.dada_trigger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.darc_master">darc.darc_master</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-darc.lofar_trigger">darc.lofar_trigger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.offline_processing">darc.offline_processing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.processor">darc.processor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-darc.status_website">darc.status_website</a></li>

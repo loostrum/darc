@@ -110,14 +110,20 @@
 </li>
       <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing._merge_triggers">_merge_triggers() (darc.offline_processing.OfflineProcessing method)</a>
 </li>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger._new_trigger">_new_trigger() (darc.lofar_trigger.LOFARTrigger static method)</a>
+</li>
       <li><a href="_modules/services.html#darc.voevent_generator.VOEventGenerator._NewVOEvent">_NewVOEvent() (darc.voevent_generator.VOEventGenerator method)</a>
 </li>
       <li><a href="_modules/services.html#darc.amber_clustering.AMBERClustering._process_triggers">_process_triggers() (darc.amber_clustering.AMBERClustering method)</a>
 </li>
       <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing._run_calibration_tools">_run_calibration_tools() (darc.offline_processing.OfflineProcessing method)</a>
 </li>
-      <li><a href="_modules/services.html#darc.voevent_generator.VOEventGenerator._select_trigger">_select_trigger() (darc.voevent_generator.VOEventGenerator static method)</a>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger._select_trigger">_select_trigger() (darc.lofar_trigger.LOFARTrigger static method)</a>
+
+      <ul>
+        <li><a href="_modules/services.html#darc.voevent_generator.VOEventGenerator._select_trigger">(darc.voevent_generator.VOEventGenerator static method)</a>
 </li>
+      </ul></li>
       <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing._start_observation_master">_start_observation_master() (darc.offline_processing.OfflineProcessing method)</a>
 </li>
       <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing._start_observation_worker">_start_observation_worker() (darc.offline_processing.OfflineProcessing method)</a>
@@ -164,14 +170,18 @@
         <li><a href="_modules/services.html#darc.dada_trigger.DADATrigger.cleanup">(darc.dada_trigger.DADATrigger method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/misc.html#darc.util.clear_queue">clear_queue() (in module darc.util)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/misc.html#darc.definitions.CONFIG_FILE">CONFIG_FILE (in module darc.definitions)</a>
 </li>
-      <li><a href="_modules/services.html#darc.voevent_generator.VOEventGenerator.create_and_send">create_and_send() (darc.voevent_generator.VOEventGenerator method)</a>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger.create_and_send">create_and_send() (darc.lofar_trigger.LOFARTrigger method)</a>
+
+      <ul>
+        <li><a href="_modules/services.html#darc.voevent_generator.VOEventGenerator.create_and_send">(darc.voevent_generator.VOEventGenerator method)</a>
 </li>
+      </ul></li>
       <li><a href="_modules/services.html#darc.darc_master.DARCMaster.create_thread">create_thread() (darc.darc_master.DARCMaster method)</a>
 </li>
   </ul></td>
@@ -198,12 +208,14 @@
 </li>
       <li><a href="_modules/misc.html#module-darc.definitions">darc.definitions (module)</a>
 </li>
-      <li><a href="_modules/misc.html#module-darc.logger">darc.logger (module)</a>
+      <li><a href="_modules/services.html#module-darc.lofar_trigger">darc.lofar_trigger (module)</a>
 </li>
-      <li><a href="_modules/services.html#module-darc.offline_processing">darc.offline_processing (module)</a>
+      <li><a href="_modules/misc.html#module-darc.logger">darc.logger (module)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_modules/services.html#module-darc.offline_processing">darc.offline_processing (module)</a>
+</li>
       <li><a href="_modules/services.html#module-darc.processor">darc.processor (module)</a>
 </li>
       <li><a href="_modules/misc.html#module-darc.sb_generator">darc.sb_generator (module)</a>
@@ -290,9 +302,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/services.html#darc.amber_clustering.AMBERClustering.lofar_connector">lofar_connector() (darc.amber_clustering.AMBERClustering static method)</a>
 </li>
+      <li><a href="_modules/services.html#darc.processor.Processor.lofar_trigger">lofar_trigger() (darc.processor.Processor method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_modules/services.html#darc.processor.Processor.lofar_trigger">lofar_trigger() (darc.processor.Processor method)</a>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger">LOFARTrigger (class in darc.lofar_trigger)</a>
+</li>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTriggerException">LOFARTriggerException</a>
+</li>
+      <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTriggerQueueServer">LOFARTriggerQueueServer (class in darc.lofar_trigger)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -386,12 +404,12 @@
 </li>
       <li><a href="_modules/misc.html#darc.sb_generator.SBGenerator.reversed">reversed() (darc.sb_generator.SBGenerator property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/misc.html#darc.base.DARCBase.run">run() (darc.base.DARCBase method)</a>
 
       <ul>
         <li><a href="_modules/services.html#darc.darc_master.DARCMaster.run">(darc.darc_master.DARCMaster method)</a>
+</li>
+        <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger.run">(darc.lofar_trigger.LOFARTrigger method)</a>
 </li>
         <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing.run">(darc.offline_processing.OfflineProcessing method)</a>
 </li>
@@ -438,10 +456,10 @@
         <li><a href="_modules/services.html#darc.processor.Processor.start_observation">(darc.processor.Processor method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/services.html#darc.darc_master.DARCMaster.start_service">start_service() (darc.darc_master.DARCMaster method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_modules/services.html#darc.status_website.StatusWebsite">StatusWebsite (class in darc.status_website)</a>
 </li>
       <li><a href="_modules/services.html#darc.status_website.StatusWebsiteException">StatusWebsiteException</a>
@@ -450,6 +468,8 @@
 
       <ul>
         <li><a href="_modules/services.html#darc.darc_master.DARCMaster.stop">(darc.darc_master.DARCMaster method)</a>
+</li>
+        <li><a href="_modules/services.html#darc.lofar_trigger.LOFARTrigger.stop">(darc.lofar_trigger.LOFARTrigger method)</a>
 </li>
         <li><a href="_modules/services.html#darc.offline_processing.OfflineProcessing.stop">(darc.offline_processing.OfflineProcessing method)</a>
 </li>
