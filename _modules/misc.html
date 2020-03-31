@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Miscellaneous &#8212; DARC 1.0.3 documentation</title>
+    <title>Miscellaneous &#8212; DARC 2.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -177,8 +177,8 @@ observation stop</p>
 
 <dl class="data">
 <dt id="darc.definitions.CONFIG_FILE">
-<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = 'config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Config file name</p>
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = '/home/oostrum/darc/config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package</p>
 </dd></dl>
 
 <dl class="data">
@@ -398,6 +398,24 @@ observation stop</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="darc.util.dm_to_delay">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">dm_to_delay</code><span class="sig-paren">(</span><em class="sig-param">dm</em>, <em class="sig-param">flo</em>, <em class="sig-param">fhi</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.dm_to_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert DM to time delay</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>astropy.units.quantity.Quantity</em>) – dispersion measure</p></li>
+<li><p><strong>flo</strong> (<em>astropy.units.quantity.Quantity</em>) – lowest frequency</p></li>
+<li><p><strong>fhi</strong> (<em>astropy.units.quantity.Quantity</em>) – highest frequency</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>time delay (astropy quantity)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="darc.util.encode_parset">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">encode_parset</code><span class="sig-paren">(</span><em class="sig-param">parset_str</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.encode_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encode parset string into bytes</p>
@@ -435,9 +453,14 @@ observation stop</p>
 <dt id="darc.util.ha_to_proj">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">ha_to_proj</code><span class="sig-paren">(</span><em class="sig-param">ha</em>, <em class="sig-param">dec</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.ha_to_proj" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert WSRT HA, Dec to parallactic angle</p>
-<p>This is the SB rotation w.r.t. the RA-Dec frame
-:param astropy.units.quantity.Quantity ha: hour angle with unit
-:param astropy.units.quantity.Quantity dec: declination with unit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ha</strong> (<em>astropy.units.quantity.Quantity</em>) – hour angle with unit</p></li>
+<li><p><strong>dec</strong> (<em>astropy.units.quantity.Quantity</em>) – declination with unit</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -597,7 +620,7 @@ observation stop</p>
       &copy;2020, Leon Oostrum.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

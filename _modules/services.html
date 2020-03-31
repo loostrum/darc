@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>DARC services &#8212; DARC 1.0.3 documentation</title>
+    <title>DARC services &#8212; DARC 2.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -38,18 +38,21 @@
 <span id="darc-amber-clustering"></span><h2>darc.amber_clustering<a class="headerlink" href="#module-darc.amber_clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="darc.amber_clustering.AMBERClustering">
-<em class="property">class </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClustering</code><span class="sig-paren">(</span><em class="sig-param">connect_vo=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClustering</code><span class="sig-paren">(</span><em class="sig-param">connect_vo=True</em>, <em class="sig-param">connect_lofar=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
-<p>Trigger IQUV / LOFAR based on AMBER candidates</p>
+<p>Trigger IQUV / LOFAR / VOEvent system based on AMBER candidates</p>
 <ol class="arabic simple">
 <li><p>Cluster incoming triggers</p></li>
 <li><p>Apply thresholds (separate for known and new sources, and for IQUV vs LOFAR)</p></li>
 <li><p>Put IQUV triggers on output queue</p></li>
-<li><p>Put LOFAR triggers on remote VOEvent queue</p></li>
+<li><p>Put LOFAR triggers on remote LOFAR trigger queue and on VOEvent queue</p></li>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>connect_vo</strong> (<em>bool</em>) – Whether or not to connect to VOEvent queue on master node</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connect_vo</strong> (<em>bool</em>) – Whether or not to connect to VOEvent queue on master node</p></li>
+<li><p><strong>connect_lofar</strong> (<em>bool</em>) – Whether or not to connect to LOFAR trigger queue on master node</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="method">
@@ -141,6 +144,12 @@
 <code class="sig-name descname">_process_triggers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._process_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read thresholds (DM, width, S/N) for clustering</p>
 <p>Continuously read AMBER triggers from queue and start processing for known and/or new sources</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.amber_clustering.AMBERClustering.lofar_connector">
+<em class="property">static </em><code class="sig-name descname">lofar_connector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.lofar_connector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the LOFAR triggering system on the master node</p>
 </dd></dl>
 
 <dl class="method">
@@ -313,7 +322,7 @@ candidates on output queue.</p>
 <span id="darc-darc-master"></span><h2>darc.darc_master<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="darc.darc_master.DARCMaster">
-<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param">config_file='config.yaml'</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param">config_file='/home/oostrum/darc/config.yaml'</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>DARC master service that controls all other services and queues</p>
 <p>Interact with this service through the ‘darc’ executable</p>
@@ -357,9 +366,9 @@ candidates on output queue.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="darc.darc_master.DARCMaster._lofar_cmd">
-<code class="sig-name descname">_lofar_cmd</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._lofar_cmd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check status of LOFAR triggering, or enable/disable it</p>
+<dt id="darc.darc_master.DARCMaster._switch_cmd">
+<code class="sig-name descname">_switch_cmd</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._switch_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check status of LOFAR trigger system / VOEvent generator, or enable/disable them</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – command to run</p>
@@ -942,7 +951,7 @@ the VOEvent broker</p>
 <li><p><strong>ymw16</strong> (<em>float</em>) – YMW16 DM (pc cm**-3)</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – Source name</p></li>
 <li><p><strong>importance</strong> (<em>float</em>) – Trigger importance (0-1)</p></li>
-<li><p><strong>utc</strong> (<em>str</em>) – UTC arrival time</p></li>
+<li><p><strong>utc</strong> (<em>str</em>) – UTC arrival time in ISOT format</p></li>
 <li><p><strong>gl</strong> (<em>float</em>) – Galactic longitude (deg)</p></li>
 <li><p><strong>gb</strong> (<em>float</em>) – Galactic latitude (deg)</p></li>
 <li><p><strong>gain</strong> (<em>float</em>) – Telescope gain (K Jy**-1)</p></li>
@@ -965,7 +974,7 @@ the VOEvent broker</p>
 <dd class="field-odd"><p><strong>triggers</strong> (<em>list</em>) – one dict per trigger</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>trigger with highest S/N</p>
+<dd class="field-even"><p>trigger with highest S/N and number of unique CBs in trigger list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1080,7 +1089,7 @@ the VOEvent broker</p>
       &copy;2020, Leon Oostrum.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
