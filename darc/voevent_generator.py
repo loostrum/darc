@@ -21,7 +21,7 @@ import voeventparse as vp
 import datetime
 from xml.dom import minidom
 
-from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, ROOT_DIR, CONFIG_FILE
+from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 
@@ -51,7 +51,7 @@ class VOEventGenerator(threading.Thread):
 
         self.voevent_server = None
 
-        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
+        with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
 
         # set config, expanding strings
@@ -248,7 +248,7 @@ class VOEventGenerator(threading.Thread):
         :param float ymw16: YMW16 DM (pc cm**-3)
         :param str name: Source name
         :param float importance: Trigger importance (0-1)
-        :param str utc: UTC arrival time
+        :param str utc: UTC arrival time in ISOT format
         :param float gl: Galactic longitude (deg)
         :param float gb: Galactic latitude (deg)
         :param float gain: Telescope gain (K Jy**-1)
@@ -333,7 +333,6 @@ class VOEventGenerator(threading.Thread):
         redshift_inferred.Description = "Redshift estimated using z = DM/1000.0"
 
         v.What.append(vp.Group(params=[mw_dm, mw_model, redshift_inferred], name="advanced parameters"))
-
 
         # WhereWhen
         vp.add_where_when(v, coords=vp.Position2D(ra=ra, dec=dec, err=errDeg, units='deg',

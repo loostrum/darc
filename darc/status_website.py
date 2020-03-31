@@ -9,7 +9,7 @@ import socket
 from textwrap import dedent
 from astropy.time import Time
 
-from darc.definitions import ROOT_DIR, CONFIG_FILE, MASTER, WORKERS
+from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
 from darc.logger import get_logger
 from darc.control import send_command
@@ -33,7 +33,7 @@ class StatusWebsite(threading.Thread):
         self.daemon = True
 
         # load config, including master for list of services
-        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
+        with open(CONFIG_FILE, 'r') as f:
             config_all = yaml.load(f, Loader=yaml.SafeLoader)
 
         config = config_all['status_website']

@@ -24,7 +24,7 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from darc.definitions import ROOT_DIR, CONFIG_FILE, WSRT_LON, NUMCB
+from darc.definitions import CONFIG_FILE, WSRT_LON, NUMCB
 from darc.logger import get_logger
 from darc import util
 
@@ -57,7 +57,7 @@ class OfflineProcessing(threading.Thread):
         self.observation_queue = None
         self.threads = {}
 
-        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
+        with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
 
         # set config, expanding strings

@@ -7,7 +7,7 @@ import socket
 import yaml
 import numpy as np
 
-from darc.definitions import ROOT_DIR, CONFIG_FILE
+from darc.definitions import CONFIG_FILE
 
 
 class SBGeneratorException(Exception):
@@ -30,10 +30,11 @@ class SBGenerator(object):
         self.nsub = None
         self.numtab = None
         self.numsb = None
+        self.sb_mapping = None
         self.__reversed = None
 
         # Load config
-        with open(os.path.join(ROOT_DIR, CONFIG_FILE), 'r') as f:
+        with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['sb_generator']
 
         # set config, expanding strings

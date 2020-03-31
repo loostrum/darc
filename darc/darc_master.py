@@ -14,7 +14,7 @@ from time import sleep, time
 from shutil import copy2
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import MASTER, WORKERS, ROOT_DIR, CONFIG_FILE
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 import darc.amber_listener
@@ -24,6 +24,7 @@ import darc.status_website
 import darc.offline_processing
 import darc.dada_trigger
 import darc.processor
+import darc.lofar_trigger
 
 
 class DARCMasterException(Exception):
@@ -61,11 +62,12 @@ class DARCMaster(object):
                                 'amber_listener': darc.amber_listener.AMBERListener,
                                 'amber_clustering': darc.amber_clustering.AMBERClustering,
                                 'dada_trigger': darc.dada_trigger.DADATrigger,
+                                'lofar_trigger': darc.lofar_trigger.LOFARTrigger,
                                 'processor': darc.processor.Processor,
                                 'offline_processing': darc.offline_processing.OfflineProcessing}
 
         # Load config file
-        self.config_file = os.path.join(ROOT_DIR, config_file)
+        self.config_file = config_file
         self._load_config()
 
         # store hostname
@@ -143,6 +145,9 @@ class DARCMaster(object):
             except KeyError:
                 _service_class = self.service_mapping[service]
                 self.threads[service] = _service_class()
+
+        # print config file path
+        self.logger.info("Loaded config from {}".format(self.config_file))
 
     def run(self):
         """
@@ -256,9 +261,9 @@ class DARCMaster(object):
         elif command == 'reload':
             self._load_config()
             return 'Success', ''
-        # lofar commands
-        elif 'lofar' in command:
-            status, reply = self._lofar_cmd(command)
+        # lofar / voevent trigger commands
+        elif command.startswith('lofar') or command.startswith('voevent'):
+            status, reply = self._switch_cmd(command)
             return status, reply
 
         # Service interaction
@@ -305,7 +310,7 @@ class DARCMaster(object):
         status = 'Success'
 
         thread = self.threads[service]
-        self.logger.info("Checking status of {}".format(service))
+        # self.logger.info("Checking status of {}".format(service))
         if thread is None:
             # no thread means the service is not running
             # self.logger.info("{} is stopped".format(service))
@@ -345,6 +350,9 @@ class DARCMaster(object):
             target_queue = None
         elif service == 'dada_trigger':
             source_queue = self.dadatrigger_queue
+            target_queue = None
+        elif service == 'lofar_trigger':
+            source_queue = None
             target_queue = None
         elif service == 'processor':
             source_queue = self.processor_queue
@@ -600,51 +608,58 @@ class DARCMaster(object):
         config = util.parse_parset(parset)
         return config
 
-    def _lofar_cmd(self, command):
+    def _switch_cmd(self, command):
         """
-        Check status of LOFAR triggering, or enable/disable it
+        Check status of LOFAR trigger system / VOEvent generator, or enable/disable them
 
         :param str command: command to run
         :return: status, reply
         """
-        vo_generator = self.threads['voevent_generator']
+        if command.startswith('lofar'):
+            service = self.threads['lofar_trigger']
+            name = 'LOFAR triggering'
+        elif command.startswith('voevent'):
+            service = self.threads['voevent_generator']
+            name = 'VOEvent sending'
+        else:
+            self.logger.info("Unknown command: {}".format(command))
+            return "Error", "Failed: Unknown command {}".format(command)
+
         if self.hostname != MASTER:
             return "Error", "Failed: should run on master node"
+
         # status
-        if command == 'lofar_status':
-            # get status
+        if command.endswith('status'):
             try:
-                can_send = vo_generator.send_events
+                can_send = service.send_events
                 status = 'Success'
-                reply = 'LOFAR triggering enabled: {}'.format(can_send)
+                reply = '{} enabled: {}'.format(name, can_send)
             except Exception as e:
-                self.logger.error("Failed to get LOFAR triggering status ({})".format(e))
+                self.logger.error("Failed to get {} status ({})".format(name, e))
                 status = 'Error'
-                reply = 'Failed to check LOFAR triggering status'
+                reply = 'Failed to check {} status'.format(name)
 
         # enable
-        elif command == 'lofar_enable':
-            # get status
+        elif command.endswith('enable'):
             try:
-                vo_generator.send_events = True
+                service.send_events = True
                 status = 'Success'
-                reply = 'LOFAR triggering enabled'
+                reply = '{} enabled'.format(name)
             except Exception as e:
-                self.logger.error("Failed to enable LOFAR triggering ({})".format(e))
+                self.logger.error("Failed to enable {} ({})".format(name, e))
                 status = 'Error'
-                reply = 'Failed to enable LOFAR triggering'
+                reply = 'Failed to enable {}'.format(name)
 
         # disable
-        elif command == 'lofar_disable':
-            # get status
+        elif command.endswith('disable'):
             try:
-                vo_generator.send_events = False
+                service.send_events = False
                 status = 'Success'
-                reply = 'LOFAR triggering disabled'
+                reply = '{} disabled'.format(name)
             except Exception as e:
-                self.logger.error("Failed to disable LOFAR triggering ({})".format(e))
+                self.logger.error("Failed to disable {} ({})".format(name, e))
                 status = 'Error'
-                reply = 'Failed to disable LOFAR triggering'
+                reply = 'Failed to disable {}'.format(name)
 
         else:
             status = 'Error'

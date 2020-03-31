@@ -241,7 +241,6 @@ def ha_to_proj(ha, dec):
     """
     Convert WSRT HA, Dec to parallactic angle
 
-    This is the SB rotation w.r.t. the RA-Dec frame
     :param astropy.units.quantity.Quantity ha: hour angle with unit
     :param astropy.units.quantity.Quantity dec: declination with unit
     """
@@ -249,3 +248,17 @@ def ha_to_proj(ha, dec):
                            (np.sin(WSRT_LAT)*np.cos(dec) -
                            np.cos(WSRT_LAT)*np.sin(dec)*np.cos(ha))).to(u.deg)
     return theta_proj.to(u.deg)
+
+
+def dm_to_delay(dm, flo, fhi):
+    """
+    Convert DM to time delay
+
+    :param astropy.units.quantity.Quantity dm: dispersion measure
+    :param astropy.units.quantity.Quantity flo: lowest frequency
+    :param astropy.units.quantity.Quantity fhi: highest frequency
+    :return: time delay (astropy quantity)
+    """
+    k = 4.148808e3 * u.cm**3 * u.s * u.MHz**2 / u.pc
+    delay = k * dm * (flo**-2 - fhi**-2)
+    return delay.to(u.s)
