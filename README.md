@@ -12,8 +12,9 @@ DARC comprises several parts that communicate through either queues or sockets. 
 * DARCMaster: Master service. Handles communication with user, controls all other services.
 * AMBERListener: Continuously reads AMBER triggers and puts them on a Python queue.
 * AMBERClustering: Clusters AMBER triggers together and puts them on queues for either IQUV or LOFAR triggering.
-* DADATrigger: Generates and send dada_dbevent triggers for stokes I and IQUV
-* VOEventGenerator: Converts incoming triggers to a VOEvent and sends them to LOFAR.
+* DADATrigger: Generates and sends dada_dbevent triggers for stokes I and IQUV
+* LOFARTrigger: Generates and sends LOFAR TBB triggers.
+* VOEventGenerator: Converts incoming triggers to a VOEvent and sends them to a VOEvent broker.
 * StatusWebsite: Queries status of all services and generates status webpage.
 * OfflineProcesing: Handles offline processing, runs after every observation.
 
