@@ -34,7 +34,8 @@ status_website:
         amber_listener: "AMBER listener"
         amber_clustering: "AMBER clustering"
         offline_processing: "Offline processing"
-        dada_trigger: "DADA triggering"
+        dada_trigger: "I/IQUV triggering"
+        lofar_trigger: "LOFAR triggering"
         processor: "Processor"
 
 # AMBER trigger listener
