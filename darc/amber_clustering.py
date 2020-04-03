@@ -213,7 +213,7 @@ class AMBERClustering(DARCBase):
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()
-        server = VOEventQueueServer(address=(MASTER, port), authkey=key)
+        server = LOFARTriggerQueueServer(address=(MASTER, port), authkey=key)
         server.connect()
         return server.get_queue()
 
