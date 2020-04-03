@@ -286,14 +286,14 @@ class LOFARTrigger(threading.Thread):
         # use an ordered dict to ensure order of parameters in the email is the same
         parameters = OrderedDict()
         parameters['datetimesource'] = ['Observation', '{}']
-        parameters['dm'] = ['Dispersion Measure', '{:.2f} pc cm<sup>-3</sup>']
+        parameters['dm'] = ['Dispersion measure', '{:.2f} pc cm<sup>-3</sup>']
         parameters['snr'] = ['S/N', '{:.2f}']
         parameters['tarr'] = ['AMBER arrival time', '{:.2f} s']
         parameters['width'] = ['Width', '{:.2f} ms']
         parameters['flux'] = ['Flux density', '{:.2f} Jy']
-        parameters['cb'] = ['Compound Beam', '{:02d}']
-        parameters['sb'] = ['Synthesized Beam', '{:02d}']
-        parameters['coord'] = ['CB Coordinates (J2000)', '{}']
+        parameters['cb'] = ['Compound beam', '{:02d}']
+        parameters['sb'] = ['Synthesized beam', '{:02d}']
+        parameters['coord'] = ['CB coordinates (J2000)', '{}']
         parameters['utc'] = ['LOFAR TBB freeze time', '{}']
 
         # add parameters to email, skip any that are unavailable
@@ -313,9 +313,9 @@ class LOFARTrigger(threading.Thread):
                           """)
 
         # set email subject with trigger time
-        subject = 'ARTS LOFAR Trigger alert: triggered at {}'.format(trigger['utc'])
+        subject = 'ARTS LOFAR Trigger Alert'
         # set other email settings
-        frm = 'arts@{}'.format(socket.gethostname())
+        frm = 'arts@{}.apertif'.format(socket.gethostname())
         to = ', '.join(self.email_settings['to'])
         body = {'type': 'html', 'content': content}
 
