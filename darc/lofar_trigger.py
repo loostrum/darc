@@ -258,6 +258,9 @@ class LOFARTrigger(threading.Thread):
         """
         Send email upon LOFAR trigger
 
+        Consider running this method in a try/except block, as sending emails might fail in case of network
+        interrupts
+
         :param dict trigger: Trigger as sent to LOFAR
         """
 
@@ -304,10 +307,12 @@ class LOFARTrigger(threading.Thread):
                           </html>
                           """)
 
-        # set email settings
+        # set email subject with trigger time
+        subject = 'ARTS LOFAR Trigger alert: triggered at time:{}'.format(trigger['utc'])
+        # set other email settings
         frm = 'arts@{}'.format(socket.gethostname())
         to = ', '.join(self.email_settings['to'])
         body = {'type': 'html', 'content': content}
 
         # send
-        util.send_email(frm, to, body)
+        util.send_email(frm, to, subject, body)
