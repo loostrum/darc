@@ -285,7 +285,7 @@ class LOFARTrigger(threading.Thread):
         # add plot command
         date = ''.join(trigger['datetimesource'].split('-')[:3])
         filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(date, trigger['datetimesource'], trigger['cb'])
-        downsamp = trigger['width'] / TSAMP.to(u.ms).value
+        downsamp = int(trigger['width'] / TSAMP.to(u.ms).value)
         trigger['plot_cmd'] = 'python ~/ARTS-obs/external/arts-analysis/waterfall_sb.py --cmap viridis ' \
                               '--rficlean --sb {} --dm {:.2f} --t {:.2f} --downsamp {} {}'.format(trigger['sb'],
                                                                                                   trigger['dm'],
