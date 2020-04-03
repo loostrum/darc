@@ -326,7 +326,7 @@ class LOFARTrigger(threading.Thread):
         # set email subject with trigger time
         subject = 'ARTS LOFAR Trigger Alert'
         # set other email settings
-        frm = 'arts@{}.apertif'.format(socket.gethostname())
+        frm = "ARTS LOFAR Trigger Alert System <arts@{}.apertif>".format(socket.gethostname())
         to = ', '.join(self.email_settings['to'])
         body = {'type': 'html', 'content': content}
 
