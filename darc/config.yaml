@@ -66,6 +66,10 @@ amber_clustering:
       dm_frac_min: 2.0  # fraction of max MW contribution.
       width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
       snr_min: 12
+    # LOFAR triggering thresholds for R3
+    thresh_r3:
+      snr_min: 10
+      width_max: 25
 
 # VOEvent generator
 voevent_generator:

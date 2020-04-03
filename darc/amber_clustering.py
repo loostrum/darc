@@ -228,7 +228,7 @@ class AMBERClustering(DARCBase):
             source = self.obs_config['parset']['task.source.name']
         except KeyError:
             self.logger.error("Cannot get source name from parset, will not do known-source triggering")
-            return None
+            return None, None, None
 
         # check if source is in source list
         # first check aliases
@@ -254,10 +254,11 @@ class AMBERClustering(DARCBase):
             else:
                 break
 
-        return dm_src, src_type
+        return dm_src, src_type, source
 
     def _check_triggers(self, triggers, sys_params, utc_start, dm_min=0, dm_max=np.inf, dm_src=None,
-                        width_max=np.inf, snr_min=8, src_type=None, dmgal=0, pointing=None):
+                        width_max=np.inf, snr_min=8, src_type=None, src_name=None, dmgal=0, pointing=None,
+                        skip_lofar=False):
         """
         Cluster triggers and run IQUV and/or LOFAR triggering
 
@@ -270,8 +271,10 @@ class AMBERClustering(DARCBase):
         :param float width_max: maximum width (default: inf)
         :param float snr_min: mininum S/N (default: 8)
         :param str src_type: Source type (pulsar, frb, None)
+        :param str src_name: Source name (default: None)
         :param float dmgal: galactic maximum DM
         :param astropy.coordinates.SkyCoord pointing: Pointing for LOFAR triggering (default: None)
+        :param bool skip_lofar: Skip LOFAR triggering (default: False)
 
         """
         # cluster using IQUV thresholds
@@ -326,24 +329,38 @@ class AMBERClustering(DARCBase):
                 dada_triggers.append(dada_trigger)
             self.target_queue.put({'command': 'trigger', 'trigger': dada_triggers})
 
-        # skip LOFAR triggering for pulsars
+        # skip LOFAR triggering for pulsars or if explicitly disabled
         if src_type == 'pulsar':
             self.logger.warning("Skipping LOFAR triggering for pulsars")
+            return
+        if skip_lofar:
             return
 
         # select LOFAR thresholds
         if src_type is not None:
             # known source, use same width and DM threshold as IQUV, but apply S/N threshold
-            # DM_min and width_max effectively do nothing here, but they need to be defined
-            # for the mask = line below to work
+            # DM_min and width_max effectively do nothing here because they are the same as for IQUV,
+            # but they need to be defined for the mask = line below to work
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = dm_min
             width_max_lofar = width_max
+
+            # Overrides for R3: only trigger on CB00, with custom thresholds
+            if src_name == 'R3':
+                if self.obs_config['beam'] != 0:
+                    self.logger.warning("Skipping LOFAR triggering for R3, CB != 00")
+                    return
+                else:
+                    snr_min_lofar = self.thresh_r3['snr_min']
+                    width_max_lofar = self.thresh_r3['width_max']
+                    self.logger.warning("Setting R3 thresholds: S/N > {}, downsamp <= {}".format(snr_min_lofar,
+                                                                                                 width_max_lofar))
         else:
             # new source, apply all LOFAR thresholds
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = max(dmgal * self.thresh_lofar['dm_frac_min'], self.dm_min_global)
             width_max_lofar = self.thresh_lofar['width_max']
+
         # create mask for given thresholds
         mask = (cluster_snr >= snr_min_lofar) & (cluster_dm >= dm_min_lofar) & (cluster_downsamp <= width_max_lofar)
 
@@ -387,8 +404,8 @@ class AMBERClustering(DARCBase):
             if pointing is None:
                 self.logger.error("No pointing information available - cannot trigger LOFAR")
             # check if we are connected to the server
-            elif not self.have_vo:
-                self.logger.error("No VO Generator connection available - cannot trigger LOFAR")
+            elif not self.have_lofar:
+                self.logger.error("No LOFAR Trigger connection available - cannot trigger LOFAR")
             # do the trigger
             else:
                 # create the full trigger and put on VO queue
@@ -404,14 +421,18 @@ class AMBERClustering(DARCBase):
                                  'semiMaj': 15,  # arcmin, CB
                                  'semiMin': 15,  # arcmin, CB
                                  'name': name,
+                                 'src_name': src_name,
                                  'utc': utc_arr,
                                  'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
                 self.logger.info("Sending LOFAR trigger to LOFAR Trigger system")
                 self.lofar_queue.put(lofar_trigger)
-                self.logger.info("Sending same trigger to VOEvent system")
-                self.vo_queue.put(lofar_trigger)
+                if self.have_vo:
+                    self.logger.info("Sending same trigger to VOEvent system")
+                    self.vo_queue.put(lofar_trigger)
+                else:
+                    self.logger.error("No VOEvent Generator connection available - not sending VO trigger")
 
     def _process_triggers(self):
         """
@@ -433,22 +454,23 @@ class AMBERClustering(DARCBase):
             dmgal = 0
 
         # get known source dm and type
-        dm_src, src_type = self._get_source()
+        dm_src, src_type, src_name = self._get_source()
         if src_type is not None:
             thresh_src = {'dm_src': dm_src,
                           'src_type': src_type,
+                          'src_name': src_name,
                           'dm_min': max(dm_src - self.dm_range, self.dm_min_global),
                           'dm_max': dm_src + self.dm_range,
                           'width_max': np.inf,
                           'snr_min': self.snr_min_global,
                           'pointing': pointing,
                           }
-            # Add LOFAR thresholds
-            self.logger.info("Setting known source trigger DM range to {dm_min} - {dm_max}, "
+            self.logger.info("Setting {src_name} trigger DM range to {dm_min} - {dm_max}, "
                              "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_src))
 
         # set min and max DM for new sources with unknown DM
         thresh_new = {'src_type': None,
+                      'src_name': None,
                       'dm_min': max(dmgal * self.thresh_iquv['dm_frac_min'], self.dm_min_global),
                       'dm_max': np.inf,
                       'width_max': self.thresh_iquv['width_max'],
@@ -456,7 +478,7 @@ class AMBERClustering(DARCBase):
                       'pointing': pointing,
                       }
         self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-                        "max downasmp={width_max}, min S/N={snr_min}".format(**thresh_new))
+                         "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_new))
 
         # main loop
         while self.observation_running:
@@ -519,6 +541,10 @@ class AMBERClustering(DARCBase):
                     self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
+                # disable LOFAR part if source is R3
+                if src_name == 'R3':
+                    thresh_new['skip_lofar'] = True
+                    self.logger.warning("Skipping LOFAR triggering for new sources; source is R3")
                 self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
                                                                       args=(triggers_for_clustering, sys_params,
                                                                             utc_start),
