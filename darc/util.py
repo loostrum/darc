@@ -284,7 +284,7 @@ def send_email(frm, to, subject, body, attachments=None):
         to = ', '.join(to)
 
     # init email
-    msg = MIMEMultipart('alternative')
+    msg = MIMEMultipart('mixed')
     # set to, from, subject
     msg['To'] = to
     msg['From'] = frm

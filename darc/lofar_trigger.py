@@ -5,20 +5,20 @@
 import os
 import yaml
 import multiprocessing as mp
-import subprocess
 from queue import Empty
 from time import sleep
 import numpy as np
 import threading
 import socket
 import struct
+from textwrap import dedent
+from collections import OrderedDict
 from multiprocessing.managers import BaseManager
-from astropy.coordinates import SkyCoord
 import astropy.units as u
-import astropy.constants as const
 from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
-from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
+from darc.definitions import BANDWIDTH, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
 
@@ -156,13 +156,14 @@ class LOFARTrigger(threading.Thread):
             trigger['nu_GHz'] = 1.37
         # remove unused keys
         trigger_generator_keys = ['dm', 'utc', 'nu_GHz', 'test']
-        # run on copy of dict because dict could change in the loop
-        for key in trigger.copy().keys():
+        trigger_for_sending = trigger.copy()
+        # be careful not to change dict we are looping over
+        for key in trigger.keys():
             if key not in trigger_generator_keys:
-                trigger.pop(key, None)
+                trigger_for_sending.pop(key, None)
 
         # create trigger struct to send
-        packet = self._new_trigger(**trigger)
+        packet = self._new_trigger(**trigger_for_sending)
         self.logger.info("Sending packet: {}".format(packet))
         # send
         try:
@@ -175,6 +176,16 @@ class LOFARTrigger(threading.Thread):
         else:
             self.logger.info("LOFAR trigger sent - disabling future LOFAR triggering")
             self.send_events = False
+
+            # send email warning if source is R3
+            if trigger['src_name'] == 'R3':
+                try:
+                    # use the original trigger here, which has all keys
+                    self.send_email_r3(trigger)
+                except Exception as e:
+                    self.logger.error("Failed to send R3 warning email: {}".format(e))
+                else:
+                    self.logger.info("Sent R3 warning email")
 
     @staticmethod
     def _select_trigger(triggers):
@@ -242,3 +253,61 @@ class LOFARTrigger(threading.Thread):
 
         # create and return the struct
         return struct.pack(fmt, b'\x99', b'\xA0', tstop_s, tstop_ms, dm_int, test_flag)
+
+    def send_email(self, trigger):
+        """
+        Send email upon LOFAR trigger
+
+        :param dict trigger: Trigger as sent to LOFAR
+        """
+
+        # init email with HTML table
+        content = dedent("""
+                         <html>
+                         <title>Apertif LOFAR Trigger Alert System</title>
+                         <body>
+                         <p>
+                         <table style="width:50%">
+                         """)
+
+        # Add formatted coordinates to trigger, skip if unavailable
+        try:
+            s = SkyCoord(trigger['ra'], trigger['dec'], unit='deg')
+            trigger['coord'] = s.to_string('hmsdms', precision=2)
+        except KeyError:
+            pass
+
+        # define formatting for trigger parameters
+        # use an ordered dict to ensure order of parameters in the email is the same
+        parameters = OrderedDict()
+        parameters['dm'] = ['Dispersion Measure', '{:.2f} pc cm<sup>-3']
+        parameters['snr'] = ['S/N', '{:.2f}']
+        parameters['width'] = ['Width', '{:.2f} ms']
+        parameters['flux'] = ['Flux density', '{:.2f} Jy']
+        parameters['utc'] = ['UTC arrival time', '{}']
+        parameters['cb'] = ['Compound Beam', '{:02d}']
+        parameters['coord'] = ['Coordinates', '{}']
+
+        # add parameters to email, skip any that are unavailable
+        for param, (name, formatting) in parameters.items():
+            try:
+                value = formatting.format(trigger[param])
+                content += '<tr><th style="text-align:left">{}</th><td colspan="4">{}</sup></td></tr>\n'.format(name, value)
+            except KeyError:
+                pass
+
+        # add footer
+        content += dedent("""
+                          </table>
+                          </p>
+                          </body>
+                          </html>
+                          """)
+
+        # set email settings
+        frm = 'arts@{}'.format(socket.gethostname())
+        to = ', '.join(self.email_settings['to'])
+        body = {'type': 'html', 'content': content}
+
+        # send
+        util.send_email(frm, to, body)
