@@ -183,7 +183,7 @@ class LOFARTrigger(threading.Thread):
             if trigger['src_name'] == 'R3':
                 try:
                     # use the original trigger here, which has all keys
-                    self.send_email_r3(trigger)
+                    self.send_email(trigger)
                 except Exception as e:
                     self.logger.error("Failed to send R3 warning email: {}".format(e))
                 else:
