@@ -54,8 +54,8 @@ voevent_generator:
     voevent_dir: "{home}/darc/voevents"
     send_events: False
     server_port: 22000
-    server_auth: "9S5JNp9MgM"
-    broker_host: "phobos.astron.nl"
+    server_auth: "pass"
+    broker_host: "localhost"
     broker_port: 8098
 
 # DADA triggers
