@@ -311,7 +311,7 @@ class LOFARTrigger(threading.Thread):
         for param, (name, formatting) in parameters.items():
             try:
                 value = formatting.format(trigger[param])
-                content += '<tr><th style="text-align:left">{}</th><td colspan="4">{}</td></tr>\n'.format(name, value)
+                content += '<tr><th colspan="4" style="text-align:left">{}</th><td colspan="8">{}</td></tr>\n'.format(name, value)
             except KeyError:
                 pass
 
