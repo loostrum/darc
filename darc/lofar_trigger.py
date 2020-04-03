@@ -80,6 +80,8 @@ class LOFARTrigger(threading.Thread):
         Read triggers from queue and process them
         """
 
+        self.logger.info("Starting LOFAR Trigger")
+
         # start the queue server
         self.trigger_server = LOFARTriggerQueueServer(address=('', self.server_port),
                                                       authkey=self.server_auth.encode())
@@ -270,7 +272,7 @@ class LOFARTrigger(threading.Thread):
                          <title>Apertif LOFAR Trigger Alert System</title>
                          <body>
                          <p>
-                         <table style="width:50%">
+                         <table style="width:20%">
                          """)
 
         # Add formatted coordinates to trigger, skip if unavailable
@@ -283,19 +285,22 @@ class LOFARTrigger(threading.Thread):
         # define formatting for trigger parameters
         # use an ordered dict to ensure order of parameters in the email is the same
         parameters = OrderedDict()
-        parameters['dm'] = ['Dispersion Measure', '{:.2f} pc cm<sup>-3']
+        parameters['datetimesource'] = ['Observation', '{}']
+        parameters['dm'] = ['Dispersion Measure', '{:.2f} pc cm<sup>-3</sup>']
         parameters['snr'] = ['S/N', '{:.2f}']
+        parameters['tarr'] = ['AMBER arrival time', '{:.2f} s']
         parameters['width'] = ['Width', '{:.2f} ms']
         parameters['flux'] = ['Flux density', '{:.2f} Jy']
-        parameters['utc'] = ['UTC arrival time', '{}']
         parameters['cb'] = ['Compound Beam', '{:02d}']
-        parameters['coord'] = ['Coordinates', '{}']
+        parameters['sb'] = ['Synthesized Beam', '{:02d}']
+        parameters['coord'] = ['CB Coordinates (J2000)', '{}']
+        parameters['utc'] = ['LOFAR TBB freeze time', '{}']
 
         # add parameters to email, skip any that are unavailable
         for param, (name, formatting) in parameters.items():
             try:
                 value = formatting.format(trigger[param])
-                content += '<tr><th style="text-align:left">{}</th><td colspan="4">{}</sup></td></tr>\n'.format(name, value)
+                content += '<tr><th style="text-align:left">{}</th><td colspan="4">{}</td></tr>\n'.format(name, value)
             except KeyError:
                 pass
 
@@ -308,7 +313,7 @@ class LOFARTrigger(threading.Thread):
                           """)
 
         # set email subject with trigger time
-        subject = 'ARTS LOFAR Trigger alert: triggered at time:{}'.format(trigger['utc'])
+        subject = 'ARTS LOFAR Trigger alert: triggered at {}'.format(trigger['utc'])
         # set other email settings
         frm = 'arts@{}'.format(socket.gethostname())
         to = ', '.join(self.email_settings['to'])
