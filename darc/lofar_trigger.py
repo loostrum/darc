@@ -18,7 +18,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 
-from darc.definitions import BANDWIDTH, CONFIG_FILE
+from darc.definitions import BANDWIDTH, CONFIG_FILE, TSAMP
 from darc import util
 from darc.logger import get_logger
 
@@ -282,6 +282,16 @@ class LOFARTrigger(threading.Thread):
         except KeyError:
             pass
 
+        # add plot command
+        date = trigger['datetimesource'].split('-')[:3]
+        filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(date, trigger['datetimesource'], trigger['cb'])
+        downsamp = trigger['width'] / TSAMP.to(u.ms).value
+        trigger['plot_cmd'] = 'python ~/ARTS-obs/external/arts-analysis/waterfall_sb.py --cmap viridis ' \
+                              '--rficlean --sb {} --dm {:.2f} --t {:.2f} --downsamp {} {}'.format(trigger['sb'],
+                                                                                                  trigger['dm'],
+                                                                                                  trigger['tarr'],
+                                                                                                  downsamp,
+                                                                                                  filterbank_prefix)
         # define formatting for trigger parameters
         # use an ordered dict to ensure order of parameters in the email is the same
         parameters = OrderedDict()
@@ -295,6 +305,7 @@ class LOFARTrigger(threading.Thread):
         parameters['sb'] = ['Synthesized beam', '{:02d}']
         parameters['coord'] = ['CB coordinates (J2000)', '{}']
         parameters['utc'] = ['LOFAR TBB freeze time', '{}']
+        parameters['plot_cmd'] = ['Plot command', '{}']
 
         # add parameters to email, skip any that are unavailable
         for param, (name, formatting) in parameters.items():
