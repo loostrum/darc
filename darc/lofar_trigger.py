@@ -272,7 +272,7 @@ class LOFARTrigger(threading.Thread):
                          <title>Apertif LOFAR Trigger Alert System</title>
                          <body>
                          <p>
-                         <table style="width:20%">
+                         <table style="width:30%">
                          """)
 
         # Add formatted coordinates to trigger, skip if unavailable
@@ -283,7 +283,7 @@ class LOFARTrigger(threading.Thread):
             pass
 
         # add plot command
-        date = trigger['datetimesource'].split('-')[:3]
+        date = ''.join(trigger['datetimesource'].split('-')[:3])
         filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(date, trigger['datetimesource'], trigger['cb'])
         downsamp = trigger['width'] / TSAMP.to(u.ms).value
         trigger['plot_cmd'] = 'python ~/ARTS-obs/external/arts-analysis/waterfall_sb.py --cmap viridis ' \
