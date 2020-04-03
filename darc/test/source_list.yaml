@@ -1,6 +1,5 @@
 # Here we keep track of known sources and their DMs,
 # in order to (avoid) IQUV / LOFAR triggering
-# supplying part of a source name is ok
 
 pulsars:
     'B0329+54': 26.8

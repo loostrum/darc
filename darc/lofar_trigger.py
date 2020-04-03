@@ -25,7 +25,7 @@ from darc.logger import get_logger
 
 class LOFARTriggerQueueServer(BaseManager):
     """
-    Server for VOEvent input queue
+    Server for LOFAR Trigger input queue
     """
     pass
 
@@ -112,7 +112,7 @@ class LOFARTrigger(threading.Thread):
 
         # stop the queue server
         self.trigger_server.shutdown()
-        self.logger.info("Stopping VOEvent generator")
+        self.logger.info("Stopping LOFAR Trigger")
 
     def create_and_send(self, trigger):
         """
