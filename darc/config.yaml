@@ -160,3 +160,4 @@ offline_processing:
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
     calibration_tools: "{home}/ARTS-obs/external/arts-analysis/calibration_tools.py"
+    fetch_after_obs: "/home/maan/scripts/fetch_after_obs.py"
