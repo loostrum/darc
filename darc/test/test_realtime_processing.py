@@ -60,9 +60,9 @@ class TestFullRun(unittest.TestCase):
                          'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
                          'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files)*10,
                          'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1219.70092773,
-                         'parset': parset}
+                         'parset': parset, 'datetimesource': '2019-01-01-00:00:00.FAKE'}
 
-        # store custom config file
+        # open custom config file
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml')
         with open(self.config_file, 'r') as f:
             self.master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
