@@ -272,7 +272,7 @@ class LOFARTrigger(threading.Thread):
                          <title>Apertif LOFAR Trigger Alert System</title>
                          <body>
                          <p>
-                         <table style="width:30%">
+                         <table style="width:50%">
                          """)
 
         # Add formatted coordinates to trigger, skip if unavailable
@@ -309,7 +309,7 @@ class LOFARTrigger(threading.Thread):
         for param, (name, formatting) in parameters.items():
             try:
                 value = formatting.format(trigger[param])
-                content += '<tr><th colspan="4" style="text-align:left">{}</th><td colspan="8">{}</td></tr>\n'.format(name, value)
+                content += '<tr><th colspan="4" style="text-align:left">{}</th><td colspan="6">{}</td></tr>\n'.format(name, value)
             except KeyError:
                 pass
 

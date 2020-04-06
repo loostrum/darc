@@ -547,9 +547,12 @@ class AMBERClustering(DARCBase):
                     self.threads['trigger_known_source'].start()
                 # new source triggering
                 # disable LOFAR part if source is R3
-                if src_name == 'R3':
-                    thresh_new['skip_lofar'] = True
-                    self.logger.warning("Skipping LOFAR triggering for new sources; source is R3")
+                # if src_name == 'R3':
+                #     thresh_new['skip_lofar'] = True
+                #     self.logger.warning("Skipping LOFAR triggering for new sources; source is R3")
+                # Disable new source triggering completely
+                thresh_new['skip_lofar'] = True
+                self.logger.warning("Disabling LOFAR triggering for new sources")
                 self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
                                                                       args=(triggers_for_clustering, sys_params,
                                                                             utc_start, datetimesource),
