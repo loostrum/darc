@@ -57,7 +57,7 @@
 </dl>
 <dl class="method">
 <dt id="darc.amber_clustering.AMBERClustering._check_triggers">
-<code class="sig-name descname">_check_triggers</code><span class="sig-paren">(</span><em class="sig-param">triggers</em>, <em class="sig-param">sys_params</em>, <em class="sig-param">utc_start</em>, <em class="sig-param">dm_min=0</em>, <em class="sig-param">dm_max=inf</em>, <em class="sig-param">dm_src=None</em>, <em class="sig-param">width_max=inf</em>, <em class="sig-param">snr_min=8</em>, <em class="sig-param">src_type=None</em>, <em class="sig-param">dmgal=0</em>, <em class="sig-param">pointing=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._check_triggers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">_check_triggers</code><span class="sig-paren">(</span><em class="sig-param">triggers</em>, <em class="sig-param">sys_params</em>, <em class="sig-param">utc_start</em>, <em class="sig-param">datetimesource</em>, <em class="sig-param">dm_min=0</em>, <em class="sig-param">dm_max=inf</em>, <em class="sig-param">dm_src=None</em>, <em class="sig-param">width_max=inf</em>, <em class="sig-param">snr_min=8</em>, <em class="sig-param">src_type=None</em>, <em class="sig-param">src_name=None</em>, <em class="sig-param">dmgal=0</em>, <em class="sig-param">pointing=None</em>, <em class="sig-param">skip_lofar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._check_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cluster triggers and run IQUV and/or LOFAR triggering</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -65,14 +65,17 @@
 <li><p><strong>triggers</strong> (<em>list</em>) – Raw triggers</p></li>
 <li><p><strong>sys_params</strong> (<em>dict</em>) – System parameters (dt, delta_nu_MHz, nu_GHz)</p></li>
 <li><p><strong>utc_start</strong> (<em>str</em>) – start time of observation, in format readable by astropy.time.Time</p></li>
+<li><p><strong>datetimesource</strong> (<em>str</em>) – Field name with date and time</p></li>
 <li><p><strong>dm_min</strong> (<em>float</em>) – minimum DM (default: 0)</p></li>
 <li><p><strong>dm_max</strong> (<em>float</em>) – maximum DM (default: inf)</p></li>
 <li><p><strong>dm_src</strong> (<em>float</em>) – DM of known source (default: None)</p></li>
 <li><p><strong>width_max</strong> (<em>float</em>) – maximum width (default: inf)</p></li>
 <li><p><strong>snr_min</strong> (<em>float</em>) – mininum S/N (default: 8)</p></li>
 <li><p><strong>src_type</strong> (<em>str</em>) – Source type (pulsar, frb, None)</p></li>
+<li><p><strong>src_name</strong> (<em>str</em>) – Source name (default: None)</p></li>
 <li><p><strong>dmgal</strong> (<em>float</em>) – galactic maximum DM</p></li>
 <li><p><strong>pointing</strong> (<em>astropy.coordinates.SkyCoord</em>) – Pointing for LOFAR triggering (default: None)</p></li>
+<li><p><strong>skip_lofar</strong> (<em>bool</em>) – Skip LOFAR triggering (default: False)</p></li>
 </ul>
 </dd>
 </dl>
@@ -596,6 +599,19 @@ Listen for messages on the command socket and process them</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="darc.lofar_trigger.LOFARTrigger.send_email">
+<code class="sig-name descname">send_email</code><span class="sig-paren">(</span><em class="sig-param">trigger</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.send_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send email upon LOFAR trigger</p>
+<p>Consider running this method in a try/except block, as sending emails might fail in case of network
+interrupts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trigger</strong> (<em>dict</em>) – Trigger as sent to LOFAR</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="darc.lofar_trigger.LOFARTrigger.stop">
 <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
@@ -613,7 +629,7 @@ Listen for messages on the command socket and process them</p>
 <dt id="darc.lofar_trigger.LOFARTriggerQueueServer">
 <em class="property">class </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTriggerQueueServer</code><span class="sig-paren">(</span><em class="sig-param">address=None</em>, <em class="sig-param">authkey=None</em>, <em class="sig-param">serializer='pickle'</em>, <em class="sig-param">ctx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerQueueServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
-<p>Server for VOEvent input queue</p>
+<p>Server for LOFAR Trigger input queue</p>
 </dd></dl>
 
 </div>
@@ -634,6 +650,7 @@ Listen for messages on the command socket and process them</p>
 <ul class="simple">
 <li><p>Automated pulsar folding</p></li>
 <li><p>Automated run of calibration tools for drift scans</p></li>
+<li><p>Automated run of known FRB candidate extractor</p></li>
 </ul>
 <dl class="method">
 <dt id="darc.offline_processing.OfflineProcessing._classify">
@@ -710,6 +727,9 @@ Listen for messages on the command socket and process them</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ra, deg for CB00 (decimal deg) if available, else None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -788,6 +808,20 @@ Listen for messages on the command socket and process them</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing._plot_known_frb_cands">
+<code class="sig-name descname">_plot_known_frb_cands</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">coord_cb00</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._plot_known_frb_cands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call external script that plots candidates of known FRBs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_confog</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>coord_cb00</strong> (<em>list</em>) – [ra, dec] of CB00 in decimal degrees</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

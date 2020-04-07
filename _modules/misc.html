@@ -525,6 +525,23 @@ observation stop</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="darc.util.send_email">
+<code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">send_email</code><span class="sig-paren">(</span><em class="sig-param">frm</em>, <em class="sig-param">to</em>, <em class="sig-param">subject</em>, <em class="sig-param">body</em>, <em class="sig-param">attachments=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.send_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send email, only possible to ASTRON addresses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frm</strong> (<em>str</em>) – From address</p></li>
+<li><p><strong>to</strong> (<em>str/list</em>) – To addresses, either single or list of addresses</p></li>
+<li><p><strong>subject</strong> (<em>str</em>) – Subject of email</p></li>
+<li><p><strong>body</strong> (<em>dict</em>) – Dict with e-mail content (str) and type (str)</p></li>
+<li><p><strong>attachments</strong> (<em>dict/list</em>) – optional dict or list of dicts with attachment path (str), type (str), and name (str)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="darc.util.sleepuntil_utc">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">sleepuntil_utc</code><span class="sig-paren">(</span><em class="sig-param">end_time</em>, <em class="sig-param">event=None</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.sleepuntil_utc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sleep until specified time</p>
