@@ -183,7 +183,7 @@ class OfflineProcessing(threading.Thread):
         # fetch known FRB candidates
         # do this _after_ email is sent, as then we are sure the grouped_pulses file exists for all beams
         if coord_cb00 is not None:
-            self.plot_known_frb_cands(obs_config, coord_cb00)
+            self._plot_known_frb_cands(obs_config, coord_cb00)
         else:
             self.logger.warning("Skipping plotting of known FRB candidates: CB00 coordinates not available")
 
@@ -955,7 +955,7 @@ class OfflineProcessing(threading.Thread):
         # Extract date from datetimesource
         kwargs['date'] = ''.join(obs_config['datetimesource'].split('-')[:3])
         # full command
-        cmd = "python {script} --ra {ra} --dec {dec} --date {date} --root {datetimesource}".format(**kwargs)
+        cmd = "python2 {script} --ra {ra} --dec {dec} --date {date} --root {datetimesource}".format(**kwargs)
 
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
