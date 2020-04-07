@@ -176,18 +176,17 @@ class LOFARTrigger(threading.Thread):
         except Exception as e:
             self.logger.error("Failed to send LOFAR trigger: {}".format(e))
         else:
-            self.logger.info("LOFAR trigger sent - disabling future LOFAR triggering")
-            self.send_events = False
-
-            # send email warning if source is R3
-            if trigger['src_name'] == 'R3':
-                try:
-                    # use the original trigger here, which has all keys
-                    self.send_email(trigger)
-                except Exception as e:
-                    self.logger.error("Failed to send R3 warning email: {}".format(e))
-                else:
-                    self.logger.info("Sent R3 warning email")
+            # self.logger.info("LOFAR trigger sent - disabling future LOFAR triggering")
+            # self.send_events = False
+            self.logger.info("LOFAR trigger sent")
+            # send email warning
+            try:
+                # use the original trigger here, which has all keys
+                self.send_email(trigger)
+            except Exception as e:
+                self.logger.error("Failed to send warning email: {}".format(e))
+            else:
+                self.logger.info("Sent warning email")
 
     @staticmethod
     def _select_trigger(triggers):
