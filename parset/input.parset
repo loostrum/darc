@@ -1,389 +1,317 @@
-ARTSSurveyControl.amber_conf_dir: amber_conf
-ARTSSurveyControl.amber_config: amber.conf
-ARTSSurveyControl.amber_dir: /data2/output/{date}/{datetimesource}/amber
-ARTSSurveyControl.bw: 300
-ARTSSurveyControl.completing_delay: 20
-ARTSSurveyControl.etc_dir_name: /etc
-ARTSSurveyControl.eventkey_start_i: 5100
-ARTSSurveyControl.eventkey_start_iquv: 6100
-ARTSSurveyControl.fits_templates: fits_templates
-ARTSSurveyControl.hdr_size: 40960
-ARTSSurveyControl.header_template: header_template.txt
-ARTSSurveyControl.log_dir: {home}/observations/log/{date}/{datetimesource}
-ARTSSurveyControl.master_dir: {home}/.controller
-ARTSSurveyControl.missing_beams: []
-ARTSSurveyControl.nbeams: 40
-ARTSSurveyControl.nbit: 8
-ARTSSurveyControl.nbuffer_i: 5
-ARTSSurveyControl.nbuffer_iquv: 5
-ARTSSurveyControl.nchan: 1536
-ARTSSurveyControl.network_port_event_i: 30000
-ARTSSurveyControl.network_port_event_iquv: 30001
-ARTSSurveyControl.network_port_start_i: 5000
-ARTSSurveyControl.network_port_start_iquv: 6000
-ARTSSurveyControl.node_config: nodes/CB{:02d}.conf
-ARTSSurveyControl.node_header_i: nodes/CB{:02d}_header_i.txt
-ARTSSurveyControl.node_header_iquv: nodes/CB{:02d}_header_iquv.txt
-ARTSSurveyControl.output_dir: /data2/output/{date}/{datetimesource}
-ARTSSurveyControl.output_dir_iquv: /data1/output/{date}/{datetimesource}
-ARTSSurveyControl.qpidBroker: arts041
-ARTSSurveyControl.root_log: /home/arts/survey/log
-ARTSSurveyControl.sc3.iab.nsynbeams: 1
-ARTSSurveyControl.sc3.iab.ntabs: 1
-ARTSSurveyControl.sc3.iab.science_mode_i: 2
-ARTSSurveyControl.sc3.iab.science_mode_iquv: 3
-ARTSSurveyControl.sc3.page_size: 12500
-ARTSSurveyControl.sc3.tab.nsynbeams: 71
-ARTSSurveyControl.sc3.tab.ntabs: 9
-ARTSSurveyControl.sc3.tab.science_mode_i: 0
-ARTSSurveyControl.sc3.tab.science_mode_iquv: 1
-ARTSSurveyControl.sc3.tsamp: 81.92E-6
-ARTSSurveyControl.sc4.iab.nsynbeams: 1
-ARTSSurveyControl.sc4.iab.ntabs: 1
-ARTSSurveyControl.sc4.iab.science_mode_i: 2
-ARTSSurveyControl.sc4.iab.science_mode_iquv: 3
-ARTSSurveyControl.sc4.page_size: 12500
-ARTSSurveyControl.sc4.tab.nsynbeams: 71
-ARTSSurveyControl.sc4.tab.ntabs: 12
-ARTSSurveyControl.sc4.tab.science_mode_i: 0
-ARTSSurveyControl.sc4.tab.science_mode_iquv: 1
-ARTSSurveyControl.sc4.tsamp: 81.92E-6
-ARTSSurveyControl.setup_duration: 30
-ARTSSurveyControl.stop_delay: 5
-ARTSSurveyControl.time_unit: 781250
-ARTSSurveyControl.valid_modes: [amber, survey, record, dump]
-UniBoardDriver.controller: ARTSBFControl
-UniBoardDriver.timeout: 10
-arts.frequencyChannelWidth: 10.5
-arts.parFile: file.par
-arts.recordBaseband: True
-arts.samplingTime: 100.25
-arts.survey.beams: [0..39]
-arts.survey.enable_iquv: true
-arts.survey.history_i: 10
-arts.survey.history_iquv: 10
-arts.survey.process_triggers: True
-arts.survey.science_mode: TAB
-arts.survey.snr_threshold: 8.0
-arts.timing: True
-atmosphere.refracDryAir: 0.000305
-atmosphere.refracWaterVapour: 0.0
-atmosphere.scaleHeight: 8
-dataWriter.applyBandpassCorrection: false
-dataWriter.applyNormalization: false
-dataWriter.intent: TARGET
-dataWriter.outputPath: /data2/output/
-dataWriter.wcudata1.eth0.ip: 10.99.100.1
-dataWriter.wcudata1.eth0.mac: e4:1d:2d:e4:26:90
-dataWriter.wcudata1.eth0.port: 4000
-dataWriter.wcudata1.eth0.proto: udp
-dataWriter.wcudata1.eth1.ip: 10.99.100.2
-dataWriter.wcudata1.eth1.mac: e4:1d:2d:e4:26:91
-dataWriter.wcudata1.eth1.port: 4000
-dataWriter.wcudata1.eth1.proto: udp
-dataWriter.wcudata1.eth2.ip: 10.99.100.3
-dataWriter.wcudata1.eth2.mac: e4:1d:2d:bc:3c:d0
-dataWriter.wcudata1.eth2.port: 4000
-dataWriter.wcudata1.eth2.proto: udp
-dataWriter.wcudata1.eth3.ip: 10.99.100.4
-dataWriter.wcudata1.eth3.mac: e4:1d:2d:bc:3c:d1
-dataWriter.wcudata1.eth3.port: 4000
-dataWriter.wcudata1.eth3.proto: udp
-dataWriter.wcudata2.eth0.ip: 10.99.101.1
-dataWriter.wcudata2.eth0.mac: e4:1d:2d:bc:3d:c0
-dataWriter.wcudata2.eth0.port: 4000
-dataWriter.wcudata2.eth0.proto: udp
-dataWriter.wcudata2.eth1.ip: 10.99.101.2
-dataWriter.wcudata2.eth1.mac: e4:1d:2d:bc:3d:c1
-dataWriter.wcudata2.eth1.port: 4000
-dataWriter.wcudata2.eth1.proto: udp
-dataWriter.wcudata2.eth2.ip: 10.99.101.3
-dataWriter.wcudata2.eth2.mac: e4:1d:2d:e4:0d:30
-dataWriter.wcudata2.eth2.port: 4000
-dataWriter.wcudata2.eth2.proto: udp
-dataWriter.wcudata2.eth3.ip: 10.99.101.4
-dataWriter.wcudata2.eth3.mac: e4:1d:2d:e4:0d:31
-dataWriter.wcudata2.eth3.port: 4000
-dataWriter.wcudata2.eth3.proto: udp
-dataWriterUV.applyBandpassCorrection: false
-dataWriterUV.applyNormalization: false
-dataWriterUV.intent: TARGET
-dataWriterUV.outputPath: /data/apertif/
-dataWriterUV.wcudata1.eth0.ip: 10.99.100.1
-dataWriterUV.wcudata1.eth0.mac: e4:1d:2d:e4:26:90
-dataWriterUV.wcudata1.eth0.port: 4000
-dataWriterUV.wcudata1.eth0.proto: udp
-dataWriterUV.wcudata1.eth1.ip: 10.99.100.2
-dataWriterUV.wcudata1.eth1.mac: e4:1d:2d:e4:26:91
-dataWriterUV.wcudata1.eth1.port: 4000
-dataWriterUV.wcudata1.eth1.proto: udp
-dataWriterUV.wcudata1.eth2.ip: 10.99.100.3
-dataWriterUV.wcudata1.eth2.mac: e4:1d:2d:bc:3c:d0
-dataWriterUV.wcudata1.eth2.port: 4000
-dataWriterUV.wcudata1.eth2.proto: udp
-dataWriterUV.wcudata1.eth3.ip: 10.99.100.4
-dataWriterUV.wcudata1.eth3.mac: e4:1d:2d:bc:3c:d1
-dataWriterUV.wcudata1.eth3.port: 4000
-dataWriterUV.wcudata1.eth3.proto: udp
-dataWriterUV.wcudata2.eth0.ip: 10.99.101.1
-dataWriterUV.wcudata2.eth0.mac: e4:1d:2d:bc:3d:c0
-dataWriterUV.wcudata2.eth0.port: 4000
-dataWriterUV.wcudata2.eth0.proto: udp
-dataWriterUV.wcudata2.eth1.ip: 10.99.101.2
-dataWriterUV.wcudata2.eth1.mac: e4:1d:2d:bc:3d:c1
-dataWriterUV.wcudata2.eth1.port: 4000
-dataWriterUV.wcudata2.eth1.proto: udp
-dataWriterUV.wcudata2.eth2.ip: 10.99.101.3
-dataWriterUV.wcudata2.eth2.mac: e4:1d:2d:e4:0d:30
-dataWriterUV.wcudata2.eth2.port: 4000
-dataWriterUV.wcudata2.eth2.proto: udp
-dataWriterUV.wcudata2.eth3.ip: 10.99.101.4
-dataWriterUV.wcudata2.eth3.mac: e4:1d:2d:e4:0d:31
-dataWriterUV.wcudata2.eth3.port: 4000
-dataWriterUV.wcudata2.eth3.proto: udp
-system.arrayPosition: [3828630.63486200943589211, 443593.39226634375518188, 5064922.99755000043660402]
-system.beamFormer.bypassTranspose: False
-system.correlator.outputBoardList: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-system.parsetVersion: 0.0.1
-system.skipChecksUnsupported: false
-system.square_39p1.CompoundBeam.0.offset: [0.0deg,             +0.0          deg]
-system.square_39p1.CompoundBeam.1.offset: [-1.52119007264deg,  -1.01337000373deg]
-system.square_39p1.CompoundBeam.10.offset: [-0.351043862917deg, -0.60802200224deg]
-system.square_39p1.CompoundBeam.11.offset: [ 0.117014620972deg, -0.60802200224deg]
-system.square_39p1.CompoundBeam.12.offset: [ 0.585073104861deg, -0.60802200224deg]
-system.square_39p1.CompoundBeam.13.offset: [ 1.05313158875deg,  -0.60802200224deg]
-system.square_39p1.CompoundBeam.14.offset: [ 1.52119007264deg,  -0.60802200224deg]
-system.square_39p1.CompoundBeam.15.offset: [-1.05313158875deg,  -0.202674000747deg]
-system.square_39p1.CompoundBeam.16.offset: [-0.585073104861deg, -0.202674000747deg]
-system.square_39p1.CompoundBeam.17.offset: [-0.117014620972deg, -0.202674000747deg]
-system.square_39p1.CompoundBeam.18.offset: [ 0.351043862917deg, -0.202674000747deg]
-system.square_39p1.CompoundBeam.19.offset: [ 0.819102346805deg, -0.202674000747deg]
-system.square_39p1.CompoundBeam.2.offset: [-1.05313158875deg,  -1.01337000373deg]
-system.square_39p1.CompoundBeam.20.offset: [ 1.28716083069deg,  -0.202674000747deg]
-system.square_39p1.CompoundBeam.21.offset: [-1.28716083069deg,  +0.202674000747deg]
-system.square_39p1.CompoundBeam.22.offset: [-0.819102346805deg, +0.202674000747deg]
-system.square_39p1.CompoundBeam.23.offset: [-0.351043862917deg, +0.202674000747deg]
-system.square_39p1.CompoundBeam.24.offset: [ 0.117014620972deg, +0.202674000747deg]
-system.square_39p1.CompoundBeam.25.offset: [ 0.585073104861deg, +0.202674000747deg]
-system.square_39p1.CompoundBeam.26.offset: [ 1.05313158875deg,  +0.202674000747deg]
-system.square_39p1.CompoundBeam.27.offset: [-1.05313158875deg,  +0.60802200224deg]
-system.square_39p1.CompoundBeam.28.offset: [-0.585073104861deg, +0.60802200224deg]
-system.square_39p1.CompoundBeam.29.offset: [-0.117014620972deg, +0.60802200224deg]
-system.square_39p1.CompoundBeam.3.offset: [-0.585073104861deg, -1.01337000373deg]
-system.square_39p1.CompoundBeam.30.offset: [ 0.351043862917deg, +0.60802200224deg]
-system.square_39p1.CompoundBeam.31.offset: [ 0.819102346805deg, +0.60802200224deg]
-system.square_39p1.CompoundBeam.32.offset: [ 1.28716083069deg,  +0.60802200224deg]
-system.square_39p1.CompoundBeam.33.offset: [-1.28716083069deg,  +1.01337000373deg]
-system.square_39p1.CompoundBeam.34.offset: [-0.819102346805deg, +1.01337000373deg]
-system.square_39p1.CompoundBeam.35.offset: [-0.351043862917deg, +1.01337000373deg]
-system.square_39p1.CompoundBeam.36.offset: [ 0.117014620972deg, +1.01337000373deg]
-system.square_39p1.CompoundBeam.37.offset: [ 0.585073104861deg, +1.01337000373deg]
-system.square_39p1.CompoundBeam.38.offset: [ 1.05313158875deg,  +1.01337000373deg]
-system.square_39p1.CompoundBeam.39.offset: [ 1.52119007264deg,  +1.01337000373deg]
-system.square_39p1.CompoundBeam.4.offset: [-0.117014620972deg, -1.01337000373deg]
-system.square_39p1.CompoundBeam.5.offset: [ 0.351043862917deg, -1.01337000373deg]
-system.square_39p1.CompoundBeam.6.offset: [ 0.819102346805deg, -1.01337000373deg]
-system.square_39p1.CompoundBeam.7.offset: [ 1.28716083069deg,  -1.01337000373deg]
-system.square_39p1.CompoundBeam.8.offset: [-1.28716083069deg,  -0.60802200224deg]
-system.square_39p1.CompoundBeam.9.offset: [-0.819102346805deg, -0.60802200224deg]
-system.square_39p1.compoundBeam.0.offset: [0.0deg,             +0.0          deg]
-system.square_39p1.compoundBeam.1.offset: [-1.52119007264deg,  -1.01337000373deg]
-system.square_39p1.compoundBeam.10.offset: [-0.351043862917deg, -0.60802200224deg]
-system.square_39p1.compoundBeam.11.offset: [ 0.117014620972deg, -0.60802200224deg]
-system.square_39p1.compoundBeam.12.offset: [ 0.585073104861deg, -0.60802200224deg]
-system.square_39p1.compoundBeam.13.offset: [ 1.05313158875deg,  -0.60802200224deg]
-system.square_39p1.compoundBeam.14.offset: [ 1.52119007264deg,  -0.60802200224deg]
-system.square_39p1.compoundBeam.15.offset: [-1.05313158875deg,  -0.202674000747deg]
-system.square_39p1.compoundBeam.16.offset: [-0.585073104861deg, -0.202674000747deg]
-system.square_39p1.compoundBeam.17.offset: [-0.117014620972deg, -0.202674000747deg]
-system.square_39p1.compoundBeam.18.offset: [ 0.351043862917deg, -0.202674000747deg]
-system.square_39p1.compoundBeam.19.offset: [ 0.819102346805deg, -0.202674000747deg]
-system.square_39p1.compoundBeam.2.offset: [-1.05313158875deg,  -1.01337000373deg]
-system.square_39p1.compoundBeam.20.offset: [ 1.28716083069deg,  -0.202674000747deg]
-system.square_39p1.compoundBeam.21.offset: [-1.28716083069deg,  +0.202674000747deg]
-system.square_39p1.compoundBeam.22.offset: [-0.819102346805deg, +0.202674000747deg]
-system.square_39p1.compoundBeam.23.offset: [-0.351043862917deg, +0.202674000747deg]
-system.square_39p1.compoundBeam.24.offset: [ 0.117014620972deg, +0.202674000747deg]
-system.square_39p1.compoundBeam.25.offset: [ 0.585073104861deg, +0.202674000747deg]
-system.square_39p1.compoundBeam.26.offset: [ 1.05313158875deg,  +0.202674000747deg]
-system.square_39p1.compoundBeam.27.offset: [-1.05313158875deg,  +0.60802200224deg]
-system.square_39p1.compoundBeam.28.offset: [-0.585073104861deg, +0.60802200224deg]
-system.square_39p1.compoundBeam.29.offset: [-0.117014620972deg, +0.60802200224deg]
-system.square_39p1.compoundBeam.3.offset: [-0.585073104861deg, -1.01337000373deg]
-system.square_39p1.compoundBeam.30.offset: [ 0.351043862917deg, +0.60802200224deg]
-system.square_39p1.compoundBeam.31.offset: [ 0.819102346805deg, +0.60802200224deg]
-system.square_39p1.compoundBeam.32.offset: [ 1.28716083069deg,  +0.60802200224deg]
-system.square_39p1.compoundBeam.33.offset: [-1.28716083069deg,  +1.01337000373deg]
-system.square_39p1.compoundBeam.34.offset: [-0.819102346805deg, +1.01337000373deg]
-system.square_39p1.compoundBeam.35.offset: [-0.351043862917deg, +1.01337000373deg]
-system.square_39p1.compoundBeam.36.offset: [ 0.117014620972deg, +1.01337000373deg]
-system.square_39p1.compoundBeam.37.offset: [ 0.585073104861deg, +1.01337000373deg]
-system.square_39p1.compoundBeam.38.offset: [ 1.05313158875deg,  +1.01337000373deg]
-system.square_39p1.compoundBeam.39.offset: [ 1.52119007264deg,  +1.01337000373deg]
-system.square_39p1.compoundBeam.4.offset: [-0.117014620972deg, -1.01337000373deg]
-system.square_39p1.compoundBeam.5.offset: [ 0.351043862917deg, -1.01337000373deg]
-system.square_39p1.compoundBeam.6.offset: [ 0.819102346805deg, -1.01337000373deg]
-system.square_39p1.compoundBeam.7.offset: [ 1.28716083069deg,  -1.01337000373deg]
-system.square_39p1.compoundBeam.8.offset: [-1.28716083069deg,  -0.60802200224deg]
-system.square_39p1.compoundBeam.9.offset: [-0.819102346805deg, -0.60802200224deg]
-system.square_39p1.maxNrOfCompoundBeams: 40
-system.square_39p1.nrOfCompoundBeams: 40
-system.telescope.RT2.phaseZero: 0.000
-system.telescope.RT2.position: [3828729.99081358872354031, 442735.17696416645776480,5064923.00829000025987625]
-system.telescope.RT2.residualDelay: 2.991e-9
-system.telescope.RT3.phaseZero: -5.539
-system.telescope.RT3.position: [3828713.43109884625300765, 442878.21189340209821239,5064923.00435999967157841]
-system.telescope.RT3.residualDelay: 5.381e-9
-system.telescope.RT4.phaseZero: -1.694
-system.telescope.RT4.position: [3828696.86994427768513560, 443021.24917263782117516,5064923.00396999996155500]
-system.telescope.RT4.residualDelay: 0.000e-9
-system.telescope.RT5.phaseZero: 7.825
-system.telescope.RT5.position: [3828680.31391932582482696, 443164.28596862131962553,5064923.00035000033676624]
-system.telescope.RT5.residualDelay: 3.117e-9
-system.telescope.RT6.phaseZero: -1.562
-system.telescope.RT6.position: [3828663.75159173039719462, 443307.32138055720133707,5064923.00203999970108271]
-system.telescope.RT6.residualDelay: 10.937e-9
-system.telescope.RT7.phaseZero: -0.395
-system.telescope.RT7.position: [3828647.19342757249251008, 443450.35604637680808082,5064923.00229999981820583]
-system.telescope.RT7.residualDelay: 5.683e-9
-system.telescope.RT8.phaseZero: -5.991
-system.telescope.RT8.position: [3828630.63486200943589211, 443593.39226634375518188,5064922.99755000043660402]
-system.telescope.RT8.residualDelay: 7.719e-9
-system.telescope.RT9.phaseZero: -11.217
-system.telescope.RT9.position: [3828614.07606798363849521, 443736.42941620573401451,5064923.00000000000000000]
-system.telescope.RT9.residualDelay: 6.546e-9
-system.telescope.RTA.phaseZero: -3.274
-system.telescope.RTA.position: [3828609.94224429363384843, 443772.19450029480503872,5064922.99868000019341707]
-system.telescope.RTA.residualDelay: 4.970e-9
-system.telescope.RTB.phaseZero: 2.217
-system.telescope.RTB.position: [3828603.73202611599117517, 443825.83321168005932122,5064922.99963000044226646]
-system.telescope.RTB.residualDelay: 5.798e-9
-system.telescope.RTC.phaseZero: 2.721
-system.telescope.RTC.position: [3828460.92418734729290009, 445059.52053928520763293,5064922.99070999957621098]
-system.telescope.RTC.residualDelay: 3.492e-9
-system.telescope.RTD.phaseZero: 1.250
-system.telescope.RTD.position: [3828452.64716351125389338, 445131.03744105156511068,5064922.98792999982833862]
-system.telescope.RTD.residualDelay: 6.662e-9
-system.telescope.axesDistance: 4.95
-system.telescope.focalAxesDistance: 9.25
-system.telescope.polarAxesLength: 16.922
-task.LO1freq: 4770
-task.beamSet.0.compoundBeam.0.delayCenter: [293.948755deg,  16.277785deg]
-task.beamSet.0.compoundBeam.0.phaseCenter: [293.948755deg,  16.277785deg]
-task.beamSet.0.compoundBeam.1.delayCenter: [292.372580deg,  15.259014deg]
-task.beamSet.0.compoundBeam.1.phaseCenter: [292.372580deg,  15.259014deg]
-task.beamSet.0.compoundBeam.10.delayCenter: [293.584186deg,  15.669484deg]
-task.beamSet.0.compoundBeam.10.phaseCenter: [293.584186deg,  15.669484deg]
-task.beamSet.0.compoundBeam.11.delayCenter: [294.070279deg,  15.669752deg]
-task.beamSet.0.compoundBeam.11.phaseCenter: [294.070279deg,  15.669752deg]
-task.beamSet.0.compoundBeam.12.delayCenter: [294.556355deg,  15.668948deg]
-task.beamSet.0.compoundBeam.12.phaseCenter: [294.556355deg,  15.668948deg]
-task.beamSet.0.compoundBeam.13.delayCenter: [295.042343deg,  15.667072deg]
-task.beamSet.0.compoundBeam.13.phaseCenter: [295.042343deg,  15.667072deg]
-task.beamSet.0.compoundBeam.14.delayCenter: [295.528174deg,  15.664125deg]
-task.beamSet.0.compoundBeam.14.phaseCenter: [295.528174deg,  15.664125deg]
-task.beamSet.0.compoundBeam.15.delayCenter: [292.852910deg,  16.072324deg]
-task.beamSet.0.compoundBeam.15.phaseCenter: [292.852910deg,  16.072324deg]
-task.beamSet.0.compoundBeam.16.delayCenter: [293.339901deg,  16.074251deg]
-task.beamSet.0.compoundBeam.16.phaseCenter: [293.339901deg,  16.074251deg]
-task.beamSet.0.compoundBeam.17.delayCenter: [293.826980deg,  16.075077deg]
-task.beamSet.0.compoundBeam.17.phaseCenter: [293.826980deg,  16.075077deg]
-task.beamSet.0.compoundBeam.18.delayCenter: [294.314076deg,  16.074802deg]
-task.beamSet.0.compoundBeam.18.phaseCenter: [294.314076deg,  16.074802deg]
-task.beamSet.0.compoundBeam.19.delayCenter: [294.801120deg,  16.073425deg]
-task.beamSet.0.compoundBeam.19.phaseCenter: [294.801120deg,  16.073425deg]
-task.beamSet.0.compoundBeam.2.delayCenter: [292.857414deg,  15.261881deg]
-task.beamSet.0.compoundBeam.2.phaseCenter: [292.857414deg,  15.261881deg]
-task.beamSet.0.compoundBeam.20.delayCenter: [295.288040deg,  16.070947deg]
-task.beamSet.0.compoundBeam.20.phaseCenter: [295.288040deg,  16.070947deg]
-task.beamSet.0.compoundBeam.21.delayCenter: [292.606701deg,  16.476183deg]
-task.beamSet.0.compoundBeam.21.phaseCenter: [292.606701deg,  16.476183deg]
-task.beamSet.0.compoundBeam.22.delayCenter: [293.094628deg,  16.478726deg]
-task.beamSet.0.compoundBeam.22.phaseCenter: [293.094628deg,  16.478726deg]
-task.beamSet.0.compoundBeam.23.delayCenter: [293.582678deg,  16.480140deg]
-task.beamSet.0.compoundBeam.23.phaseCenter: [293.582678deg,  16.480140deg]
-task.beamSet.0.compoundBeam.24.delayCenter: [294.070782deg,  16.480423deg]
-task.beamSet.0.compoundBeam.24.phaseCenter: [294.070782deg,  16.480423deg]
-task.beamSet.0.compoundBeam.25.delayCenter: [294.558868deg,  16.479574deg]
-task.beamSet.0.compoundBeam.25.phaseCenter: [294.558868deg,  16.479574deg]
-task.beamSet.0.compoundBeam.26.delayCenter: [295.046865deg,  16.477596deg]
-task.beamSet.0.compoundBeam.26.phaseCenter: [295.046865deg,  16.477596deg]
-task.beamSet.0.compoundBeam.27.delayCenter: [292.848370deg,  16.882847deg]
-task.beamSet.0.compoundBeam.27.phaseCenter: [292.848370deg,  16.882847deg]
-task.beamSet.0.compoundBeam.28.delayCenter: [293.337378deg,  16.884878deg]
-task.beamSet.0.compoundBeam.28.phaseCenter: [293.337378deg,  16.884878deg]
-task.beamSet.0.compoundBeam.29.delayCenter: [293.826475deg,  16.885748deg]
-task.beamSet.0.compoundBeam.29.phaseCenter: [293.826475deg,  16.885748deg]
-task.beamSet.0.compoundBeam.3.delayCenter: [293.342404deg,  15.263706deg]
-task.beamSet.0.compoundBeam.3.phaseCenter: [293.342404deg,  15.263706deg]
-task.beamSet.0.compoundBeam.30.delayCenter: [294.315590deg,  16.885458deg]
-task.beamSet.0.compoundBeam.30.phaseCenter: [294.315590deg,  16.885458deg]
-task.beamSet.0.compoundBeam.31.delayCenter: [294.804652deg,  16.884007deg]
-task.beamSet.0.compoundBeam.31.phaseCenter: [294.804652deg,  16.884007deg]
-task.beamSet.0.compoundBeam.32.delayCenter: [295.293589deg,  16.881398deg]
-task.beamSet.0.compoundBeam.32.phaseCenter: [295.293589deg,  16.881398deg]
-task.beamSet.0.compoundBeam.33.delayCenter: [292.601130deg,  17.286552deg]
-task.beamSet.0.compoundBeam.33.phaseCenter: [292.601130deg,  17.286552deg]
-task.beamSet.0.compoundBeam.34.delayCenter: [293.091081deg,  17.289228deg]
-task.beamSet.0.compoundBeam.34.phaseCenter: [293.091081deg,  17.289228deg]
-task.beamSet.0.compoundBeam.35.delayCenter: [293.581158deg,  17.290715deg]
-task.beamSet.0.compoundBeam.35.phaseCenter: [293.581158deg,  17.290715deg]
-task.beamSet.0.compoundBeam.36.delayCenter: [294.071289deg,  17.291012deg]
-task.beamSet.0.compoundBeam.36.phaseCenter: [294.071289deg,  17.291012deg]
-task.beamSet.0.compoundBeam.37.delayCenter: [294.561402deg,  17.290120deg]
-task.beamSet.0.compoundBeam.37.phaseCenter: [294.561402deg,  17.290120deg]
-task.beamSet.0.compoundBeam.38.delayCenter: [295.051425deg,  17.288038deg]
-task.beamSet.0.compoundBeam.38.phaseCenter: [295.051425deg,  17.288038deg]
-task.beamSet.0.compoundBeam.39.delayCenter: [295.541286deg,  17.284769deg]
-task.beamSet.0.compoundBeam.39.phaseCenter: [295.541286deg,  17.284769deg]
-task.beamSet.0.compoundBeam.4.delayCenter: [293.827480deg,  15.264488deg]
-task.beamSet.0.compoundBeam.4.phaseCenter: [293.827480deg,  15.264488deg]
-task.beamSet.0.compoundBeam.5.delayCenter: [294.312575deg,  15.264227deg]
-task.beamSet.0.compoundBeam.5.phaseCenter: [294.312575deg,  15.264227deg]
-task.beamSet.0.compoundBeam.6.delayCenter: [294.797617deg,  15.262924deg]
-task.beamSet.0.compoundBeam.6.phaseCenter: [294.797617deg,  15.262924deg]
-task.beamSet.0.compoundBeam.7.delayCenter: [295.282537deg,  15.260578deg]
-task.beamSet.0.compoundBeam.7.phaseCenter: [295.282537deg,  15.260578deg]
-task.beamSet.0.compoundBeam.8.delayCenter: [292.612227deg,  15.665732deg]
-task.beamSet.0.compoundBeam.8.phaseCenter: [292.612227deg,  15.665732deg]
-task.beamSet.0.compoundBeam.9.delayCenter: [293.098145deg,  15.668144deg]
-task.beamSet.0.compoundBeam.9.phaseCenter: [293.098145deg,  15.668144deg]
-task.beamSet.0.compoundBeams: [0..39]
-task.beamSet.0.dataWriter.hostname: wcudata1
-task.beamSet.0.dataWriter.interfaces: [eth0, eth1, eth2, eth3]
-task.beamSet.0.dataWriterUV.hostname: wcudata1
-task.beamSet.0.dataWriterUV.interfaces: [eth0, eth1, eth2, eth3]
-task.beamSet.0.pattern: square_39p1
-task.beamSet.0.subbands: [64..447]
-task.directionReferenceFrame: J2000
-task.duration: 300.0
-task.fieldName: B1933+16
-task.inputPaths: [0..63]
-task.nrChannelsPerSubband: 64
-task.nrOfCompoundBeamSets: 1
-task.observingMode: arts_sc4_survey
-task.pointingName: P01234
-task.project.PI: 
-task.project.coPIs: 
-task.project.code: DB-000
-task.project.releaseDate: 2020-01-01 00:00:00
-task.schedule: Cycle 0
-task.scheduleType: Manual Schedule
-task.source.beam: 0
-task.source.calibrationGroup: 0
-task.source.code: BANDPASS CAL
-task.source.direction: [293.948755deg, 16.277785deg]
-task.source.name: B1933+16
-task.startTime: 2019-05-18 23:51:13
-task.stopTime: 2019-05-18 23:56:13
-task.taskGroupID: 0000018
-task.taskID: 190518009
-task.telescope.RT2.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT3.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT4.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT5.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT6.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT7.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT8.pointing: [293.948755deg,  16.277785deg]
-task.telescope.RT9.pointing: [293.948755deg,  16.277785deg]
-task.telescopes: [RT2, RT3, RT4, RT5, RT6, RT7, RT8, RT9]
+ARTSSurveyControl.amber_conf_dir = amber_conf
+ARTSSurveyControl.amber_config = amber.conf
+ARTSSurveyControl.amber_dir = /data2/output/{date}/{datetimesource}/amber
+ARTSSurveyControl.bw = 300
+ARTSSurveyControl.completing_delay = 20
+ARTSSurveyControl.etc_dir_name = /etc
+ARTSSurveyControl.eventkey_start_i = 5100
+ARTSSurveyControl.eventkey_start_iquv = 6100
+ARTSSurveyControl.fits_templates = fits_templates
+ARTSSurveyControl.hdr_size = 40960
+ARTSSurveyControl.header_template = header_template.txt
+ARTSSurveyControl.log_dir = {home}/observations/log/{date}/{datetimesource}
+ARTSSurveyControl.master_dir = {home}/.controller
+ARTSSurveyControl.missing_beams = []
+ARTSSurveyControl.nbeams = 40
+ARTSSurveyControl.nbit = 8
+ARTSSurveyControl.nbuffer_i = 5
+ARTSSurveyControl.nbuffer_iquv = 5
+ARTSSurveyControl.nchan = 1536
+ARTSSurveyControl.network_port_event_i = 30000
+ARTSSurveyControl.network_port_event_iquv = 30001
+ARTSSurveyControl.network_port_start_i = 5000
+ARTSSurveyControl.network_port_start_iquv = 6000
+ARTSSurveyControl.node_config = nodes/CB{:02d}.conf
+ARTSSurveyControl.node_header_i = nodes/CB{:02d}_header_i.txt
+ARTSSurveyControl.node_header_iquv = nodes/CB{:02d}_header_iquv.txt
+ARTSSurveyControl.output_dir = /data2/output/{date}/{datetimesource}
+ARTSSurveyControl.output_dir_iquv = /data1/output/{date}/{datetimesource}
+ARTSSurveyControl.qpidBroker = arts041
+ARTSSurveyControl.root_log = /home/arts/survey/log
+ARTSSurveyControl.sc3.iab.nsynbeams = 1
+ARTSSurveyControl.sc3.iab.ntabs = 1
+ARTSSurveyControl.sc3.iab.science_mode_i = 2
+ARTSSurveyControl.sc3.iab.science_mode_iquv = 3
+ARTSSurveyControl.sc3.page_size = 12500
+ARTSSurveyControl.sc3.tab.nsynbeams = 71
+ARTSSurveyControl.sc3.tab.ntabs = 9
+ARTSSurveyControl.sc3.tab.science_mode_i = 0
+ARTSSurveyControl.sc3.tab.science_mode_iquv = 1
+ARTSSurveyControl.sc3.tsamp = 81.92E-6
+ARTSSurveyControl.sc4.iab.nsynbeams = 1
+ARTSSurveyControl.sc4.iab.ntabs = 1
+ARTSSurveyControl.sc4.iab.science_mode_i = 2
+ARTSSurveyControl.sc4.iab.science_mode_iquv = 3
+ARTSSurveyControl.sc4.page_size = 12500
+ARTSSurveyControl.sc4.tab.nsynbeams = 71
+ARTSSurveyControl.sc4.tab.ntabs = 12
+ARTSSurveyControl.sc4.tab.science_mode_i = 0
+ARTSSurveyControl.sc4.tab.science_mode_iquv = 1
+ARTSSurveyControl.sc4.tsamp = 81.92E-6
+ARTSSurveyControl.setup_duration = 30
+ARTSSurveyControl.stop_delay = 5
+ARTSSurveyControl.time_unit = 781250
+ARTSSurveyControl.valid_modes = [amber, survey, record, dump]
+UniBoardDriver.controller = ARTSBFControl
+UniBoardDriver.timeout = 10
+arts.frequencyChannelWidth = 10.5
+arts.parFile = file.par
+arts.recordBaseband = True
+arts.samplingTime = 100.25
+arts.survey.beams = [0..39]
+arts.survey.enable_iquv = true
+arts.survey.history_i = 10
+arts.survey.history_iquv = 10
+arts.survey.process_triggers = True
+arts.survey.science_mode = TAB
+arts.survey.snr_threshold = 8.0
+arts.timing = True
+atmosphere.refracDryAir = 0.000305
+atmosphere.refracWaterVapour = 0.0
+atmosphere.scaleHeight = 8
+system.arrayPosition = [3828630.63486200943589211, 443593.39226634375518188, 5064922.99755000043660402]
+system.beamFormer.bypassTranspose = False
+system.correlator.outputBoardList = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+system.parsetVersion = 0.0.1
+system.skipChecksUnsupported = false
+system.square_39p1.CompoundBeam.0.offset = [0.0deg,             +0.0          deg]
+system.square_39p1.CompoundBeam.1.offset = [-1.52119007264deg,  -1.01337000373deg]
+system.square_39p1.CompoundBeam.10.offset = [-0.351043862917deg, -0.60802200224deg]
+system.square_39p1.CompoundBeam.11.offset = [ 0.117014620972deg, -0.60802200224deg]
+system.square_39p1.CompoundBeam.12.offset = [ 0.585073104861deg, -0.60802200224deg]
+system.square_39p1.CompoundBeam.13.offset = [ 1.05313158875deg,  -0.60802200224deg]
+system.square_39p1.CompoundBeam.14.offset = [ 1.52119007264deg,  -0.60802200224deg]
+system.square_39p1.CompoundBeam.15.offset = [-1.05313158875deg,  -0.202674000747deg]
+system.square_39p1.CompoundBeam.16.offset = [-0.585073104861deg, -0.202674000747deg]
+system.square_39p1.CompoundBeam.17.offset = [-0.117014620972deg, -0.202674000747deg]
+system.square_39p1.CompoundBeam.18.offset = [ 0.351043862917deg, -0.202674000747deg]
+system.square_39p1.CompoundBeam.19.offset = [ 0.819102346805deg, -0.202674000747deg]
+system.square_39p1.CompoundBeam.2.offset = [-1.05313158875deg,  -1.01337000373deg]
+system.square_39p1.CompoundBeam.20.offset = [ 1.28716083069deg,  -0.202674000747deg]
+system.square_39p1.CompoundBeam.21.offset = [-1.28716083069deg,  +0.202674000747deg]
+system.square_39p1.CompoundBeam.22.offset = [-0.819102346805deg, +0.202674000747deg]
+system.square_39p1.CompoundBeam.23.offset = [-0.351043862917deg, +0.202674000747deg]
+system.square_39p1.CompoundBeam.24.offset = [ 0.117014620972deg, +0.202674000747deg]
+system.square_39p1.CompoundBeam.25.offset = [ 0.585073104861deg, +0.202674000747deg]
+system.square_39p1.CompoundBeam.26.offset = [ 1.05313158875deg,  +0.202674000747deg]
+system.square_39p1.CompoundBeam.27.offset = [-1.05313158875deg,  +0.60802200224deg]
+system.square_39p1.CompoundBeam.28.offset = [-0.585073104861deg, +0.60802200224deg]
+system.square_39p1.CompoundBeam.29.offset = [-0.117014620972deg, +0.60802200224deg]
+system.square_39p1.CompoundBeam.3.offset = [-0.585073104861deg, -1.01337000373deg]
+system.square_39p1.CompoundBeam.30.offset = [ 0.351043862917deg, +0.60802200224deg]
+system.square_39p1.CompoundBeam.31.offset = [ 0.819102346805deg, +0.60802200224deg]
+system.square_39p1.CompoundBeam.32.offset = [ 1.28716083069deg,  +0.60802200224deg]
+system.square_39p1.CompoundBeam.33.offset = [-1.28716083069deg,  +1.01337000373deg]
+system.square_39p1.CompoundBeam.34.offset = [-0.819102346805deg, +1.01337000373deg]
+system.square_39p1.CompoundBeam.35.offset = [-0.351043862917deg, +1.01337000373deg]
+system.square_39p1.CompoundBeam.36.offset = [ 0.117014620972deg, +1.01337000373deg]
+system.square_39p1.CompoundBeam.37.offset = [ 0.585073104861deg, +1.01337000373deg]
+system.square_39p1.CompoundBeam.38.offset = [ 1.05313158875deg,  +1.01337000373deg]
+system.square_39p1.CompoundBeam.39.offset = [ 1.52119007264deg,  +1.01337000373deg]
+system.square_39p1.CompoundBeam.4.offset = [-0.117014620972deg, -1.01337000373deg]
+system.square_39p1.CompoundBeam.5.offset = [ 0.351043862917deg, -1.01337000373deg]
+system.square_39p1.CompoundBeam.6.offset = [ 0.819102346805deg, -1.01337000373deg]
+system.square_39p1.CompoundBeam.7.offset = [ 1.28716083069deg,  -1.01337000373deg]
+system.square_39p1.CompoundBeam.8.offset = [-1.28716083069deg,  -0.60802200224deg]
+system.square_39p1.CompoundBeam.9.offset = [-0.819102346805deg, -0.60802200224deg]
+system.square_39p1.compoundBeam.0.offset = [0.0deg,             +0.0          deg]
+system.square_39p1.compoundBeam.1.offset = [-1.52119007264deg,  -1.01337000373deg]
+system.square_39p1.compoundBeam.10.offset = [-0.351043862917deg, -0.60802200224deg]
+system.square_39p1.compoundBeam.11.offset = [ 0.117014620972deg, -0.60802200224deg]
+system.square_39p1.compoundBeam.12.offset = [ 0.585073104861deg, -0.60802200224deg]
+system.square_39p1.compoundBeam.13.offset = [ 1.05313158875deg,  -0.60802200224deg]
+system.square_39p1.compoundBeam.14.offset = [ 1.52119007264deg,  -0.60802200224deg]
+system.square_39p1.compoundBeam.15.offset = [-1.05313158875deg,  -0.202674000747deg]
+system.square_39p1.compoundBeam.16.offset = [-0.585073104861deg, -0.202674000747deg]
+system.square_39p1.compoundBeam.17.offset = [-0.117014620972deg, -0.202674000747deg]
+system.square_39p1.compoundBeam.18.offset = [ 0.351043862917deg, -0.202674000747deg]
+system.square_39p1.compoundBeam.19.offset = [ 0.819102346805deg, -0.202674000747deg]
+system.square_39p1.compoundBeam.2.offset = [-1.05313158875deg,  -1.01337000373deg]
+system.square_39p1.compoundBeam.20.offset = [ 1.28716083069deg,  -0.202674000747deg]
+system.square_39p1.compoundBeam.21.offset = [-1.28716083069deg,  +0.202674000747deg]
+system.square_39p1.compoundBeam.22.offset = [-0.819102346805deg, +0.202674000747deg]
+system.square_39p1.compoundBeam.23.offset = [-0.351043862917deg, +0.202674000747deg]
+system.square_39p1.compoundBeam.24.offset = [ 0.117014620972deg, +0.202674000747deg]
+system.square_39p1.compoundBeam.25.offset = [ 0.585073104861deg, +0.202674000747deg]
+system.square_39p1.compoundBeam.26.offset = [ 1.05313158875deg,  +0.202674000747deg]
+system.square_39p1.compoundBeam.27.offset = [-1.05313158875deg,  +0.60802200224deg]
+system.square_39p1.compoundBeam.28.offset = [-0.585073104861deg, +0.60802200224deg]
+system.square_39p1.compoundBeam.29.offset = [-0.117014620972deg, +0.60802200224deg]
+system.square_39p1.compoundBeam.3.offset = [-0.585073104861deg, -1.01337000373deg]
+system.square_39p1.compoundBeam.30.offset = [ 0.351043862917deg, +0.60802200224deg]
+system.square_39p1.compoundBeam.31.offset = [ 0.819102346805deg, +0.60802200224deg]
+system.square_39p1.compoundBeam.32.offset = [ 1.28716083069deg,  +0.60802200224deg]
+system.square_39p1.compoundBeam.33.offset = [-1.28716083069deg,  +1.01337000373deg]
+system.square_39p1.compoundBeam.34.offset = [-0.819102346805deg, +1.01337000373deg]
+system.square_39p1.compoundBeam.35.offset = [-0.351043862917deg, +1.01337000373deg]
+system.square_39p1.compoundBeam.36.offset = [ 0.117014620972deg, +1.01337000373deg]
+system.square_39p1.compoundBeam.37.offset = [ 0.585073104861deg, +1.01337000373deg]
+system.square_39p1.compoundBeam.38.offset = [ 1.05313158875deg,  +1.01337000373deg]
+system.square_39p1.compoundBeam.39.offset = [ 1.52119007264deg,  +1.01337000373deg]
+system.square_39p1.compoundBeam.4.offset = [-0.117014620972deg, -1.01337000373deg]
+system.square_39p1.compoundBeam.5.offset = [ 0.351043862917deg, -1.01337000373deg]
+system.square_39p1.compoundBeam.6.offset = [ 0.819102346805deg, -1.01337000373deg]
+system.square_39p1.compoundBeam.7.offset = [ 1.28716083069deg,  -1.01337000373deg]
+system.square_39p1.compoundBeam.8.offset = [-1.28716083069deg,  -0.60802200224deg]
+system.square_39p1.compoundBeam.9.offset = [-0.819102346805deg, -0.60802200224deg]
+system.square_39p1.maxNrOfCompoundBeams = 40
+system.square_39p1.nrOfCompoundBeams = 40
+system.telescope.RT2.phaseZero = 0.000
+system.telescope.RT2.position = [3828729.99081358872354031, 442735.17696416645776480,5064923.00829000025987625]
+system.telescope.RT2.residualDelay = 2.991e-9
+system.telescope.RT3.phaseZero = -5.539
+system.telescope.RT3.position = [3828713.43109884625300765, 442878.21189340209821239,5064923.00435999967157841]
+system.telescope.RT3.residualDelay = 5.381e-9
+system.telescope.RT4.phaseZero = -1.694
+system.telescope.RT4.position = [3828696.86994427768513560, 443021.24917263782117516,5064923.00396999996155500]
+system.telescope.RT4.residualDelay = 0.000e-9
+system.telescope.RT5.phaseZero = 7.825
+system.telescope.RT5.position = [3828680.31391932582482696, 443164.28596862131962553,5064923.00035000033676624]
+system.telescope.RT5.residualDelay = 3.117e-9
+system.telescope.RT6.phaseZero = -1.562
+system.telescope.RT6.position = [3828663.75159173039719462, 443307.32138055720133707,5064923.00203999970108271]
+system.telescope.RT6.residualDelay = 10.937e-9
+system.telescope.RT7.phaseZero = -0.395
+system.telescope.RT7.position = [3828647.19342757249251008, 443450.35604637680808082,5064923.00229999981820583]
+system.telescope.RT7.residualDelay = 5.683e-9
+system.telescope.RT8.phaseZero = -5.991
+system.telescope.RT8.position = [3828630.63486200943589211, 443593.39226634375518188,5064922.99755000043660402]
+system.telescope.RT8.residualDelay = 7.719e-9
+system.telescope.RT9.phaseZero = -11.217
+system.telescope.RT9.position = [3828614.07606798363849521, 443736.42941620573401451,5064923.00000000000000000]
+system.telescope.RT9.residualDelay = 6.546e-9
+system.telescope.RTA.phaseZero = -3.274
+system.telescope.RTA.position = [3828609.94224429363384843, 443772.19450029480503872,5064922.99868000019341707]
+system.telescope.RTA.residualDelay = 4.970e-9
+system.telescope.RTB.phaseZero = 2.217
+system.telescope.RTB.position = [3828603.73202611599117517, 443825.83321168005932122,5064922.99963000044226646]
+system.telescope.RTB.residualDelay = 5.798e-9
+system.telescope.RTC.phaseZero = 2.721
+system.telescope.RTC.position = [3828460.92418734729290009, 445059.52053928520763293,5064922.99070999957621098]
+system.telescope.RTC.residualDelay = 3.492e-9
+system.telescope.RTD.phaseZero = 1.250
+system.telescope.RTD.position = [3828452.64716351125389338, 445131.03744105156511068,5064922.98792999982833862]
+system.telescope.RTD.residualDelay = 6.662e-9
+system.telescope.axesDistance = 4.95
+system.telescope.focalAxesDistance = 9.25
+system.telescope.polarAxesLength = 16.922
+task.LO1freq = 4770
+task.beamSet.0.compoundBeam.0.delayCenter = [293.948755deg,  16.277785deg]
+task.beamSet.0.compoundBeam.0.phaseCenter = [293.948755deg,  16.277785deg]
+task.beamSet.0.compoundBeam.1.delayCenter = [292.372580deg,  15.259014deg]
+task.beamSet.0.compoundBeam.1.phaseCenter = [292.372580deg,  15.259014deg]
+task.beamSet.0.compoundBeam.10.delayCenter = [293.584186deg,  15.669484deg]
+task.beamSet.0.compoundBeam.10.phaseCenter = [293.584186deg,  15.669484deg]
+task.beamSet.0.compoundBeam.11.delayCenter = [294.070279deg,  15.669752deg]
+task.beamSet.0.compoundBeam.11.phaseCenter = [294.070279deg,  15.669752deg]
+task.beamSet.0.compoundBeam.12.delayCenter = [294.556355deg,  15.668948deg]
+task.beamSet.0.compoundBeam.12.phaseCenter = [294.556355deg,  15.668948deg]
+task.beamSet.0.compoundBeam.13.delayCenter = [295.042343deg,  15.667072deg]
+task.beamSet.0.compoundBeam.13.phaseCenter = [295.042343deg,  15.667072deg]
+task.beamSet.0.compoundBeam.14.delayCenter = [295.528174deg,  15.664125deg]
+task.beamSet.0.compoundBeam.14.phaseCenter = [295.528174deg,  15.664125deg]
+task.beamSet.0.compoundBeam.15.delayCenter = [292.852910deg,  16.072324deg]
+task.beamSet.0.compoundBeam.15.phaseCenter = [292.852910deg,  16.072324deg]
+task.beamSet.0.compoundBeam.16.delayCenter = [293.339901deg,  16.074251deg]
+task.beamSet.0.compoundBeam.16.phaseCenter = [293.339901deg,  16.074251deg]
+task.beamSet.0.compoundBeam.17.delayCenter = [293.826980deg,  16.075077deg]
+task.beamSet.0.compoundBeam.17.phaseCenter = [293.826980deg,  16.075077deg]
+task.beamSet.0.compoundBeam.18.delayCenter = [294.314076deg,  16.074802deg]
+task.beamSet.0.compoundBeam.18.phaseCenter = [294.314076deg,  16.074802deg]
+task.beamSet.0.compoundBeam.19.delayCenter = [294.801120deg,  16.073425deg]
+task.beamSet.0.compoundBeam.19.phaseCenter = [294.801120deg,  16.073425deg]
+task.beamSet.0.compoundBeam.2.delayCenter = [292.857414deg,  15.261881deg]
+task.beamSet.0.compoundBeam.2.phaseCenter = [292.857414deg,  15.261881deg]
+task.beamSet.0.compoundBeam.20.delayCenter = [295.288040deg,  16.070947deg]
+task.beamSet.0.compoundBeam.20.phaseCenter = [295.288040deg,  16.070947deg]
+task.beamSet.0.compoundBeam.21.delayCenter = [292.606701deg,  16.476183deg]
+task.beamSet.0.compoundBeam.21.phaseCenter = [292.606701deg,  16.476183deg]
+task.beamSet.0.compoundBeam.22.delayCenter = [293.094628deg,  16.478726deg]
+task.beamSet.0.compoundBeam.22.phaseCenter = [293.094628deg,  16.478726deg]
+task.beamSet.0.compoundBeam.23.delayCenter = [293.582678deg,  16.480140deg]
+task.beamSet.0.compoundBeam.23.phaseCenter = [293.582678deg,  16.480140deg]
+task.beamSet.0.compoundBeam.24.delayCenter = [294.070782deg,  16.480423deg]
+task.beamSet.0.compoundBeam.24.phaseCenter = [294.070782deg,  16.480423deg]
+task.beamSet.0.compoundBeam.25.delayCenter = [294.558868deg,  16.479574deg]
+task.beamSet.0.compoundBeam.25.phaseCenter = [294.558868deg,  16.479574deg]
+task.beamSet.0.compoundBeam.26.delayCenter = [295.046865deg,  16.477596deg]
+task.beamSet.0.compoundBeam.26.phaseCenter = [295.046865deg,  16.477596deg]
+task.beamSet.0.compoundBeam.27.delayCenter = [292.848370deg,  16.882847deg]
+task.beamSet.0.compoundBeam.27.phaseCenter = [292.848370deg,  16.882847deg]
+task.beamSet.0.compoundBeam.28.delayCenter = [293.337378deg,  16.884878deg]
+task.beamSet.0.compoundBeam.28.phaseCenter = [293.337378deg,  16.884878deg]
+task.beamSet.0.compoundBeam.29.delayCenter = [293.826475deg,  16.885748deg]
+task.beamSet.0.compoundBeam.29.phaseCenter = [293.826475deg,  16.885748deg]
+task.beamSet.0.compoundBeam.3.delayCenter = [293.342404deg,  15.263706deg]
+task.beamSet.0.compoundBeam.3.phaseCenter = [293.342404deg,  15.263706deg]
+task.beamSet.0.compoundBeam.30.delayCenter = [294.315590deg,  16.885458deg]
+task.beamSet.0.compoundBeam.30.phaseCenter = [294.315590deg,  16.885458deg]
+task.beamSet.0.compoundBeam.31.delayCenter = [294.804652deg,  16.884007deg]
+task.beamSet.0.compoundBeam.31.phaseCenter = [294.804652deg,  16.884007deg]
+task.beamSet.0.compoundBeam.32.delayCenter = [295.293589deg,  16.881398deg]
+task.beamSet.0.compoundBeam.32.phaseCenter = [295.293589deg,  16.881398deg]
+task.beamSet.0.compoundBeam.33.delayCenter = [292.601130deg,  17.286552deg]
+task.beamSet.0.compoundBeam.33.phaseCenter = [292.601130deg,  17.286552deg]
+task.beamSet.0.compoundBeam.34.delayCenter = [293.091081deg,  17.289228deg]
+task.beamSet.0.compoundBeam.34.phaseCenter = [293.091081deg,  17.289228deg]
+task.beamSet.0.compoundBeam.35.delayCenter = [293.581158deg,  17.290715deg]
+task.beamSet.0.compoundBeam.35.phaseCenter = [293.581158deg,  17.290715deg]
+task.beamSet.0.compoundBeam.36.delayCenter = [294.071289deg,  17.291012deg]
+task.beamSet.0.compoundBeam.36.phaseCenter = [294.071289deg,  17.291012deg]
+task.beamSet.0.compoundBeam.37.delayCenter = [294.561402deg,  17.290120deg]
+task.beamSet.0.compoundBeam.37.phaseCenter = [294.561402deg,  17.290120deg]
+task.beamSet.0.compoundBeam.38.delayCenter = [295.051425deg,  17.288038deg]
+task.beamSet.0.compoundBeam.38.phaseCenter = [295.051425deg,  17.288038deg]
+task.beamSet.0.compoundBeam.39.delayCenter = [295.541286deg,  17.284769deg]
+task.beamSet.0.compoundBeam.39.phaseCenter = [295.541286deg,  17.284769deg]
+task.beamSet.0.compoundBeam.4.delayCenter = [293.827480deg,  15.264488deg]
+task.beamSet.0.compoundBeam.4.phaseCenter = [293.827480deg,  15.264488deg]
+task.beamSet.0.compoundBeam.5.delayCenter = [294.312575deg,  15.264227deg]
+task.beamSet.0.compoundBeam.5.phaseCenter = [294.312575deg,  15.264227deg]
+task.beamSet.0.compoundBeam.6.delayCenter = [294.797617deg,  15.262924deg]
+task.beamSet.0.compoundBeam.6.phaseCenter = [294.797617deg,  15.262924deg]
+task.beamSet.0.compoundBeam.7.delayCenter = [295.282537deg,  15.260578deg]
+task.beamSet.0.compoundBeam.7.phaseCenter = [295.282537deg,  15.260578deg]
+task.beamSet.0.compoundBeam.8.delayCenter = [292.612227deg,  15.665732deg]
+task.beamSet.0.compoundBeam.8.phaseCenter = [292.612227deg,  15.665732deg]
+task.beamSet.0.compoundBeam.9.delayCenter = [293.098145deg,  15.668144deg]
+task.beamSet.0.compoundBeam.9.phaseCenter = [293.098145deg,  15.668144deg]
+task.beamSet.0.compoundBeams = [0..39]
+task.beamSet.0.dataWriter.hostname = wcudata1
+task.beamSet.0.dataWriter.interfaces = [eth0, eth1, eth2, eth3]
+task.beamSet.0.dataWriterUV.hostname = wcudata1
+task.beamSet.0.dataWriterUV.interfaces = [eth0, eth1, eth2, eth3]
+task.beamSet.0.pattern = square_39p1
+task.beamSet.0.subbands = [64..447]
+task.directionReferenceFrame = J2000
+task.duration = 300.0
+task.fieldName = B1933+16
+task.inputPaths = [0..63]
+task.nrChannelsPerSubband = 64
+task.nrOfCompoundBeamSets = 1
+task.observingMode = arts_sc4_survey
+task.pointingName = P01234
+task.project.PI = 
+task.project.coPIs = 
+task.project.code = DB-000
+task.project.releaseDate = 2020-01-01 00:00:00
+task.schedule = Cycle 0
+task.scheduleType = Manual Schedule
+task.source.beam = 0
+task.source.calibrationGroup = 0
+task.source.code = BANDPASS CAL
+task.source.direction = [293.948755deg, 16.277785deg]
+task.source.name = B1933+16
+task.startTime = 2019-05-18 23:51:13
+task.stopTime = 2019-05-18 23:56:13
+task.taskGroupID = 0000018
+task.taskID = 190518009
+task.telescope.RT2.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT3.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT4.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT5.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT6.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT7.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT8.pointing = [293.948755deg,  16.277785deg]
+task.telescope.RT9.pointing = [293.948755deg,  16.277785deg]
+task.telescopes = [RT2, RT3, RT4, RT5, RT6, RT7, RT8, RT9]

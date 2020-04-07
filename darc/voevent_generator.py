@@ -92,6 +92,8 @@ class VOEventGenerator(threading.Thread):
         Read triggers from queue and process them
         """
 
+        self.logger.info("Starting VOEvent Generator")
+
         # start the queue server
         self.voevent_server = VOEventQueueServer(address=('', self.server_port),
                                                  authkey=self.server_auth.encode())

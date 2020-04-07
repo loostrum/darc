@@ -46,6 +46,7 @@ class OfflineProcessing(threading.Thread):
 
     - Automated pulsar folding
     - Automated run of calibration tools for drift scans
+    - Automated run of known FRB candidate extractor
     """
     def __init__(self):
         """
@@ -167,16 +168,25 @@ class OfflineProcessing(threading.Thread):
         self._get_overview(obs_config)
 
         # create coordinates file
-        self._get_coordinates(obs_config)
+        coord_cb00 = self._get_coordinates(obs_config)
 
         # wait until end time + 10s
         start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
+        # start emailer
         cmd = "python2 {emailer} {result_dir} '{beams}' {ntabs}".format(**obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
+
+        # fetch known FRB candidates
+        # do this _after_ email is sent, as then we are sure the grouped_pulses file exists for all beams
+        if coord_cb00 is not None:
+            self._plot_known_frb_cands(obs_config, coord_cb00)
+        else:
+            self.logger.warning("Skipping plotting of known FRB candidates: CB00 coordinates not available")
+
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
     def _start_observation_worker(self, obs_config):
@@ -708,6 +718,7 @@ class OfflineProcessing(threading.Thread):
         File contains RA, Dec, gl, gb for each CB used in this observation
 
         :param dict obs_config: Observation config
+        :return: ra, deg for CB00 (decimal deg) if available, else None
         """
         parset = obs_config['parset']
         # check the reference frame
@@ -724,6 +735,8 @@ class OfflineProcessing(threading.Thread):
 
         # get the CB pointings
         coordinates = {}
+        # output is set of CB00 coordinates (None if not available)
+        output = None
         for cb in range(NUMCB):
             try:
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
@@ -740,6 +753,9 @@ class OfflineProcessing(threading.Thread):
                 self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
                 coordinates[cb] = [0, 0, 0, 0]
             else:
+                # store CB00 pointing
+                if cb == 0:
+                    output = [pointing.ra.deg, pointing.dec.deg]
                 # get pretty strings
                 ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
                 dec = pointing.dec.to_string(unit=u.deg, sep=':', pad=True, precision=1)
@@ -752,6 +768,9 @@ class OfflineProcessing(threading.Thread):
                 coord = coordinates[cb]
                 line = "{:02d} {} {} {} {}\n".format(cb, *coord)
                 f.write(line)
+
+        # return CB00 coordinates (None if not available)
+        return output
 
     def _get_overview(self, obs_config):
         """
@@ -917,3 +936,26 @@ class OfflineProcessing(threading.Thread):
                 parset = None
 
         return parset
+
+    def _plot_known_frb_cands(self, obs_config, coord_cb00):
+        """
+        Call external script that plots candidates of known FRBs
+
+        :param dict obs_confog: Observation config
+        :param list coord_cb00: [ra, dec] of CB00 in decimal degrees
+        """
+
+        # kwargs are command to run and its arguments
+        kwargs = obs_config.copy()
+        # path to script
+        kwargs['script'] = self.fetch_after_obs
+        # CB00 coordinates
+        kwargs['ra'] = coord_cb00[0]
+        kwargs['dec'] = coord_cb00[1]
+        # Extract date from datetimesource
+        kwargs['date'] = ''.join(obs_config['datetimesource'].split('-')[:3])
+        # full command
+        cmd = "python2 {script} --ra {ra} --dec {dec} --date {date} --root {datetimesource}".format(**kwargs)
+
+        self.logger.info("Running {}".format(cmd))
+        os.system(cmd)

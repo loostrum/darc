@@ -256,7 +256,7 @@ class AMBERClustering(DARCBase):
 
         return dm_src, src_type, source
 
-    def _check_triggers(self, triggers, sys_params, utc_start, dm_min=0, dm_max=np.inf, dm_src=None,
+    def _check_triggers(self, triggers, sys_params, utc_start, datetimesource, dm_min=0, dm_max=np.inf, dm_src=None,
                         width_max=np.inf, snr_min=8, src_type=None, src_name=None, dmgal=0, pointing=None,
                         skip_lofar=False):
         """
@@ -265,6 +265,7 @@ class AMBERClustering(DARCBase):
         :param list triggers: Raw triggers
         :param dict sys_params: System parameters (dt, delta_nu_MHz, nu_GHz)
         :param str utc_start: start time of observation, in format readable by astropy.time.Time
+        :param str datetimesource: Field name with date and time
         :param float dm_min: minimum DM (default: 0)
         :param float dm_max: maximum DM (default: inf)
         :param float dm_src: DM of known source (default: None)
@@ -417,12 +418,15 @@ class AMBERClustering(DARCBase):
                                  'ra': pointing.ra.deg,  # decimal deg
                                  'dec': pointing.dec.deg,  # decimal deg
                                  'cb': self.obs_config['beam'],
+                                 'sb': cluster_sb[mask][ind],
                                  'ymw16': dmgal,
                                  'semiMaj': 15,  # arcmin, CB
                                  'semiMin': 15,  # arcmin, CB
                                  'name': name,
                                  'src_name': src_name,
+                                 'datetimesource': datetimesource,
                                  'utc': utc_arr,
+                                 'tarr':  cluster_time[mask][ind],
                                  'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
@@ -443,6 +447,7 @@ class AMBERClustering(DARCBase):
 
         # set observation parameters
         utc_start = Time(self.obs_config['startpacket'] / 781250., format='unix')
+        datetimesource = self.obs_config['datetimesource']
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
         cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
@@ -536,18 +541,21 @@ class AMBERClustering(DARCBase):
                 if src_type is not None:
                     self.threads['trigger_known_source'] = threading.Thread(target=self._check_triggers,
                                                                             args=(triggers_for_clustering, sys_params,
-                                                                                  utc_start),
+                                                                                  utc_start, datetimesource),
                                                                             kwargs=thresh_src)
                     self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
                 # disable LOFAR part if source is R3
-                if src_name == 'R3':
-                    thresh_new['skip_lofar'] = True
-                    self.logger.warning("Skipping LOFAR triggering for new sources; source is R3")
+                # if src_name == 'R3':
+                #     thresh_new['skip_lofar'] = True
+                #     self.logger.warning("Skipping LOFAR triggering for new sources; source is R3")
+                # Disable new source triggering completely
+                thresh_new['skip_lofar'] = True
+                self.logger.warning("Disabling LOFAR triggering for new sources")
                 self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
                                                                       args=(triggers_for_clustering, sys_params,
-                                                                            utc_start),
+                                                                            utc_start, datetimesource),
                                                                       kwargs=thresh_new)
                 self.threads['trigger_new_source'].daemon = True
                 self.threads['trigger_new_source'].start()

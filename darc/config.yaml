@@ -91,6 +91,9 @@ lofar_trigger:
     server_auth: "pass"  # choose a password for the LOFAR trigger service and put it here (str)
     lofar_host: "localhost"  # LOFAR server that listens for triggers
     lofar_port: 31662  # Port the LOFAR server listens to
+    waterfall_sb: "{home}/ARTS-obs/external/arts-analysis/waterfall_sb.py"
+    email_settings:
+        to: ['test@localhost']
 
 # DADA triggers
 dada_trigger:
@@ -158,3 +161,4 @@ offline_processing:
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
     classifier: "{home}/ARTS-obs/external/single_pulse_ml/single_pulse_ml/classify.py"
     calibration_tools: "{home}/ARTS-obs/external/arts-analysis/calibration_tools.py"
+    fetch_after_obs: "/home/maan/scripts/fetch_after_obs.py"

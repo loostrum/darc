@@ -8,6 +8,10 @@ import datetime
 import time
 import json
 import codecs
+import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import numpy as np
 from astropy.time import Time
@@ -262,3 +266,61 @@ def dm_to_delay(dm, flo, fhi):
     k = 4.148808e3 * u.cm**3 * u.s * u.MHz**2 / u.pc
     delay = k * dm * (flo**-2 - fhi**-2)
     return delay.to(u.s)
+
+
+def send_email(frm, to, subject, body, attachments=None):
+    """
+    Send email, only possible to ASTRON addresses
+
+    :param str frm: From address
+    :param str/list to: To addresses, either single or list of addresses
+    :param str subject: Subject of email
+    :param dict body: Dict with e-mail content (str) and type (str)
+    :param dict/list attachments: optional dict or list of dicts with attachment path (str), type (str), and name (str)
+    """
+
+    # ensure "to" is a single string
+    if isinstance(to, list):
+        to = ', '.join(to)
+
+    # init email
+    msg = MIMEMultipart('mixed')
+    # set to, from, subject
+    msg['To'] = to
+    msg['From'] = frm
+    msg['Subject'] = subject
+
+    # add body
+    msg.attach(MIMEText(body['content'], body['type']))
+
+    # add attachments
+    if attachments is not None:
+        # ensure it is a list
+        if not isinstance(attachments, list):
+            attachments = [attachments]
+        for attachment in attachments:
+            fname = attachment['path']
+            name = attachment['name']
+            typ = attachment['type']
+            # load the file
+            with open(fname, 'rb') as f:
+                part = MIMEApplication(f.read(), typ)
+                # set filename
+                part['Content-Disposition'] = 'attachment; filename="{}"'.format(name)
+            # attach to email
+            msg.attach(part)
+
+    # send the e-mail
+    smtp = smtplib.SMTP()
+    smtp.connect()
+    try:
+        smtp.sendmail(frm, to, msg.as_string())
+    except smtplib.SMTPSenderRefused:
+        # assume failed because messages is too big
+        # so send again without attachments
+        # first element of payload is main text, rest are the attachments
+        msg.set_payload(msg.get_payload()[0])
+        # send again
+        smtp.sendmail(frm, to, msg.as_string())
+
+    smtp.close()

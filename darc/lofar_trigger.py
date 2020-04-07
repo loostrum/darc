@@ -5,20 +5,20 @@
 import os
 import yaml
 import multiprocessing as mp
-import subprocess
 from queue import Empty
 from time import sleep
 import numpy as np
 import threading
 import socket
 import struct
+from textwrap import dedent
+from collections import OrderedDict
 from multiprocessing.managers import BaseManager
-from astropy.coordinates import SkyCoord
 import astropy.units as u
-import astropy.constants as const
 from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
-from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
+from darc.definitions import BANDWIDTH, CONFIG_FILE, TSAMP
 from darc import util
 from darc.logger import get_logger
 
@@ -79,6 +79,8 @@ class LOFARTrigger(threading.Thread):
 
         Read triggers from queue and process them
         """
+
+        self.logger.info("Starting LOFAR Trigger")
 
         # start the queue server
         self.trigger_server = LOFARTriggerQueueServer(address=('', self.server_port),
@@ -156,13 +158,14 @@ class LOFARTrigger(threading.Thread):
             trigger['nu_GHz'] = 1.37
         # remove unused keys
         trigger_generator_keys = ['dm', 'utc', 'nu_GHz', 'test']
-        # run on copy of dict because dict could change in the loop
-        for key in trigger.copy().keys():
+        trigger_for_sending = trigger.copy()
+        # be careful not to change dict we are looping over
+        for key in trigger.keys():
             if key not in trigger_generator_keys:
-                trigger.pop(key, None)
+                trigger_for_sending.pop(key, None)
 
         # create trigger struct to send
-        packet = self._new_trigger(**trigger)
+        packet = self._new_trigger(**trigger_for_sending)
         self.logger.info("Sending packet: {}".format(packet))
         # send
         try:
@@ -173,8 +176,17 @@ class LOFARTrigger(threading.Thread):
         except Exception as e:
             self.logger.error("Failed to send LOFAR trigger: {}".format(e))
         else:
-            self.logger.info("LOFAR trigger sent - disabling future LOFAR triggering")
-            self.send_events = False
+            # self.logger.info("LOFAR trigger sent - disabling future LOFAR triggering")
+            # self.send_events = False
+            self.logger.info("LOFAR trigger sent")
+            # send email warning
+            try:
+                # use the original trigger here, which has all keys
+                self.send_email(trigger)
+            except Exception as e:
+                self.logger.error("Failed to send warning email: {}".format(e))
+            else:
+                self.logger.info("Sent warning email")
 
     @staticmethod
     def _select_trigger(triggers):
@@ -242,3 +254,78 @@ class LOFARTrigger(threading.Thread):
 
         # create and return the struct
         return struct.pack(fmt, b'\x99', b'\xA0', tstop_s, tstop_ms, dm_int, test_flag)
+
+    def send_email(self, trigger):
+        """
+        Send email upon LOFAR trigger
+
+        Consider running this method in a try/except block, as sending emails might fail in case of network
+        interrupts
+
+        :param dict trigger: Trigger as sent to LOFAR
+        """
+
+        # init email with HTML table
+        content = dedent("""
+                         <html>
+                         <title>Apertif LOFAR Trigger Alert System</title>
+                         <body>
+                         <p>
+                         <table style="width:50%">
+                         """)
+
+        # Add formatted coordinates to trigger, skip if unavailable
+        try:
+            s = SkyCoord(trigger['ra'], trigger['dec'], unit='deg')
+            trigger['coord'] = s.to_string('hmsdms', precision=2)
+        except KeyError:
+            pass
+
+        # add plot command
+        date = ''.join(trigger['datetimesource'].split('-')[:3])
+        filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(date, trigger['datetimesource'], trigger['cb'])
+        downsamp = int(trigger['width'] / TSAMP.to(u.ms).value)
+        trigger['plot_cmd'] = 'python {} --cmap viridis --rficlean --sb {} --dm {:.2f} ' \
+                              '--t {:.2f} --downsamp {} {}'.format(self.waterfall_sb, trigger['sb'],
+                                                                   trigger['dm'], trigger['tarr'],
+                                                                   downsamp, filterbank_prefix)
+        # define formatting for trigger parameters
+        # use an ordered dict to ensure order of parameters in the email is the same
+        parameters = OrderedDict()
+        parameters['datetimesource'] = ['Observation', '{}']
+        parameters['dm'] = ['Dispersion measure', '{:.2f} pc cm<sup>-3</sup>']
+        parameters['snr'] = ['S/N', '{:.2f}']
+        parameters['tarr'] = ['AMBER arrival time', '{:.2f} s']
+        parameters['width'] = ['Width', '{:.2f} ms']
+        parameters['flux'] = ['Flux density', '{:.2f} Jy']
+        parameters['cb'] = ['Compound beam', '{:02d}']
+        parameters['sb'] = ['Synthesized beam', '{:02d}']
+        parameters['coord'] = ['CB coordinates (J2000)', '{}']
+        parameters['utc'] = ['LOFAR TBB freeze time', '{}']
+        parameters['plot_cmd'] = ['Plot command', '{}']
+
+        # add parameters to email, skip any that are unavailable
+        for param, (name, formatting) in parameters.items():
+            try:
+                value = formatting.format(trigger[param])
+                content += '<tr><th colspan="4" style="text-align:left">{}</th><td colspan="6">{}</td></tr>\n'.format(name, value)
+            except KeyError:
+                pass
+
+        # add footer
+        content += dedent("""
+                          </table>
+                          </p>
+                          </body>
+                          </html>
+                          """)
+
+        # set email subject with trigger time
+        subject = 'ARTS LOFAR Trigger Alert'
+        # set other email settings
+        frm = "ARTS LOFAR Trigger Alert System <arts@{}.apertif>".format(socket.gethostname())
+        to = ', '.join(self.email_settings['to'])
+        body = {'type': 'html', 'content': content}
+
+        # send
+        util.send_email(frm, to, subject, body)
