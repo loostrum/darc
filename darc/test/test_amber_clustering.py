@@ -58,7 +58,7 @@ class TestAMBERClustering(unittest.TestCase):
         parset_enc = util.encode_parset(parset_str)
 
         utc_start = Time.now()
-        obs_config = {'startpacket': int(utc_start.unix*781250), 'min_freq': 1219.70092773,
+        obs_config = {'startpacket': int(utc_start.unix * 781250), 'min_freq': 1219.70092773,
                       'beam': beam, 'parset': parset_enc, 'datetimesource': '2020-01-01T00:00:00.B0531+21'}
         in_queue.put({'command': 'start_observation', 'obs_config': obs_config})
 

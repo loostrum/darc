@@ -81,7 +81,7 @@ class TestAMBERListener(unittest.TestCase):
         with open(output_file, 'w') as f:
             # immediately send the header
             hdr = triggers[0]
-            f.write(hdr+'\n')
+            f.write(hdr + '\n')
             f.flush()
             # sleep to simulate observation start-up
             sleep(3)
@@ -115,7 +115,7 @@ class TestAMBERListener(unittest.TestCase):
         all_triggers = [[] for _ in range(nstep)]
         # init the threads that will send the triggers
         for i in range(nstep):
-            step = i+1
+            step = i + 1
             trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                         'CB00_step{}.trigger'.format(step))
             with open(trigger_file, 'r') as f:
@@ -184,7 +184,7 @@ class TestAMBERListener(unittest.TestCase):
         listener.stop()
 
         # delete temp output files
-        for step in range(1, nstep+1):
+        for step in range(1, nstep + 1):
             output_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        'CB{}_step{}.trigger'.format(fake_beam, step))
             try:

@@ -12,7 +12,6 @@ from darc.lofar_trigger import LOFARTrigger, LOFARTriggerQueueServer
 
 class TestLOFARTrigger(unittest.TestCase):
 
-
     def test_lofar_trigger(self):
         """
         Test whether the LOFAR Trigger module converts and incoming trigger to a struct
@@ -53,11 +52,10 @@ class TestLOFARTrigger(unittest.TestCase):
         dm_int = 568
         expected_event = (b'\x99', b'\xA0', tstop_s, tstop_ms, dm_int, b'\x54')
 
-
         # get the queue
         LOFARTriggerQueueServer.register('get_queue')
         queue_server = LOFARTriggerQueueServer(address=(lofar_trigger.server_host,
-                                                        lofar_trigger.server_port), 
+                                                        lofar_trigger.server_port),
                                                authkey=lofar_trigger.server_auth.encode())
         queue_server.connect()
         queue = queue_server.get_queue()
@@ -79,7 +77,6 @@ class TestLOFARTrigger(unittest.TestCase):
         lofar_trigger.stop()
 
         self.assertTupleEqual(lofar_event, expected_event)
-
 
 
 if __name__ == '__main__':
