@@ -4,5 +4,8 @@ python:
     - "3.6"
     - "3.7"
 install:
+    - pip install pycodestyle
     - pip install .
-script: pytest
+script: 
+    - pytest
+    - find . -name "*.py" -exec pycodestyle --ignore E501,W503 {} +
