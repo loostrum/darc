@@ -299,7 +299,7 @@ class AMBERClustering(DARCBase):
             known = 'known'
         else:
             known = 'new'
-        
+
         self.logger.info("Clustered {} raw triggers into {} IQUV trigger(s) "
                          "for {} source".format(len(triggers), ncluster, known))
 
@@ -426,7 +426,7 @@ class AMBERClustering(DARCBase):
                                  'src_name': src_name,
                                  'datetimesource': datetimesource,
                                  'utc': utc_arr,
-                                 'tarr':  cluster_time[mask][ind],
+                                 'tarr': cluster_time[mask][ind],
                                  'importance': 0.1}
                 # add system parameters (dt, central freq (GHz), bandwidth (MHz))
                 lofar_trigger.update(sys_params)
@@ -450,7 +450,7 @@ class AMBERClustering(DARCBase):
         datetimesource = self.obs_config['datetimesource']
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
-        cent_freq = (self.obs_config['min_freq']*u.MHz + 0.5*BANDWIDTH).to(u.GHz).value
+        cent_freq = (self.obs_config['min_freq'] * u.MHz + 0.5 * BANDWIDTH).to(u.GHz).value
         sys_params = {'dt': dt, 'delta_nu_MHz': chan_width, 'nu_GHz': cent_freq}
         pointing = self._get_pointing()
         if pointing is not None:

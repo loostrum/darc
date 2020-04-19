@@ -230,7 +230,7 @@ class OfflineProcessing(threading.Thread):
                 self._fold_pulsar(source, obs_config)
         except Exception as e:
             self.logger.error("Pulsar folding failed: {}".format(e))
-            
+
         # run calibration tools if this is a calibrator scan
         # these have "drift" in the source name
         try:
@@ -246,7 +246,7 @@ class OfflineProcessing(threading.Thread):
                     # start and end beam
                     sbeam = int(beam_range[:2])
                     ebeam = int(beam_range[2:])
-                    drift_beams = range(sbeam, ebeam+1)
+                    drift_beams = range(sbeam, ebeam + 1)
                 else:
                     self.logger.error("Failed to parse beam range for calibrator scan: {}".format(source))
                     drift_beams = []
@@ -342,7 +342,7 @@ class OfflineProcessing(threading.Thread):
                 # gather results
                 numcand_grouped = int(np.sum(numcand_all[numcand_all != -1]))
         tend = Time.now()
-        self.logger.info("Trigger clustering took {}s".format((tend-tstart).sec))
+        self.logger.info("Trigger clustering took {}s".format((tend - tstart).sec))
 
         # Create one hdf5 file for entire CB
         if obs_config['mode'] == 'TAB':
@@ -359,7 +359,7 @@ class OfflineProcessing(threading.Thread):
         else:
             self.logger.info("No candidates post-merge. Not running classifier")
             output_prefix = ''
-        
+
         # Merge PDFs
         if numcand_merged > 0:
             self.logger.info("Merging classifier output files")
@@ -370,7 +370,7 @@ class OfflineProcessing(threading.Thread):
         # Centralize results
         self.logger.info("Gathering results")
 
-        kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw, 
+        kwargs = {'output_prefix': output_prefix, 'data_file': trigger_output_file, 'numcand_raw': numcand_raw,
                   'numcand_grouped': numcand_grouped}
         self._gather_results(obs_config, **kwargs)
 
@@ -387,8 +387,8 @@ class OfflineProcessing(threading.Thread):
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
         cmd = "awk '(FNR==1 && NR!=1) || !/./{{next;}}{{print}}' {prefix}_step*.trigger > {prefix}.trigger".format(prefix=prefix)
         # awk command from Thijs:
-        # (FNR==1 && NR!=1) means "if it's the first line of the current file we're processing, 
-        # but not the first line read overall then skip this line {"next"}. This matches the first 
+        # (FNR==1 && NR!=1) means "if it's the first line of the current file we're processing,
+        # but not the first line read overall then skip this line {"next"}. This matches the first
         # header line in all files expect the first file. The other clause "|| !/./"  makes it skip
         # empty lines, which can happen when there is superfluous carriage returns at the end of files.
         self.logger.info("Running {}".format(cmd))
@@ -397,7 +397,7 @@ class OfflineProcessing(threading.Thread):
         os.system(cmd)
 
         # check number of triggers
-        cmd = "grep -v \# {prefix}.trigger | wc -l".format(prefix=prefix)
+        cmd = r"grep -v \# {prefix}.trigger | wc -l".format(prefix=prefix)
         self.logger.info("Running {}".format(cmd))
         try:
             numcand_raw = int(subprocess.check_output(cmd, shell=True)) - 1
@@ -507,7 +507,7 @@ class OfflineProcessing(threading.Thread):
                 try:
                     data_file = data_files[item]
                 except IndexError:
-                    self.logger.error("Data file {} out of {} not found, skipping".format(item+1, nitem))
+                    self.logger.error("Data file {} out of {} not found, skipping".format(item + 1, nitem))
                     continue
             else:
                 data_file = '{output_dir}/triggers/data/data_{tab:02d}_full.hdf5'.format(tab=item, **obs_config)
@@ -703,7 +703,7 @@ class OfflineProcessing(threading.Thread):
         summary['ncand_raw'] = kwargs.get('numcand_raw', -1)
         summary['ncand_trigger'] = kwargs.get('numcand_grouped', -1)
         summary['ncand_skipped'] = ncand_skipped
-        summary['ncand_abovethresh'] = kwargs.get('numcand_grouped', ncand_skipped-1) - ncand_skipped
+        summary['ncand_abovethresh'] = kwargs.get('numcand_grouped', ncand_skipped - 1) - ncand_skipped
         summary['ncand_classifier'] = ncand_classifier
         fname = "{result_dir}/CB{beam:02d}_summary.yaml".format(**conf)
         with open(fname, 'w') as f:

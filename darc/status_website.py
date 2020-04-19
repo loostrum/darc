@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Website 
+# Website
 
 import os
 import yaml
@@ -116,7 +116,7 @@ class StatusWebsite(threading.Thread):
         Publish status as simple html webpage
 
         :param dict statuses: Status of each service across all nodes
-        """ 
+        """
 
         header, footer = self.get_template()
         webpage = header
@@ -130,7 +130,7 @@ class StatusWebsite(threading.Thread):
             if statuses[node] is None:
                 webpage += "<tr><td style='background-color:{}'>{}</td></tr>".format(self.colour_unknown, node.upper())
                 continue
-    
+
             # check node type
             if node == MASTER:
                 services = self.services_master
@@ -201,8 +201,8 @@ class StatusWebsite(threading.Thread):
                         <title>DARC status</title>
                         <meta http-equiv="refresh" content="10">
                         </head>
-                        <body style='font-size: 10pt; 
-                                     line-height: 1em; 
+                        <body style='font-size: 10pt;
+                                     line-height: 1em;
                                      font-family: arial'>
 
 
@@ -216,7 +216,7 @@ class StatusWebsite(threading.Thread):
                         </body>
                         </html>
                         """)
-        
+
         return header, footer
 
     def make_offline_page(self):

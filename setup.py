@@ -29,4 +29,3 @@ setup(name='darc',
                'bin/darc_start_master',
                'bin/darc_stop_master',
                'bin/darc_kill_all'])
-
