@@ -55,7 +55,7 @@ class TestLOFARTrigger(unittest.TestCase):
         fmt = '>cciHHc'
         # \x99, \xA0, tstop_s, tstop_ms, dm*10, test_flag)
         tstop_s = 1546452008
-        tstop_ms = 288
+        tstop_ms = 265
         dm_int = 568
         expected_event = (b'\x99', b'\xA0', tstop_s, tstop_ms, dm_int, b'\x54')
 
