@@ -6,6 +6,22 @@ Data Analysis of Real-time Candidates from the Apertif Radio Transient System
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
 As of February 2020, DARC has discovered 11 FRBs.
 
+### Installation
+
+## Requirements:
+* astropy
+* h5py
+* matplotlib
+* numpy
+* pyyaml
+* scipy
+* voevent-parse
+
+To install a DARC release, for example v2.0:
+`pip install git+https://github.com/loostrum/darc/archive/v2.0.tar.gz`  
+To install the latest master:
+`pip install git+https://github.com/loostrum/darc.git`
+
 ### Overview
 DARC comprises several parts that communicate through either queues or sockets. Each node of the ARTS cluster runs one instance of DARC. 
 
