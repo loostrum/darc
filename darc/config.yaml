@@ -61,15 +61,18 @@ amber_clustering:
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be equally or more strict than IQUV thresholds for each parameter
-    # for known sources, only the LOFAR S/N threshold is applied
+    # for known sources, the DM threshold is not applied
     thresh_lofar:
       dm_frac_min: 2.0  # fraction of max MW contribution.
       width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
-      snr_min: 12
-    # LOFAR triggering thresholds for R3
-    thresh_r3:
+      snr_min: 9999  # effectively disable by setting high S/N threshold
+    # known sources for which to override LOFAR thresholds
+    lofar_trigger_sources: []
+    # LOFAR triggering thresholds for override sources
+    thresh_lofar_override:
       snr_min: 10
-      width_max: 25
+      width_max: 80
+      cb: 0  # remove or comment out this line to trigger on any CB
 
 # VOEvent generator
 voevent_generator:
