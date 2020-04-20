@@ -241,8 +241,10 @@ class DADATrigger(DARCBase):
 
         # run until trigger would be end past end time
         # add a second to avoid trigger running a little bit over end time
+        # also stay below global limit on number of dumps during one obs
         # TODO: also set a total length limit
-        while Time.now() + dump_interval - TimeDelta(1.0, format='sec') < tend:
+        ndump = 0
+        while Time.now() + dump_interval - TimeDelta(1.0, format='sec') < tend and ndump < self.polcal_max_dumps:
             # generate an IQUV trigger
             params = {'utc_start': tstart.iso.replace(' ', '-')}
             # trigger start time: now, rounded to nearest 1.024s since utc start
@@ -263,5 +265,8 @@ class DADATrigger(DARCBase):
                     "0 0 0 0".format(**params)  # dm, snr, width, beam are 0
 
             self.send_events(event, 'IQUV')
+            # keep track of number of performed dumps
+            ndump += 1
+
             # sleep
             self.stop_event.wait(dump_interval.sec)
