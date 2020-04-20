@@ -65,7 +65,7 @@ amber_clustering:
     thresh_lofar:
       dm_frac_min: 2.0  # fraction of max MW contribution.
       width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
-      snr_min: 9999  # effectively disable by setting high S/N threshold
+      snr_min: 20  # effectively disable by setting high S/N threshold
     # known sources for which to override LOFAR thresholds
     lofar_trigger_sources: []
     # LOFAR triggering thresholds for override sources

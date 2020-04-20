@@ -89,7 +89,7 @@ class AMBERClustering(DARCBase):
         else:
             # dummy queue
             self.logger.info("LOFAR Trigger connection disabled, setting dummy queue")
-            self.vo_queue = mp.Queue()
+            self.lofar_queue = mp.Queue()
             self.have_lofar = False
 
     def _load_source_list(self):

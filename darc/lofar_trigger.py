@@ -127,7 +127,7 @@ class LOFARTrigger(threading.Thread):
 
         # if multiple triggers are received, select one
         if isinstance(trigger, list):
-            self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
+            self.logger.info("Received {} triggers, selecting known source / highest S/N".format(len(trigger)))
             trigger, num_unique_cb = self._select_trigger(trigger)
             self.logger.info("Number of unique CBs: {}".format(num_unique_cb))
         else:
@@ -188,14 +188,24 @@ class LOFARTrigger(threading.Thread):
             else:
                 self.logger.info("Sent warning email")
 
-    @staticmethod
-    def _select_trigger(triggers):
+    def _select_trigger(self, triggers):
         """
-        Select trigger with highest S/N from a list of triggers
+        Select trigger with highest S/N from a list of triggers.
+        If there are triggers from both known and new sources, select the known source
 
         :param list triggers: one dict per trigger
         :return: trigger with highest S/N and number of unique CBs in trigger list
         """
+
+        # check known vs new sources
+        # get known/new keyword for all triggers, and check if all are default name for new source
+        # if not, there are known sources. Select only those
+        if not np.all([trigger['name'] == 'candidate' for trigger in triggers]):
+            triggers_known_sources = [trigger for trigger in triggers if trigger['name'] != 'candidate']
+            ntrig_removed = len(triggers) - len(triggers_known_sources)
+            triggers = triggers_known_sources
+
+        # select max S/N
         max_snr = 0
         index = None
         cbs = []

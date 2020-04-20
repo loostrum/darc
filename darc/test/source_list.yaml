@@ -8,7 +8,8 @@ pulsars:
     'B1933+16': 158.5
 
 frbs:
-    'none': 0
+    'galactic': 10.0
+    'extragalactic': 1000.0
 
 aliases:
     'none': 0
