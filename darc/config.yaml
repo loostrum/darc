@@ -102,6 +102,8 @@ dada_trigger:
     port_iquv: 30001  # dada_dbevent port used for Stokes IQUV triggers
     min_window_size: 2.048  # minimum trigger duration (s)
     delay_end: 2.048  # how much extra to store in addition to DM delay (s)
+    polcal_dump_size: 30  # seconds
+    polcal_interval: 60  # seconds
 
 # SB generator
 sb_generator:
