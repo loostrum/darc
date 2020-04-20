@@ -20,8 +20,9 @@ class TestLOFARTrigger(unittest.TestCase):
         """
         # init LOFAR trigger
         lofar_trigger = LOFARTrigger()
-        # overwrite server location
+        # overwrite server location and port
         lofar_trigger.server_host = 'localhost'
+        lofar_trigger.server_port = 9999
         # overwrite lofar server location
         lofar_trigger.lofar_host = 'localhost'
         # set event seding to true
