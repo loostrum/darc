@@ -32,11 +32,11 @@ class TestVOEventGenerator(unittest.TestCase):
                     {'dm': 56.791, 'dm_err': .2, 'width': 2.5, 'snr': 50, 'flux': 0.5,
                      'ra': 83.63322083333333, 'dec': 22.01446111111111, 'ymw16': 0,
                      'semiMaj': 15., 'semiMin': 15., 'name': 'B0531+21', 'cb': 17,
-                     'importance': 0.1, 'utc': trigger_utc, 'test':True}]
+                     'importance': 0.1, 'utc': trigger_utc, 'test': True}]
 
         # get the queue
         VOEventQueueServer.register('get_queue')
-        queue_server = VOEventQueueServer(address=(generator.server_host, generator.server_port), 
+        queue_server = VOEventQueueServer(address=(generator.server_host, generator.server_port),
                                           authkey=generator.server_auth.encode())
         queue_server.connect()
         queue = queue_server.get_queue()

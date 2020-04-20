@@ -170,12 +170,12 @@ class VOEventGenerator(threading.Thread):
                 return
 
         # Parse coordinates
-        coord = SkyCoord(ra=trigger['ra']*u.degree, dec=trigger['dec']*u.degree, frame='icrs')
+        coord = SkyCoord(ra=trigger['ra'] * u.degree, dec=trigger['dec'] * u.degree, frame='icrs')
         trigger['gl'] = coord.galactic.l.deg
         trigger['gb'] = coord.galactic.b.deg
 
         # calculate gain
-        gain = (AP_EFF * np.pi * (DISH_DIAM / 2.) ** 2 / (2 * const.k_B) * NDISH).to(u.Kelvin/(1000*u.mJy)).value
+        gain = (AP_EFF * np.pi * (DISH_DIAM / 2.) ** 2 / (2 * const.k_B) * NDISH).to(u.Kelvin / (1000 * u.mJy)).value
         trigger['gain'] = gain
 
         # calculate parallactic angle - Useful when using SB for pointing instead of center of CB
@@ -233,7 +233,7 @@ class VOEventGenerator(threading.Thread):
 
     def _NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
                     ymw16, name, importance, utc, gl, gb, gain,
-                    dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH/NCHAN).to(u.MHz).value,
+                    dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH / NCHAN).to(u.MHz).value,
                     nu_GHz=1.37, posang=0, test=False):
         """
         Create a VOEvent
@@ -261,8 +261,8 @@ class VOEventGenerator(threading.Thread):
         :param bool test: Whether to send a test event or observation event
         """
 
-        z = dm/1000.0  # May change
-        errDeg = semiMaj/60.0
+        z = dm / 1000.0  # May change
+        errDeg = semiMaj / 60.0
 
         # Parse UTC
         utc_YY = int(utc[:4])
@@ -303,7 +303,7 @@ class VOEventGenerator(threading.Thread):
         bw = vp.Param(name="bandwidth", value=delta_nu_MHz, unit="MHz", ucd="instr.bandwidth", ac=True)
         nchan = vp.Param(name="nchan", value=str(NCHAN), dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
-        cf = vp.Param(name="centre_frequency", value=str(1000*nu_GHz), unit="MHz", ucd="em.freq;instr", ac=True)
+        cf = vp.Param(name="centre_frequency", value=str(1000 * nu_GHz), unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
         gain = vp.Param(name="gain", value=gain, unit="K/Jy", ac=True)
@@ -358,4 +358,3 @@ class VOEventGenerator(threading.Thread):
                 self.logger.info(vp.prettystr(v.Why))
         else:
             self.logger.error("Unable to write file {}.xml".format(name))
-

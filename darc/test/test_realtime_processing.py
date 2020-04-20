@@ -56,9 +56,9 @@ class TestFullRun(unittest.TestCase):
             parset = f.read().strip()
 
         # nreader: one for each programme readding from the buffer, i.e. 3x AMBER
-        self.settings = {'resolution': 1536*12500*12, 'nbuf': 5, 'key_i': 'aaaa',
+        self.settings = {'resolution': 1536 * 12500 * 12, 'nbuf': 5, 'key_i': 'aaaa',
                          'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
-                         'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files)*10,
+                         'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files) * 10,
                          'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1219.70092773,
                          'parset': parset, 'datetimesource': '2019-01-01-00:00:00.FAKE'}
 
@@ -75,14 +75,6 @@ class TestFullRun(unittest.TestCase):
 
         # init GPU pipeline thread
         self.t_amber = threading.Thread(target=self.amber, name='AMBER', daemon=True)
-
-        # start DARC master
-        #master = DARCMaster(config_file=self.config_file)
-        #self.t_darc_service = threading.Thread(target=master.run, name='darc_service', daemon=True)
-        #print("Starting DARC")
-        #self.t_darc_service.start()
-        ## start DARC services
-        #send_command(timeout=5, service='all', command='start', port=self.master_config['port'])
 
         # init amber listener thread
         self.listener = AMBERListener()
@@ -102,10 +94,10 @@ class TestFullRun(unittest.TestCase):
         self.dadatrigger.set_source_queue(self.clustering.target_queue)
         self.dadatrigger.start()
 
-        # initalize writer thread
+        # init writer thread
         self.t_disk_to_db = threading.Thread(target=self.writer, name='disk_to_db', daemon=True)
 
-        # initalize output listener thread
+        # init output listener thread
         self.event_queue = mp.Queue()
         self.t_dbevent = threading.Thread(target=self.dbevent, name='dbevent', daemon=True,
                                           args=(self.event_queue,))
@@ -118,10 +110,6 @@ class TestFullRun(unittest.TestCase):
         # remove buffers
         print("Removing buffers")
         os.system('dada_db -d -k {key_i}'.format(**self.settings))
-        # stop DARC master (also stops services)
-        #print("Stopping DARC")
-        #send_command(timeout=5, service=None, command='stop_master', port=self.master_config['port'])
-        #self.t_darc_service.join()
         self.listener.stop()
         self.clustering.stop()
         self.dadatrigger.stop()
@@ -145,7 +133,7 @@ class TestFullRun(unittest.TestCase):
                     # read header, strip empty bytes, convert to string, remove last newline
                     raw_hdr = f.read(self.settings['hdr_size']).rstrip(b'\x00').decode().strip()
                     # convert to dict by splitting on newline, then whitespace
-                    hdr = dict([line.split(maxsplit=1) for line in raw_hdr.split('\n') if line ])
+                    hdr = dict([line.split(maxsplit=1) for line in raw_hdr.split('\n') if line])
                     dada_writer.setHeader(hdr)
                 else:
                     # skip header
@@ -267,9 +255,9 @@ class TestFullRun(unittest.TestCase):
         threads = []
         # start all steps
         for i, step in enumerate([amber_step1, amber_step2, amber_step3]):
-            print("Starting AMBER step {}".format(i+1))
+            print("Starting AMBER step {}".format(i + 1))
             thread = threading.Thread(target=os.system, args=(step,),
-                                      name='AMBER_step{}'.format(i+1), daemon=True)
+                                      name='AMBER_step{}'.format(i + 1), daemon=True)
             thread.start()
             sleep(.1)
             threads.append(thread)
@@ -340,10 +328,6 @@ class TestFullRun(unittest.TestCase):
         cmd = {'command': 'start_observation', 'obs_config': self.settings}
         self.listener.source_queue.put(cmd)
         self.clustering.source_queue.put(cmd)
-
-        #print("Sending start_observation")
-        #send_command(timeout=5, service=None, command='start_observation',
-        #             payload=obs_config, port=self.master_config['port'])
 
         # start writer at start time
         util.sleepuntil_utc(tstart)

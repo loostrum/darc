@@ -180,11 +180,11 @@ def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
     :param bool coherent: Using coherent beamforming (default: True)
     :return: Peak flux density (astropy.units.quantity.Quantity)
     """
-    gain = AP_EFF * np.pi * (DISH_DIAM/2.)**2 / (2*const.k_B)
+    gain = AP_EFF * np.pi * (DISH_DIAM / 2.)**2 / (2 * const.k_B)
     if coherent:
         beta = 1
     else:
-        beta = 1./2
+        beta = 1. / 2
     sefd = TSYS / (gain * ndish**beta)
     flux = snr * sefd / np.sqrt(npol * BANDWIDTH * width)
     return flux.to(u.mJy)
@@ -248,9 +248,9 @@ def ha_to_proj(ha, dec):
     :param astropy.units.quantity.Quantity ha: hour angle with unit
     :param astropy.units.quantity.Quantity dec: declination with unit
     """
-    theta_proj = np.arctan(np.cos(WSRT_LAT)*np.sin(ha) /
-                           (np.sin(WSRT_LAT)*np.cos(dec) -
-                           np.cos(WSRT_LAT)*np.sin(dec)*np.cos(ha))).to(u.deg)
+    theta_proj = np.arctan(np.cos(WSRT_LAT) * np.sin(ha)
+                           / (np.sin(WSRT_LAT) * np.cos(dec)
+                           - np.cos(WSRT_LAT) * np.sin(dec) * np.cos(ha))).to(u.deg)
     return theta_proj.to(u.deg)
 
 

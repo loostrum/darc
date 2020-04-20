@@ -124,7 +124,7 @@ class DADATrigger(DARCBase):
 
         :param str event: raw event to send
         :param str stokes: I or IQUV
-        :return: 
+        :return:
         """
         # open socket
         if stokes.upper() == 'I':

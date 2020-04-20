@@ -223,25 +223,25 @@ class LOFARTrigger(threading.Thread):
         """
         # add units
         nu_GHz *= u.GHz
-        dm *= u.pc*u.cm**-3
+        dm *= u.pc * u.cm**-3
 
         # calculate pulse arrival time at LOFAR
         # AMBER uses top of band
-        fhi = nu_GHz + .5*BANDWIDTH
+        fhi = nu_GHz + .5 * BANDWIDTH
         # LOFAR is referenced to 200 MHz
-        flo = 200.*u.MHz
+        flo = 200. * u.MHz
         dm_delay = util.dm_to_delay(dm, flo, fhi)
         # LOFAR TBB buffer size is 5 seconds, aim to have pulse in centre
-        lofar_buffer_delay = 2.5*u.s
+        lofar_buffer_delay = 2.5 * u.s
         # calculate buffer stop time
         tstop = Time(utc, scale='utc', format='isot') + dm_delay + lofar_buffer_delay
         # Use unix time, split into integer part and float part to ms accuracy
         tstop_s = int(tstop.unix)
         tstop_remainder = tstop.unix - tstop_s
-        tstop_ms = int(np.round(tstop_remainder*1000))
+        tstop_ms = int(np.round(tstop_remainder * 1000))
 
         # dm is sent as int, multiplied by ten to preserve one decimal place
-        dm_int = int(np.round(10 * dm.to(u.pc/u.cm**3).value))
+        dm_int = int(np.round(10 * dm.to(u.pc * u.cm**-3).value))
 
         # test event or real event
         if test:

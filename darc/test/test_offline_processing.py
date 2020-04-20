@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #
 # OfflineProcessing end to end test
-# 
-# 
+
 import os
 import logging
 import shutil
@@ -49,7 +48,7 @@ class TestOfflineProcessing(unittest.TestCase):
 
         config = {'ntabs': 12, 'nsynbeams': 71, 'beam': 0, 'mode': 'TAB',
                   'amber_dir': amber_dir, 'output_dir': output_dir,
-                  'duration': 300.032, 'startpacket': startpacket, 
+                  'duration': 300.032, 'startpacket': startpacket,
                   'result_dir': result_dir, 'min_freq': min_freq,
                   'datetimesource': '2019-01-01-00:00:00.FAKE',
                   'freq': freq, 'parset': parset}
@@ -73,11 +72,10 @@ class TestOfflineProcessing(unittest.TestCase):
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
         logger = logging.getLogger()
 
-
         # output file names
         fname_yaml = "CB00_summary.yaml"
         fname_txt = "CB00_triggers.txt"
-        fname_txt_in = "CB00_triggers_tab.txt" 
+        fname_txt_in = "CB00_triggers_tab.txt"
         fname_pdf = "CB00_candidates_summary.pdf"
 
         # set expected output for yaml
@@ -151,7 +149,6 @@ class TestOfflineProcessing(unittest.TestCase):
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
         logger = logging.getLogger()
 
-
         # output file names
         fname_yaml = "CB00_summary.yaml"
         fname_txt = "CB00_triggers.txt"
@@ -214,4 +211,3 @@ class TestOfflineProcessing(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

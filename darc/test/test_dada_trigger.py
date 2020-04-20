@@ -38,9 +38,7 @@ class TestDADATrigger(unittest.TestCase):
         event_end_full = event_start_full + TimeDelta(min_window_size + delay_end + shift, format='sec')
 
         event_start, event_start_frac = event_start_full.iso.split('.')
-        #event_start_frac = '.' + event_start_frac
         event_end, event_end_frac = event_end_full.iso.split('.')
-        #event_end_frac = '.' + event_end_frac
 
         event_info = trigger.copy()
         event_info['utc_start'] = trigger['utc_start'].iso.replace(' ', '-')
@@ -48,14 +46,14 @@ class TestDADATrigger(unittest.TestCase):
         event_info['event_start_frac'] = event_start_frac
         event_info['event_end'] = event_end.replace(' ', '-')
         event_info['event_end_frac'] = event_end_frac
-        
+
         event = dedent("""\
                        N_EVENTS 1
                        {utc_start}
                        {event_start} {event_start_frac} {event_end} {event_end_frac} {dm} {snr} {width} {beam}
                        """.format(**event_info))
         return trigger, event
-        
+
     def test_triggers(self):
         """
         Generate a stokes I and IQUV event

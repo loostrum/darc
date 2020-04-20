@@ -76,7 +76,7 @@ class DARCMaster(object):
         # setup listening socket
         command_socket = None
         start = time()
-        while not command_socket and time()-start < self.socket_timeout:
+        while not command_socket and time() - start < self.socket_timeout:
             try:
                 command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 command_socket.bind(("", self.port))
@@ -428,7 +428,7 @@ class DARCMaster(object):
         self.logger.info("Stopping service: {}".format(service))
         thread.stop()
         tstart = time()
-        while thread.isAlive() and time()-tstart < self.stop_timeout:
+        while thread.isAlive() and time() - tstart < self.stop_timeout:
             sleep(.1)
         if thread.isAlive():
             status = 'error'
@@ -673,4 +673,3 @@ def main():
     """
     master = DARCMaster()
     master.run()
-

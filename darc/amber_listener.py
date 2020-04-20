@@ -56,7 +56,7 @@ class AMBERListener(DARCBase):
         # start reader for each thread
         num_amber = len(ast.literal_eval(amber_conf['opencl_device']))
         self.logger.info("Expecting {} AMBER threads".format(num_amber))
-        for step in range(1, num_amber+1):
+        for step in range(1, num_amber + 1):
             trigger_file = os.path.join(amber_dir, "CB{:02d}_step{}.trigger".format(beam, step))
             # start thread for reading
             event = threading.Event()
