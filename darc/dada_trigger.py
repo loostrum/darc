@@ -2,11 +2,15 @@
 #
 # dada_dbevent triggers
 
+import os
 import threading
 import socket
+
+import numpy as np
 from astropy.time import Time, TimeDelta
 
 from darc.base import DARCBase
+from darc import util
 
 
 class DADATriggerException(Exception):
@@ -22,7 +26,33 @@ class DADATrigger(DARCBase):
         """
         """
         super(DADATrigger, self).__init__()
-        self.thread = None
+        self.thread_trigger = None
+        self.thread_polcal = None
+        self.triggers_enabled = True
+
+    def start_observation(self, obs_config):
+        """
+        Start observation: run IQUV dumps automatically if source is polarisation calibrator.
+        Else ensure normal FRB candidate I/IQUV dumps are enabled
+        """
+        # load parset
+        parset = self._load_parset(obs_config)
+        if parset is None:
+            self.logger.warning("No observation parset found; not checking for polcal observation")
+            # ensure normal triggers can be received and processed
+            self.triggers_enabled = True
+            return
+        # Override regular IQUV trigger with polcal
+        if 'polcal' in parset['task.source.name'] and int(parset['task.source.beam']) == obs_config['beam']:
+            # disable regular triggering
+            self.triggers_enabled = False
+            # do the automated polcal dumps
+            self.thread_polcal = threading.Thread(target=self.polcal_dumps, args=[obs_config])
+            self.thread_polcal.daemon = True
+            self.thread_polcal.start()
+        else:
+            # no polcal obs, ensure normal triggers can be received and processed
+            self.triggers_enabled = True
 
     def process_command(self, command):
         """
@@ -31,10 +61,14 @@ class DADATrigger(DARCBase):
         :param dict command: command with arguments
         """
         if command['command'] == 'trigger':
-            # trigger received, send to dada_dbevent
-            self.thread = threading.Thread(target=self.send_event, args=[command['trigger']])
-            self.thread.daemon = True
-            self.thread.start()
+            # trigger received, check if triggering is enabled
+            if not self.triggers_enabled:
+                self.logger.warning("Trigger received but triggering is disabled, ignoring")
+                return
+            # process trigger
+            self.thread_trigger = threading.Thread(target=self.send_event, args=[command['trigger']])
+            self.thread_trigger.daemon = True
+            self.thread_trigger.start()
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
@@ -42,8 +76,10 @@ class DADATrigger(DARCBase):
         """
         Remove all trigger-sending threads
         """
-        if self.thread:
-            self.thread.join()
+        if self.thread_trigger:
+            self.thread_trigger.join()
+        if self.thread_polcal:
+            self.thread_polcal.join()
 
     def send_event(self, triggers):
         """
@@ -152,3 +188,85 @@ class DADATrigger(DARCBase):
 
         # close socket
         sock.close()
+
+    def _load_parset(self, obs_config):
+        """
+        Load the observation parset
+
+        :param dict obs_config: Observation config
+        :return: parset as dict
+        """
+        try:
+            # encoded parset is already in config on master node
+            # decode the parset
+            raw_parset = util.decode_parset(obs_config['parset'])
+            # convert to dict and store
+            parset = util.parse_parset(raw_parset)
+        except KeyError:
+            self.logger.info("Observation parset not found in input config, looking for master parset")
+            # Load the parset from the master parset file
+            master_config_file = os.path.join(obs_config['master_dir'], 'parset', 'darc_master.parset')
+            try:
+                # Read raw config
+                with open(master_config_file) as f:
+                    master_config = f.read().strip()
+                # Convert to dict
+                master_config = util.parse_parset(master_config)
+                # extract obs parset and decode
+                raw_parset = util.decode_parset(master_config['parset'])
+                parset = util.parse_parset(raw_parset)
+            except Exception as e:
+                self.logger.warning(
+                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
+                parset = None
+
+        return parset
+
+    def polcal_dumps(self, obs_config):
+        """
+        Automatically dump IQUV data at regular intervals for polcal calibrator observations
+
+        :param dict obs_config: Observation config
+        """
+        tstart = Time(obs_config['startpacket'] * 781250, format='unix')
+        duration = TimeDelta(obs_config['duration'], format='sec')
+        tend = tstart + duration
+
+        # round up polcal dump size to nearest 1.024 s
+        dump_size = np.ceil(self.polcal_dump_size / 1.024) * 1.024
+        dump_interval = TimeDelta(self.polcal_interval, format='sec')
+
+        # sleep until first trigger time
+        util.sleepuntil_utc(tstart + dump_interval, event=self.stop_event)
+
+        # run until trigger would be end past end time
+        # add a second to avoid trigger running a little bit over end time
+        # also stay below global limit on number of dumps during one obs
+        # TODO: also set a total length limit
+        ndump = 0
+        while Time.now() + dump_interval - TimeDelta(1.0, format='sec') < tend and ndump < self.polcal_max_dumps:
+            # generate an IQUV trigger
+            params = {'utc_start': tstart.iso.replace(' ', '-')}
+            # trigger start time: now, rounded to nearest 1.024s since utc start
+            dt = TimeDelta(np.round((Time.now() - tstart).sec / 1.024) * 1.024, format='sec')
+            # trigger start/end times
+            event_start_full = tstart + dt
+            event_end_full = tstart + dt + dump_size
+            # convert to dada_dbevent format
+            event_start, event_start_frac = event_start_full.iso.split('.')
+            event_end, event_end_frac = event_end_full.iso.split('.')
+            # store to params
+            params['event_start'] = event_start.replace(' ', '-')
+            params['event_start_frac'] = event_start_frac
+            params['event_end'] = event_end.replace(' ', '-')
+            params['event_end_frac'] = event_end_frac
+
+            event = "N_EVENTS 1\n{utc_start}\n}{event_start} {event_start_frac} {event_end} {event_end_frac} " \
+                    "0 0 0 0".format(**params)  # dm, snr, width, beam are 0
+
+            self.send_events(event, 'IQUV')
+            # keep track of number of performed dumps
+            ndump += 1
+
+            # sleep
+            self.stop_event.wait(dump_interval.sec)
