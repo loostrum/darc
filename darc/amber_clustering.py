@@ -280,11 +280,11 @@ class AMBERClustering(DARCBase):
         """
         # cluster using IQUV thresholds
         # LOFAR thresholds are assumed to be more strict for every parameter
-        cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _ = \
+        cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _, ncand_per_cluster = \
             tools.get_triggers(triggers,
                                dm_min=dm_min, dm_max=dm_max,
                                sig_thresh=snr_min,
-                               read_beam=True, **sys_params)
+                               read_beam=True, return_clustcounts=True, **sys_params)
 
         # select on width
         mask = np.array(cluster_downsamp) <= width_max
@@ -293,6 +293,7 @@ class AMBERClustering(DARCBase):
         cluster_time = np.array(cluster_time)[mask]
         cluster_downsamp = np.array(cluster_downsamp)[mask].astype(int)
         cluster_sb = np.array(cluster_sb)[mask].astype(int)
+        ncand_per_cluster = np.array(ncand_per_cluster)[mask].astype(int)
         ncluster = len(cluster_snr)
 
         if src_type is not None:
@@ -366,7 +367,10 @@ class AMBERClustering(DARCBase):
             width_max_lofar = self.thresh_lofar['width_max']
 
         # create mask for given thresholds
-        mask = (cluster_snr >= snr_min_lofar) & (cluster_dm >= dm_min_lofar) & (cluster_downsamp <= width_max_lofar)
+        # also remove triggers where number of raw candidates is too high (this indicates RFI)
+        mask = (cluster_snr >= snr_min_lofar) & (cluster_dm >= dm_min_lofar) & \
+               (cluster_downsamp <= width_max_lofar) & \
+               (ncand_per_cluster < self.thresh_lofar['max_cands_per_cluster'])
 
         # check for any remaining triggers
         if np.any(mask):
