@@ -476,6 +476,7 @@ class AMBERClustering(DARCBase):
                           'width_max': np.inf,
                           'snr_min': self.snr_min_global,
                           'pointing': pointing,
+                          'dmgal': dmgal
                           }
             self.logger.info("Setting {src_name} trigger DM range to {dm_min} - {dm_max}, "
                              "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_src))
@@ -488,6 +489,7 @@ class AMBERClustering(DARCBase):
                       'width_max': self.thresh_iquv['width_max'],
                       'snr_min': self.thresh_iquv['snr_min'],
                       'pointing': pointing,
+                      'dmgal': dmgal
                       }
         self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
                          "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_new))
