@@ -62,7 +62,7 @@ amber_clustering:
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be equally or more strict than IQUV thresholds for each parameter
-    # for known sources, the DM threshold is not applied
+    # for known sources, the DM and max cands per cluster thresholds are not applied
     thresh_lofar:
       max_cands_per_cluster: 100  # maximum number of raw candidates going into one cluster
       dm_frac_min: 2.0  # fraction of max MW contribution.

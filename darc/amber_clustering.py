@@ -340,9 +340,11 @@ class AMBERClustering(DARCBase):
             # known source, use same DM threshold as IQUV, but apply width and S/N thresholds
             # DM_min effectively does nothing here because the value is the same as for IQUV
             # but it needs to be defined for the mask = line below to work
+            # no limit on candidates per cluster
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = dm_min
             width_max_lofar = self.thresh_lofar['width_max']
+            max_cands_per_cluster = np.inf
 
             # Overrides for specific sources
             if src_name in self.lofar_trigger_sources:
@@ -365,12 +367,13 @@ class AMBERClustering(DARCBase):
             snr_min_lofar = self.thresh_lofar['snr_min']
             dm_min_lofar = max(dmgal * self.thresh_lofar['dm_frac_min'], self.dm_min_global)
             width_max_lofar = self.thresh_lofar['width_max']
+            max_cands_per_cluster = self.thresh_lofar['max_cands_per_cluster']
 
         # create mask for given thresholds
         # also remove triggers where number of raw candidates is too high (this indicates RFI)
         mask = (cluster_snr >= snr_min_lofar) & (cluster_dm >= dm_min_lofar) & \
                (cluster_downsamp <= width_max_lofar) & \
-               (ncand_per_cluster < self.thresh_lofar['max_cands_per_cluster'])
+               (ncand_per_cluster <= max_cands_per_cluster)
 
         # check for any remaining triggers
         if np.any(mask):
