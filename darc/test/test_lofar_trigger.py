@@ -86,8 +86,6 @@ class TestLOFARTrigger(unittest.TestCase):
 
         self.assertTupleEqual(lofar_event, expected_event)
 
-    # queue_server.connect fails on travis: to be figured out
-    @unittest.skipUnless(socket.gethostname() == 'arts041', "Test is broken on Travis, skip for now")
     def test_internal_trigger(self):
         """
         Test LOFAR triggering through AMBERClustering module
@@ -104,6 +102,7 @@ class TestLOFARTrigger(unittest.TestCase):
         lofar_trigger.send_events = True
         # start the service
         lofar_trigger.start()
+        sleep(1)
 
         # init amber clustering
         # do not connect to VOEvent server nor LOFAR trigger system upon init
