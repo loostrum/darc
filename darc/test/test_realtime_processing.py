@@ -358,7 +358,7 @@ class TestFullRun(unittest.TestCase):
         # 2019-10-14-13:14:37 137 2019-10-14-13:14:39 185 12.3749 26.4 50.0 21
         # 2019-10-14-13:14:37 849 2019-10-14-13:14:39 897 14.1344 31.8 50.0 21
         self.assertTrue(event is not None)
-        print("Received event:\n{}".format(event))
+        print("Received event(s):\n{}".format(event))
 
 
 if __name__ == '__main__':

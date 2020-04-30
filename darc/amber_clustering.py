@@ -283,7 +283,7 @@ class AMBERClustering(DARCBase):
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _, ncand_per_cluster = \
             tools.get_triggers(triggers,
                                dm_min=dm_min, dm_max=dm_max,
-                               sig_thresh=snr_min,
+                               sig_thresh=snr_min, t_window=self.clustering_window,
                                read_beam=True, return_clustcounts=True, **sys_params)
 
         # select on width

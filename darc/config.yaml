@@ -48,7 +48,8 @@ amber_listener:
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
     source_file: "{home}/darc/source_list.yaml"
-    interval: 1.0
+    interval: 1.0  # how often to process candidates (seconds)
+    clustering_window: 1.0  # time window for candidates that are clustered together (seconds)
     # Global thresholds and limits for known sources
     dm_range: 10  # for known sources, trigger if within this many DM units
     dm_min_global: 5  # never trigger below this DM
