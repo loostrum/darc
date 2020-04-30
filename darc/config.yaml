@@ -75,6 +75,7 @@ amber_clustering:
       snr_min: 10
       width_max: 80
       cb: 0  # remove or comment out this line to trigger on any CB
+      trigger_on_new_sources: False  # whether or not to also trigger on new sources
 
 # VOEvent generator
 voevent_generator:

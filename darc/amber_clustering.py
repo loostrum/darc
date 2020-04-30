@@ -491,8 +491,15 @@ class AMBERClustering(DARCBase):
                       'pointing': pointing,
                       'dmgal': dmgal
                       }
+        # if known source, check whether or not LOFAR triggering should be enabled for new sources
+        if src_type is not None and src_name in self.lofar_trigger_sources:
+            thresh_new['skip_lofar'] = not self.thresh_lofar['trigger_on_new_sources']
+        else:
+            thresh_new['skip_lofar'] = False
+
         self.logger.info("Setting new source trigger DM range to {dm_min} - {dm_max}, "
-                         "max downsamp={width_max}, min S/N={snr_min}".format(**thresh_new))
+                         "max downsamp={width_max}, min S/N={snr_min}, skip LOFAR "
+                         "triggering={skip_lofar}".format(**thresh_new))
 
         # main loop
         while self.observation_running:
