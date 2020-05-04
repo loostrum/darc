@@ -29,7 +29,7 @@ copyright = '2020, Leon Oostrum'
 author = 'Leon Oostrum'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0'
+release = '2.1'
 
 
 # -- General configuration ---------------------------------------------------
