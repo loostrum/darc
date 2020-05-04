@@ -33,22 +33,14 @@ class DARCBase(threading.Thread):
         self.target_queue = None
 
         # set names for config and logger
-        name = type(self).__module__.split('.')[-1]
+        self.module_name = type(self).__module__.split('.')[-1]
         self.log_name = type(self).__name__
 
         # load config
-        with open(CONFIG_FILE, 'r') as f:
-            config = yaml.load(f, Loader=yaml.SafeLoader)[name]
-
-        # set config, expanding strings
-        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
-        for key, value in config.items():
-            if isinstance(value, str):
-                value = value.format(**kwargs)
-            setattr(self, key, value)
+        self.load_config()
 
         # setup logger
-        self.logger = get_logger(name, self.log_file)
+        self.logger = get_logger(self.module_name, self.log_file)
         self.logger.info("{} initialized".format(self.log_name))
 
         # set host type
@@ -60,6 +52,20 @@ class DARCBase(threading.Thread):
         else:
             self.logger.warning("Running on unknown host")
             self.host_type = None
+
+    def load_config(self):
+        """
+        Load config file
+        """
+        with open(CONFIG_FILE, 'r') as f:
+            config = yaml.load(f, Loader=yaml.SafeLoader)[self.module_name]
+
+        # set config, expanding strings
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
+        for key, value in config.items():
+            if isinstance(value, str):
+                value = value.format(**kwargs)
+            setattr(self, key, value)
 
     def stop(self):
         """
