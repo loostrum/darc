@@ -270,7 +270,7 @@ class DADATrigger(DARCBase):
             params['event_end'] = event_end.replace(' ', '-')
             params['event_end_frac'] = event_end_frac
 
-            event = "N_EVENTS 1\n{utc_start}\n}{event_start} {event_start_frac} {event_end} {event_end_frac} " \
+            event = "N_EVENTS 1\n{utc_start}\n{event_start} {event_start_frac} {event_end} {event_end_frac} " \
                     "0 0 0 0".format(**params)  # dm, snr, width, beam are 0
 
             self.logger.info("Sending automated polcal IQUV dump event: {}".format(params))

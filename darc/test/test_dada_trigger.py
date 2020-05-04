@@ -181,7 +181,6 @@ class TestDADATrigger(unittest.TestCase):
 
         # observation settings
         tstart = Time.now() + TimeDelta(2, format='sec')
-        print(tstart)
         # set duration. dada_trigger first sleeps for dump_interval seconds, then continues
         # dumping until dump end time is past obs end time, or max dumps is reached
         # if max dumps is not reached, the total number of dumps is duration/interval - 1
@@ -199,29 +198,38 @@ class TestDADATrigger(unittest.TestCase):
 
         # start observation
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
-        # # listen for events
-        # # accept connection
-        # try:
-        #     client, adr = sock.accept()
-        # except socket.timeout:
-        #     self.fail("Did not receive event within {} seconds".format(timeout))
-        # # receive event. Work around bug on MAC
-        # if sys.platform == 'Darwin':
-        #     received = False
-        #     while not received:
-        #         try:
-        #             events = client.recv(1024).decode()
-        #             received = True
-        #         except socket.error as e:
-        #             if e.errno == errno.EAGAIN:
-        #                 sleep(.1)
-        #             else:
-        #                 raise
-        # else:
-        #     events = client.recv(1024).decode()
-        # # close the socket
-        # sock.close()
-        # print(events)
+        # sleep until observation is over
+        util.sleepuntil_utc(tstart + TimeDelta(duration, format='sec'))
+        
+        # receive events
+        received_events = []
+        while True:
+            try:
+                client, adr = sock.accept()
+            except socket.timeout:
+                break
+            # receive event. Work around bug on MAC
+            if sys.platform == 'Darwin':
+                received = False
+                while not received:
+                    try:
+                        event = client.recv(1024).decode()
+                        received = True
+                    except socket.error as e:
+                        if e.errno == errno.EAGAIN:
+                            sleep(.1)
+                        else:
+                            raise
+            else:
+                event = client.recv(1024).decode()
+            received_events.append(event)
+
+        # close the socket
+        sock.close()
+        # stop dada trigger
+        dadatrigger.stop()
+
+        self.assertTrue(ndump == len(received_events))
 
 
 if __name__ == '__main__':
