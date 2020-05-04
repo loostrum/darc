@@ -156,7 +156,7 @@ class TestAMBERListener(unittest.TestCase):
         obs_config = {'amber_dir': os.path.dirname(os.path.abspath(__file__)),
                       'beam': fake_beam,
                       'amber_config': amber_conf_file}
-        command = {'command': 'start_observation', 'obs_config': obs_config}
+        command = {'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False}
         obs_queue.put(command)
 
         # start the senders

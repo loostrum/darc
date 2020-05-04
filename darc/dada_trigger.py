@@ -30,13 +30,17 @@ class DADATrigger(DARCBase):
         self.thread_polcal = None
         self.triggers_enabled = True
 
-    def start_observation(self, obs_config):
+    def start_observation(self, obs_config, reload=True):
         """
         Start observation: run IQUV dumps automatically if source is polarisation calibrator.
         Else ensure normal FRB candidate I/IQUV dumps are enabled
+
+        :param dict obs_cofig: Observation config
+        :param bool reload: reload service settings (default: True)
         """
         # reload config
-        self.load_config()
+        if reload:
+            self.load_config()
 
         # load parset
         parset = self._load_parset(obs_config)

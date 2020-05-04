@@ -127,7 +127,11 @@ class DARCBase(threading.Thread):
                 if command['command'] == "start_observation":
                     self.logger.info("Starting observation")
                     try:
-                        self.start_observation(command['obs_config'])
+                        if 'reload_conf' in command.keys():
+                            self.start_observation(command['obs_config'], reload=command['reload_conf'])
+                        else:
+                            self.start_observation(command['obs_config'])
+
                     except Exception as e:
                         self.logger.error("Failed to start observation: {}".format(e))
                 elif command['command'] == "stop_observation":
@@ -143,14 +147,16 @@ class DARCBase(threading.Thread):
             self.logger.error("Caught exception in main loop: {}".format(e))
             self.stop()
 
-    def start_observation(self, *args, **kwargs):
+    def start_observation(self, *args, reload=True, **kwargs):
         """
         Start observation. By default only (re)loads config file.
 
         :param list args: start_observation arguments
+        :param bool reload: reload service settings (default: True)
         :param dict kwargs: start_observation keyword arguments
         """
-        self.load_config()
+        if reload:
+            self.load_config()
 
     def stop_observation(self, *args, **kwargs):
         """

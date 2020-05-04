@@ -135,15 +135,22 @@ class OfflineProcessing(threading.Thread):
                 self.logger.warning("Cannot find task ID in parset - using random number thread")
                 # taskid length is 8
                 taskid = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
+            # check for reload config option
+            if 'reload_conf' in data.keys():
+                kwargs = {'reload': data['reload_conf']}
+            else:
+                kwargs = {}
 
             # start observation corresponding to host type
             if host_type == 'master':
-                thread = threading.Thread(target=self._start_observation_master, args=[obs_config], name=taskid)
+                thread = threading.Thread(target=self._start_observation_master, args=[obs_config], kwargs=kwargs,
+                                          name=taskid)
                 thread.daemon = True
                 self.threads[taskid] = thread
                 thread.start()
             elif host_type == 'worker':
-                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config], name=taskid)
+                thread = threading.Thread(target=self._start_observation_worker, args=[obs_config], kwargs=kwargs,
+                                          name=taskid)
                 thread.daemon = True
                 self.threads[taskid] = thread
                 thread.start()
@@ -152,18 +159,20 @@ class OfflineProcessing(threading.Thread):
 
         self.logger.info("Stopping Offline processing")
 
-    def _start_observation_master(self, obs_config):
+    def _start_observation_master(self, obs_config, reload=True):
         """
         Start observation on master node
 
         Generated observation summary and send email once all workers are done
 
         :param dict obs_config: Observation config
+        :param bool reload: reload service settings (default: True)
         """
         self.logger.info("Starting observation on master node")
 
         # reload config
-        self.load_config()
+        if reload:
+            self.load_config()
 
         # create result dir
         try:
@@ -197,7 +206,7 @@ class OfflineProcessing(threading.Thread):
 
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
-    def _start_observation_worker(self, obs_config):
+    def _start_observation_worker(self, obs_config, reload):
         """
         Start observation on worker node:
 
@@ -206,11 +215,13 @@ class OfflineProcessing(threading.Thread):
         #. ML classification
 
         :param dict obs_config: Observation config
+        :param bool reload: reload service settings (default: True)
         """
         self.logger.info("Starting observation on worker node")
 
         # reload config
-        self.load_config()
+        if reload:
+            self.load_config()
 
         # create result dir
         try:

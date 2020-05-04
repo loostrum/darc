@@ -325,7 +325,7 @@ class TestFullRun(unittest.TestCase):
         # Todo: ensure DARC waits for start time
 
         # start observation
-        cmd = {'command': 'start_observation', 'obs_config': self.settings}
+        cmd = {'command': 'start_observation', 'obs_config': self.settings, 'reload_conf': False}
         self.listener.source_queue.put(cmd)
         self.clustering.source_queue.put(cmd)
 
