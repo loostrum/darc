@@ -540,7 +540,7 @@ class DARCMaster(object):
         # wait until start time
         utc_start = Time(config['startpacket'] / 781250., format='unix')
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
-        self.logger.info("Starting observation at {}".format(t_setup))
+        self.logger.info("Starting observation at {}".format(t_setup.isot))
         util.sleepuntil_utc(t_setup)
 
         # create command

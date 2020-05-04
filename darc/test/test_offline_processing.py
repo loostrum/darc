@@ -111,7 +111,7 @@ class TestOfflineProcessing(unittest.TestCase):
 
             # run worker observation
             try:
-                proc._start_observation_worker(fullconfig)
+                proc._start_observation_worker(fullconfig, reload=False)
             except Exception as e:
                 self.fail("Unhandled exception in offline processing: {}".format(e))
 
@@ -188,7 +188,7 @@ class TestOfflineProcessing(unittest.TestCase):
 
             # run worker observation
             try:
-                proc._start_observation_worker(fullconfig)
+                proc._start_observation_worker(fullconfig, reload=False)
             except Exception as e:
                 self.fail("Unhandled exception in offline processing: {}".format(e))
 

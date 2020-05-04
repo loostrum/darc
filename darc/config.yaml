@@ -158,7 +158,7 @@ offline_processing:
     snrmin_processing: 10
     snrmin_processing_local: 5
     dmmin: 20
-    dmmax: 5000
+    dmmax: 100000
     dmgal_frac: 0.8
     clean_type: "perchannel"
     max_proc_time: 18000

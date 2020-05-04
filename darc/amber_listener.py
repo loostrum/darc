@@ -30,12 +30,17 @@ class AMBERListener(DARCBase):
         self.observation_threads = []
         self.observation_events = []
 
-    def start_observation(self, obs_config):
+    def start_observation(self, obs_config, reload=True):
         """
         Start an observation
 
         :param dict obs_config: observation config dict
+        :param bool reload: reload service settings (default: True)
         """
+        # reload config
+        if reload:
+            self.load_config()
+
         # Stop any running observation
         if self.observation_events or self.observation_threads:
             self.logger.info("Old observation found, stopping it first")

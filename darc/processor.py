@@ -56,12 +56,16 @@ class Processor(DARCBase):
         """
         pass
 
-    def start_observation(self, obs_config):
+    def start_observation(self, obs_config, reload=True):
         """
         Start observation
 
         :param dict obs_config: Observation config
+        :param bool reload: reload service settings (default: True)
         """
+        # reload config
+        if reload:
+            self.load_config()
         if self.thread:
             # old obs thread exists, stop it
             self.stop_observation()

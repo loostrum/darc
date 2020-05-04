@@ -73,6 +73,7 @@ class TestLOFARTrigger(unittest.TestCase):
         try:
             msg, adr = sock.recvfrom(1024)
         except socket.timeout:
+            sock.close()
             self.fail("Did not receive event within {} seconds".format(timeout))
 
         # close the socket
@@ -159,7 +160,7 @@ class TestLOFARTrigger(unittest.TestCase):
             obs_config = {'startpacket': int(utc_start.unix * 781250), 'min_freq': 1219.70092773,
                           'beam': beam, 'parset': parset_enc, 'datetimesource': '2020-01-01T00:00:00.FAKE'}
             # start observation
-            clustering.source_queue.put({'command': 'start_observation', 'obs_config': obs_config})
+            clustering.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
             sleep(.1)
 
             # put header and trigger on the input queue
@@ -172,6 +173,7 @@ class TestLOFARTrigger(unittest.TestCase):
             try:
                 msg, adr = sock.recvfrom(1024)
             except socket.timeout:
+                sock.close()
                 self.fail("Did not receive event within {} seconds".format(timeout))
 
             # compare to expected event

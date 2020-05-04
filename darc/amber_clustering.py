@@ -119,12 +119,16 @@ class AMBERClustering(DARCBase):
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
-    def start_observation(self, obs_config):
+    def start_observation(self, obs_config, reload=True):
         """
         Parse obs config and start listening for amber triggers on queue
 
         :param dict obs_config: Observation configuration
+        :param bool reload: reload service settings (default: True)
         """
+        # reload config
+        if reload:
+            self.load_config()
 
         # clean any old triggers
         self.amber_triggers = []
