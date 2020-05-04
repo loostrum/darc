@@ -125,6 +125,8 @@ class AMBERClustering(DARCBase):
 
         :param dict obs_config: Observation configuration
         """
+        # reload config
+        self.load_config()
 
         # clean any old triggers
         self.amber_triggers = []

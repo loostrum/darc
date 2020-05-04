@@ -62,6 +62,8 @@ class Processor(DARCBase):
 
         :param dict obs_config: Observation config
         """
+        # reload config
+        self.load_config()
         if self.thread:
             # old obs thread exists, stop it
             self.stop_observation()

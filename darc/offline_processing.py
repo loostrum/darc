@@ -58,6 +58,15 @@ class OfflineProcessing(threading.Thread):
         self.observation_queue = None
         self.threads = {}
 
+        # load config
+        self.load_config()
+
+        # setup logger
+        self.logger = get_logger(__name__, self.log_file)
+        self.logger.info('OfflineProcessing initialized')
+
+    def load_config(self):
+        # load config file
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
 
@@ -75,11 +84,6 @@ class OfflineProcessing(threading.Thread):
         else:
             config['keys_data'].append('tab')
         self.config = config
-
-        # setup logger
-        self.logger = get_logger(__name__, self.log_file)
-
-        self.logger.info('OfflineProcessing initialized')
 
     def set_source_queue(self, queue):
         """
@@ -157,6 +161,10 @@ class OfflineProcessing(threading.Thread):
         :param dict obs_config: Observation config
         """
         self.logger.info("Starting observation on master node")
+
+        # reload config
+        self.load_config()
+
         # create result dir
         try:
             util.makedirs(obs_config['result_dir'])
@@ -200,6 +208,10 @@ class OfflineProcessing(threading.Thread):
         :param dict obs_config: Observation config
         """
         self.logger.info("Starting observation on worker node")
+
+        # reload config
+        self.load_config()
+
         # create result dir
         try:
             util.makedirs(obs_config['result_dir'])

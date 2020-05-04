@@ -125,8 +125,10 @@ def main():
         if ret != 0:
             logging.error("Editor did not exit properly")
         else:
-            logging.info("Restart services to apply new settings, or run 'darc reload' to reload the master config\n"
-                         "WARNING: Restarting services aborts any running observation")
+            logging.info("Restart services to apply new settings, or run 'darc reload' to reload the master config.\n"
+                         "WARNING: Restarting services aborts any running observation.\n"
+                         "For services without queue server (i.e. all except LOFARTrigger and VOEventGenerator),\n"
+                         "the config is automatically reloaded at the start of each observation.")
         sys.exit(ret)
 
     # Get payload

@@ -36,6 +36,9 @@ class AMBERListener(DARCBase):
 
         :param dict obs_config: observation config dict
         """
+        # load config
+        self.load_config()
+
         # Stop any running observation
         if self.observation_events or self.observation_threads:
             self.logger.info("Old observation found, stopping it first")
