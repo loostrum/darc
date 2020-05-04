@@ -48,6 +48,12 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="darc.base.DARCBase.load_config">
+<code class="sig-name descname">load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load config file</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="darc.base.DARCBase.process_command">
 <code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process command from queue, other than start_observation and stop_observation</p>
@@ -93,13 +99,13 @@ else self.process_command</p>
 
 <dl class="method">
 <dt id="darc.base.DARCBase.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Start observation stub, should be overridden by subclass if commands need to be executed at
-observation start</p>
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">reload=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start observation. By default only (re)loads config file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>args</strong> (<em>list</em>) – start_observation arguments</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
 <li><p><strong>kwargs</strong> (<em>dict</em>) – start_observation keyword arguments</p></li>
 </ul>
 </dd>
@@ -177,7 +183,7 @@ observation stop</p>
 
 <dl class="data">
 <dt id="darc.definitions.CONFIG_FILE">
-<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = '/home/oostrum/darc/config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = '/home/oostrum/software/darc/darc/config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package</p>
 </dd></dl>
 
@@ -549,7 +555,7 @@ observation stop</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>end_time</strong> (<em>datetime.datetime/astropy.time.Time</em>) – sleep until this time</p></li>
-<li><p><strong>event</strong> (<em>threading.Event</em>) – ff specified, uses event.wait instead of time.sleep</p></li>
+<li><p><strong>event</strong> (<em>threading.Event</em>) – if specified, uses event.wait instead of time.sleep</p></li>
 </ul>
 </dd>
 </dl>

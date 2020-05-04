@@ -168,11 +168,14 @@
 
 <dl class="method">
 <dt id="darc.amber_clustering.AMBERClustering.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse obs config and start listening for amber triggers on queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation configuration</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation configuration</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -236,11 +239,14 @@ candidates on output queue.</p>
 
 <dl class="method">
 <dt id="darc.amber_listener.AMBERListener.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start an observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – observation config dict</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – observation config dict</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -268,9 +274,34 @@ candidates on output queue.</p>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Generate and send dada_dbevent triggers</p>
 <dl class="method">
+<dt id="darc.dada_trigger.DADATrigger._load_parset">
+<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger._load_parset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the observation parset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parset as dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="darc.dada_trigger.DADATrigger.cleanup">
 <code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.cleanup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove all trigger-sending threads</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.polcal_dumps">
+<code class="sig-name descname">polcal_dumps</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.polcal_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically dump IQUV data at regular intervals for polcal calibrator observations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -312,6 +343,21 @@ candidates on output queue.</p>
 </dl>
 </dd></dl>
 
+<dl class="method">
+<dt id="darc.dada_trigger.DADATrigger.start_observation">
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.start_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start observation: run IQUV dumps automatically if source is polarisation calibrator.
+Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
@@ -325,7 +371,7 @@ candidates on output queue.</p>
 <span id="darc-darc-master"></span><h2>darc.darc_master<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="darc.darc_master.DARCMaster">
-<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param">config_file='/home/oostrum/darc/config.yaml'</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param">config_file='/home/oostrum/software/darc/darc/config.yaml'</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>DARC master service that controls all other services and queues</p>
 <p>Interact with this service through the ‘darc’ executable</p>
@@ -551,7 +597,7 @@ Listen for messages on the command socket and process them</p>
 <p>Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering</p>
 <dl class="method">
 <dt id="darc.lofar_trigger.LOFARTrigger._new_trigger">
-<em class="property">static </em><code class="sig-name descname">_new_trigger</code><span class="sig-paren">(</span><em class="sig-param">dm</em>, <em class="sig-param">utc</em>, <em class="sig-param">nu_GHz=1.37</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._new_trigger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">_new_trigger</code><span class="sig-paren">(</span><em class="sig-param">dm</em>, <em class="sig-param">utc</em>, <em class="sig-param">nu_GHz=1.37</em>, <em class="sig-param">test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._new_trigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a LOFAR trigger struct</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -567,8 +613,9 @@ Listen for messages on the command socket and process them</p>
 
 <dl class="method">
 <dt id="darc.lofar_trigger.LOFARTrigger._select_trigger">
-<em class="property">static </em><code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param">triggers</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._select_trigger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select trigger with highest S/N from a list of triggers</p>
+<code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param">triggers</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._select_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select trigger with highest S/N from a list of triggers.
+If there are triggers from both known and new sources, select the known source</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>triggers</strong> (<em>list</em>) – one dict per trigger</p>
@@ -841,19 +888,22 @@ interrupts</p>
 
 <dl class="method">
 <dt id="darc.offline_processing.OfflineProcessing._start_observation_master">
-<code class="sig-name descname">_start_observation_master</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_master" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">_start_observation_master</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation on master node</p>
 <p>Generated observation summary and send email once all workers are done</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="darc.offline_processing.OfflineProcessing._start_observation_worker">
-<code class="sig-name descname">_start_observation_worker</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_worker" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">_start_observation_worker</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_worker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation on worker node:</p>
 <ol class="arabic simple">
 <li><p>Candidate clustering</p></li>
@@ -862,10 +912,18 @@ interrupts</p>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="method">
+<dt id="darc.offline_processing.OfflineProcessing.load_config">
+<code class="sig-name descname">load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.load_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="darc.offline_processing.OfflineProcessing.run">
@@ -949,11 +1007,14 @@ through Stokes I triggers.</p>
 
 <dl class="method">
 <dt id="darc.processor.Processor.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param">obs_config</em>, <em class="sig-param">reload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
