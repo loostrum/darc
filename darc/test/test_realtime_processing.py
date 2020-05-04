@@ -47,6 +47,7 @@ class TestFullRun(unittest.TestCase):
         output_dir = '/tank/users/oostrum/test_full_run'
         amber_dir = os.path.join(output_dir, 'amber')
         amber_conf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'amber.conf')
+        amber_conf_dir = '/home/arts/.controller/amber_conf'
         # ensure we start clean
         rmtree(amber_dir)
         util.makedirs(amber_dir)
@@ -59,8 +60,8 @@ class TestFullRun(unittest.TestCase):
         self.settings = {'resolution': 1536 * 12500 * 12, 'nbuf': 5, 'key_i': 'aaaa',
                          'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
                          'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files) * 10,
-                         'beam': 0, 'amber_config': amber_conf_file, 'min_freq': 1219.70092773,
-                         'parset': parset, 'datetimesource': '2019-01-01-00:00:00.FAKE'}
+                         'beam': 0, 'amber_config': amber_conf_file, 'amber_conf_dir': amber_conf_dir,
+                         'min_freq': 1219.70092773, 'parset': parset, 'datetimesource': '2019-01-01-00:00:00.FAKE'}
 
         # open custom config file
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml')
@@ -167,25 +168,25 @@ class TestFullRun(unittest.TestCase):
         # should add proper amber.conf file and generate from there
         amber_step1 = "taskset -c 3 amber -sync -print -opencl_platform 0 -opencl_device 1 " \
                       "-device_name ARTS_step1_81.92us_{freq}MHz " \
-                      "-padding_file /home/arts/.controller/amber_conf/padding.conf " \
-                      "-zapped_channels /home/arts/.controller/amber_conf/zapped_channels_{freq}.conf " \
-                      "-integration_steps /home/arts/.controller/amber_conf/integration_steps_x1.conf " \
+                      "-padding_file {amber_conf_dir}/padding.conf " \
+                      "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
+                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
                       "-subband_dedispersion " \
-                      "-dedispersion_stepone_file /home/arts/.controller/amber_conf/dedispersion_stepone.conf " \
-                      "-dedispersion_steptwo_file /home/arts/.controller/amber_conf/dedispersion_steptwo.conf " \
-                      "-integration_file /home/arts/.controller/amber_conf/integration.conf " \
-                      "-snr_file /home/arts/.controller/amber_conf/snr.conf " \
+                      "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
+                      "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
+                      "-integration_file {amber_conf_dir}/integration.conf " \
+                      "-snr_file {amber_conf_dir}/snr.conf " \
                       "-dms 32 -dm_first 0 -dm_step .2 -subbands 32 -subbanding_dms 64 " \
                       "-subbanding_dm_first 0 -subbanding_dm_step 6.4 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file /home/arts/.controller/amber_conf/max_std.conf " \
-                      "-mom_stepone_file /home/arts/.controller/amber_conf/mom_stepone.conf " \
-                      "-mom_steptwo_file /home/arts/.controller/amber_conf/mom_steptwo.conf " \
-                      "-downsampling_configuration /home/arts/.controller/amber_conf/downsampling.conf " \
+                      "-max_std_file {amber_conf_dir}/max_std.conf " \
+                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
+                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf " \
+                      "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
                       "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
-                      "-time_domain_sigma_cut_steps /home/arts/.controller/amber_conf/tdsc_steps.conf" \
-                      " -time_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/tdsc.conf " \
-                      "-frequency_domain_sigma_cut_steps /home/arts/.controller/amber_conf/fdsc_steps.conf " \
-                      "-frequency_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/fdsc.conf " \
+                      "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf" \
+                      " -time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
+                      "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
+                      "-frequency_domain_sigma_cut_configuration {amber_conf_dir}/fdsc.conf " \
                       "-nr_bins 48  -threshold 8.0 " \
                       "-output {amber_dir}/CB{beam:02d}_step1 " \
                       "-beams 12 -synthesized_beams 71 -synthesized_beams_chunk 4 " \
@@ -196,25 +197,25 @@ class TestFullRun(unittest.TestCase):
 
         amber_step2 = "taskset -c 15 amber -sync -print -opencl_platform 0 -opencl_device 2 " \
                       "-device_name ARTS_step2_81.92us_{freq}MHz " \
-                      "-padding_file /home/arts/.controller/amber_conf/padding.conf " \
-                      "-zapped_channels /home/arts/.controller/amber_conf/zapped_channels_{freq}.conf " \
-                      "-integration_steps /home/arts/.controller/amber_conf/integration_steps_x1.conf " \
+                      "-padding_file {amber_conf_dir}/padding.conf " \
+                      "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
+                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
                       "-subband_dedispersion " \
-                      "-dedispersion_stepone_file /home/arts/.controller/amber_conf/dedispersion_stepone.conf " \
-                      "-dedispersion_steptwo_file /home/arts/.controller/amber_conf/dedispersion_steptwo.conf " \
-                      "-integration_file /home/arts/.controller/amber_conf/integration.conf " \
-                      "-snr_file /home/arts/.controller/amber_conf/snr.conf " \
+                      "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
+                      "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
+                      "-integration_file {amber_conf_dir}/integration.conf " \
+                      "-snr_file {amber_conf_dir}/snr.conf " \
                       "-dms 32 -dm_first 0 -dm_step .2 -subbands 32 -subbanding_dms 64 " \
                       "-subbanding_dm_first 409.6 -subbanding_dm_step 6.4 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file /home/arts/.controller/amber_conf/max_std.conf " \
-                      "-mom_stepone_file /home/arts/.controller/amber_conf/mom_stepone.conf " \
-                      "-mom_steptwo_file /home/arts/.controller/amber_conf/mom_steptwo.conf  " \
-                      "-downsampling_configuration /home/arts/.controller/amber_conf/downsampling.conf " \
+                      "-max_std_file {amber_conf_dir}/max_std.conf " \
+                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
+                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf  " \
+                      "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
                       "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
-                      "-time_domain_sigma_cut_steps /home/arts/.controller/amber_conf/tdsc_steps.conf " \
-                      "-time_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/tdsc.conf " \
-                      "-frequency_domain_sigma_cut_steps /home/arts/.controller/amber_conf/fdsc_steps.conf " \
-                      "-frequency_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/fdsc.conf " \
+                      "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf " \
+                      "-time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
+                      "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
+                      "-frequency_domain_sigma_cut_configuration {amber_conf_dir}/fdsc.conf " \
                       "-nr_bins 48  -threshold 8.0 " \
                       "-output {amber_dir}/CB{beam:02d}_step2 " \
                       "-beams 12 -synthesized_beams 71 -synthesized_beams_chunk 4 " \
@@ -225,25 +226,25 @@ class TestFullRun(unittest.TestCase):
 
         amber_step3 = "taskset -c 16 amber -sync -print -opencl_platform 0 -opencl_device 3 " \
                       "-device_name ARTS_step3_nodownsamp_81.92us_{freq}MHz " \
-                      "-padding_file /home/arts/.controller/amber_conf/padding.conf " \
-                      "-zapped_channels /home/arts/.controller/amber_conf/zapped_channels_{freq}.conf " \
-                      "-integration_steps /home/arts/.controller/amber_conf/integration_steps_x1.conf " \
+                      "-padding_file {amber_conf_dir}/padding.conf " \
+                      "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
+                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
                       "-subband_dedispersion " \
-                      "-dedispersion_stepone_file /home/arts/.controller/amber_conf/dedispersion_stepone.conf " \
-                      "-dedispersion_steptwo_file /home/arts/.controller/amber_conf/dedispersion_steptwo.conf " \
-                      "-integration_file /home/arts/.controller/amber_conf/integration.conf " \
-                      "-snr_file /home/arts/.controller/amber_conf/snr.conf " \
+                      "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
+                      "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
+                      "-integration_file {amber_conf_dir}/integration.conf " \
+                      "-snr_file {amber_conf_dir}/snr.conf " \
                       "-dms 16 -dm_first 0 -dm_step 2.5 -subbands 32 -subbanding_dms 64 " \
                       "-subbanding_dm_first 819.2 -subbanding_dm_step 40.0 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file /home/arts/.controller/amber_conf/max_std.conf " \
-                      "-mom_stepone_file /home/arts/.controller/amber_conf/mom_stepone.conf " \
-                      "-mom_steptwo_file /home/arts/.controller/amber_conf/mom_steptwo.conf " \
-                      "-downsampling_configuration /home/arts/.controller/amber_conf/downsampling.conf " \
+                      "-max_std_file {amber_conf_dir}/max_std.conf " \
+                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
+                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf " \
+                      "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
                       "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
-                      "-time_domain_sigma_cut_steps /home/arts/.controller/amber_conf/tdsc_steps.conf " \
-                      "-time_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/tdsc.conf " \
-                      "-frequency_domain_sigma_cut_steps /home/arts/.controller/amber_conf/fdsc_steps.conf " \
-                      "-frequency_domain_sigma_cut_configuration /home/arts/.controller/amber_conf/fdsc.conf " \
+                      "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf " \
+                      "-time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
+                      "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
+                      "-frequency_domain_sigma_cut_configuration {amber_conf_dir}/fdsc.conf " \
                       "-nr_bins 48  -threshold 8.0 " \
                       "-output {amber_dir}/CB{beam:02d}_step3 " \
                       "-beams 12 -synthesized_beams 71 -synthesized_beams_chunk 4 " \
