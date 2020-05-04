@@ -109,6 +109,7 @@ class TestLOFARTrigger(unittest.TestCase):
         clustering = AMBERClustering(connect_vo=False, connect_lofar=False)
         clustering.set_source_queue(mp.Queue())
         clustering.set_target_queue(mp.Queue())
+        clustering.sb_filter = False
         clustering.start()
 
         # get the LOFAR trigger queue to connect to AMBERClustering

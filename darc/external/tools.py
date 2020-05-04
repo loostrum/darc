@@ -279,11 +279,22 @@ def read_singlepulse(fn, max_rows=None, beam=None):
         return dm, sig, tt, downsample
 
 
+def autocorr(trig):
+    result = np.correlate(trig, trig, mode='full')
+    return result[result.size // 2:]
+
+
+def autocorr_period(trig):
+    ac = autocorr(trig)
+    return np.where(ac == np.max(ac[2:]))[0][0], ac
+
+
 def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                  t_window=0.5, max_rows=None, t_max=np.inf,
                  sig_max=np.inf, dt=2 * 40.96, delta_nu_MHz=300. / 1536,
                  nu_GHz=1.4, fnout=False, tab=None, read_beam=False,
-                 dm_width_filter=False, return_clustcounts=False):
+                 dm_width_filter=False, return_clustcounts=False,
+                 sb_filter=False, sb_filter_period_min=10, sb_filter_period_max=15):
     """ Get brightest trigger in each 10s chunk.
 
     Parameters
@@ -311,6 +322,12 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     return_clustcounts: bool
         return array of number of candidates per
         trigger cluster
+    sb_filter: bool
+        Filter triggers on SB periodicity
+    sb_filter_period_min: int
+        Minimum acceptable period for SB periodicity filter
+    sb_filter_period_max: int
+        Minimum acceptable period for SB periodicity filter
 
     Returns
     -------
@@ -348,13 +365,10 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         else:
             dm, sig, tt, downsample = fn[:, 0], fn[:, 1], fn[:, 2], fn[:, 3]
     else:
-        # print("Wrong input type. Expected string or ndarray")
         if read_beam:
             return [], [], [], [], [], []
         else:
             return [], [], [], [], []
-
-    ntrig_orig = len(dm)
 
     bad_sig_ind = np.where((sig < sig_thresh) | (sig > sig_max))[0]
     sig = np.delete(sig, bad_sig_ind)
@@ -366,6 +380,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     if read_beam:
         beam = np.delete(beam, bad_sig_ind)
         beam_cut = []
+        sb_period_cut = []
 
     if len(tt) == 0:
         # print("Returning None: time array is empty")
@@ -385,11 +400,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         dm_max = 1.1 * dm.max()
 
     # Can either do the DM selection here, or after the loop
-#    dm_list = dm_range(dm_max, dm_min=dm_min)
     dm_list = dm_range(1.1 * dm.max(), dm_min=0.9 * dm.min())
-
-    # print(("\nGrouping in window of %.2f sec" % np.round(t_window,2)))
-    # print(("DMs:", dm_list))
 
     tt_start = tt.min() - .5 * t_window
     ind_full = []
@@ -405,6 +416,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 ntrig_clust = len(ind)
                 if ntrig_clust == 0:
                     continue
+
                 ntrig_clust_arr.append(ntrig_clust)
                 ind_maxsnr = ind[np.argmax(sig[ind])]
                 sig_cut.append(sig[ind_maxsnr])
@@ -413,6 +425,17 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 ds_cut.append(downsample[ind_maxsnr])
                 if read_beam:
                     beam_cut.append(beam[ind_maxsnr])
+                    cond_tt = (tt == tt[ind_maxsnr])
+                cond_dm = ((dm <= dm[ind_maxsnr] + 20) & (dm >= dm[ind_maxsnr] - 20))
+                sigmas = sig[np.where(cond_tt & cond_dm)]
+                if len(sigmas) > 0:
+                    sb_snrs = np.zeros(71)
+                    beams = beam[np.where(cond_tt & cond_dm)].astype(int)
+                    sb_snrs[beams] = sigmas
+                    sb_period_cut.append(autocorr_period(sb_snrs)[0])
+                else:
+                    sb_period_cut.append(-1)
+
                 ind_full.append(ind_maxsnr)
             except Exception:
                 continue
@@ -431,10 +454,21 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     ntrig_clust_arr = np.array(ntrig_clust_arr)[ind]
     if read_beam:
         beam_cut = np.array(beam_cut)[ind]
-
-    ntrig_group = len(dm_cut)
+        sb_period_cut = np.array(sb_period_cut)[ind]
 
     # print(("Grouped down to %d triggers from %d\n" % (ntrig_group, ntrig_orig)))
+
+    # SB periodicity filtering
+    if sb_filter:
+        ind = np.where((sb_period_cut > sb_filter_period_min) & (sb_period_cut < sb_filter_period_max))[0]
+        dm_cut = dm_cut[ind]
+        ind_full = ind_full[ind]
+        sig_cut = np.array(sig_cut)[ind]
+        tt_cut = tt_cut[ind]
+        ds_cut = np.array(ds_cut)[ind]
+        ntrig_clust_arr = np.array(ntrig_clust_arr)[ind]
+        beam_cut = np.array(beam_cut)[ind]
+        sb_period_cut = np.array(sb_period_cut)[ind]
 
     rm_ii = []
 
@@ -452,6 +486,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     ntrig_clust_arr = np.delete(ntrig_clust_arr, rm_ii)
     if read_beam:
         beam_cut = np.delete(beam_cut, rm_ii)
+        sb_period_cut = np.delete(sb_period_cut, rm_ii)
     ind_full = np.delete(ind_full, rm_ii)
 
     if fnout:

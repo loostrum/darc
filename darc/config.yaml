@@ -54,6 +54,9 @@ amber_clustering:
     dm_range: 10  # for known sources, trigger if within this many DM units
     dm_min_global: 5  # never trigger below this DM
     snr_min_global: 10  # never trigger below this S/N
+    sb_filter: True  # whether or not to filter triggers on SB periodicity
+    sb_filter_period_min: 10
+    sb_filter_period_max: 15  # excluding max value itself
     # thresholds for IQUV triggering on new sources
     thresh_iquv:
       dm_frac_min: 1.2  # fraction of max MW contribution
