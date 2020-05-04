@@ -32,6 +32,7 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.clustering_window = 1.0
         clustering.dm_range = 10
         clustering.snr_min_global = 10
+        clustering.sb_filter = False
 
         # start the clustering
         clustering.start()

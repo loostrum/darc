@@ -282,9 +282,11 @@ class AMBERClustering(DARCBase):
         # LOFAR thresholds are assumed to be more strict for every parameter
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _, ncand_per_cluster = \
             tools.get_triggers(triggers,
-                               dm_min=dm_min, dm_max=dm_max,
-                               sig_thresh=snr_min, t_window=self.clustering_window,
-                               read_beam=True, return_clustcounts=True, **sys_params)
+                               dm_min=dm_min, dm_max=dm_max, sig_thresh=snr_min, t_window=self.clustering_window,
+                               read_beam=True, return_clustcounts=True, sb_filter=self.sb_filter,
+                               sb_filter_period_min=self.sb_filter_period_min,
+                               sb_filter_period_max=self.sb_filter_period_max,
+                               **sys_params)
 
         # select on width
         mask = np.array(cluster_downsamp) <= width_max
