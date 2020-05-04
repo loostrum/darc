@@ -145,13 +145,12 @@ class DARCBase(threading.Thread):
 
     def start_observation(self, *args, **kwargs):
         """
-        Start observation stub, should be overridden by subclass if commands need to be executed at
-        observation start
+        Start observation. By default only (re)loads config file.
 
         :param list args: start_observation arguments
         :param dict kwargs: start_observation keyword arguments
         """
-        pass
+        self.load_config()
 
     def stop_observation(self, *args, **kwargs):
         """
