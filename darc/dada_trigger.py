@@ -35,7 +35,7 @@ class DADATrigger(DARCBase):
         Start observation: run IQUV dumps automatically if source is polarisation calibrator.
         Else ensure normal FRB candidate I/IQUV dumps are enabled
 
-        :param dict obs_cofig: Observation config
+        :param dict obs_config: Observation config
         :param bool reload: reload service settings (default: True)
         """
         # reload config
@@ -51,6 +51,7 @@ class DADATrigger(DARCBase):
             return
         # Override regular IQUV trigger with polcal
         if 'polcal' in parset['task.source.name'] and int(parset['task.source.beam']) == obs_config['beam']:
+            self.logger.info("Found polarisation calibrator in this beam")
             # disable regular triggering
             self.triggers_enabled = False
             # do the automated polcal dumps
@@ -58,6 +59,7 @@ class DADATrigger(DARCBase):
             self.thread_polcal.daemon = True
             self.thread_polcal.start()
         else:
+            self.logger.info("No polarisation calibrator in this beam, enabling regular triggering")
             # no polcal obs, ensure normal triggers can be received and processed
             self.triggers_enabled = True
 
@@ -235,7 +237,7 @@ class DADATrigger(DARCBase):
 
         :param dict obs_config: Observation config
         """
-        tstart = Time(obs_config['startpacket'] * 781250, format='unix')
+        tstart = Time(obs_config['startpacket'] / 781250., format='unix')
         duration = TimeDelta(obs_config['duration'], format='sec')
         tend = tstart + duration
 
@@ -271,6 +273,7 @@ class DADATrigger(DARCBase):
             event = "N_EVENTS 1\n{utc_start}\n}{event_start} {event_start_frac} {event_end} {event_end_frac} " \
                     "0 0 0 0".format(**params)  # dm, snr, width, beam are 0
 
+            self.logger.info("Sending automated polcal IQUV dump event: {}".format(params))
             self.send_events(event, 'IQUV')
             # keep track of number of performed dumps
             ndump += 1

@@ -12,11 +12,13 @@ import socket
 from queue import Empty
 
 from darc.dada_trigger import DADATrigger
+from darc import util
 
 
 class TestDADATrigger(unittest.TestCase):
 
-    def get_trigger(self, stokes, min_window_size, delay_end):
+    @staticmethod
+    def get_trigger(stokes, min_window_size, delay_end):
         """
         Generate a trigger dict
         :param: stokes: I or IQUV
@@ -147,6 +149,79 @@ class TestDADATrigger(unittest.TestCase):
 
         # stop dadatrigger
         dadatrigger.stop()
+
+    def test_polcal(self):
+        """
+        Test automated IQUV dumps during polcal observation
+        """
+        # create input queue
+        queue = mp.Queue()
+        # init DADA Trigger
+        dadatrigger = DADATrigger()
+        # set the queue
+        dadatrigger.set_source_queue(queue)
+        # start dadatrigger
+        dadatrigger.start()
+        # set IQUV dump size, interval, max number of dumps
+        dadatrigger.polcal_dump_size = 1
+        dadatrigger.polcal_interval = 2
+        dadatrigger.polcal_max_dumps = 5
+        # timeout for receiving first dump event
+        # must be larger than polcal_interval
+        timeout = 5
+
+        # open a listening socket for stokes IQUV events
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.bind(("", dadatrigger.port_iquv))
+            sock.listen(5)
+            sock.settimeout(timeout)
+        except socket.error as e:
+            self.fail("Failed to set up listening socket for events: {}".format(e))
+
+        # observation settings
+        tstart = Time.now() + TimeDelta(2, format='sec')
+        print(tstart)
+        # set duration. dada_trigger first sleeps for dump_interval seconds, then continues
+        # dumping until dump end time is past obs end time, or max dumps is reached
+        # if max dumps is not reached, the total number of dumps is duration/interval - 1
+        ndump = 3
+        duration = (ndump + 1) * dadatrigger.polcal_interval
+        # create parset
+        # source name must contain polcal
+        parset = {'task.source.name': 'testpolcal', 'task.source.beam': 0}
+        parset_str = ''
+        for k, v in parset.items():
+            parset_str += '{} = {}\n'.format(k, v)
+        # create full configuration
+        obs_config = {'startpacket': tstart.unix * 781250, 'duration': duration, 'beam': 0,
+                      'parset': util.encode_parset(parset_str)}
+
+        # start observation
+        queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
+        # # listen for events
+        # # accept connection
+        # try:
+        #     client, adr = sock.accept()
+        # except socket.timeout:
+        #     self.fail("Did not receive event within {} seconds".format(timeout))
+        # # receive event. Work around bug on MAC
+        # if sys.platform == 'Darwin':
+        #     received = False
+        #     while not received:
+        #         try:
+        #             events = client.recv(1024).decode()
+        #             received = True
+        #         except socket.error as e:
+        #             if e.errno == errno.EAGAIN:
+        #                 sleep(.1)
+        #             else:
+        #                 raise
+        # else:
+        #     events = client.recv(1024).decode()
+        # # close the socket
+        # sock.close()
+        # print(events)
 
 
 if __name__ == '__main__':
