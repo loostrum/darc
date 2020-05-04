@@ -48,7 +48,8 @@ amber_listener:
 amber_clustering:
     log_file: "{home}/darc/log/amber_clustering.{hostname}.log"
     source_file: "{home}/darc/source_list.yaml"
-    interval: 1.0
+    interval: 1.0  # how often to process candidates (seconds)
+    clustering_window: 1.0  # time window for candidates that are clustered together (seconds)
     # Global thresholds and limits for known sources
     dm_range: 10  # for known sources, trigger if within this many DM units
     dm_min_global: 5  # never trigger below this DM
@@ -61,15 +62,20 @@ amber_clustering:
       interval: 60  # seconds
     # thresholds for LOFAR triggering
     # assumed to be equally or more strict than IQUV thresholds for each parameter
-    # for known sources, only the LOFAR S/N threshold is applied
+    # for known sources, the DM and max cands per cluster thresholds are not applied
     thresh_lofar:
+      max_cands_per_cluster: 100  # maximum number of raw candidates going into one cluster
       dm_frac_min: 2.0  # fraction of max MW contribution.
       width_max: 80  # ensure skipping triggers with downsampling=100, which are often RFI
-      snr_min: 12
-    # LOFAR triggering thresholds for R3
-    thresh_r3:
+      snr_min: 20  # effectively disable by setting high S/N threshold
+    # known sources for which to override LOFAR thresholds
+    lofar_trigger_sources: []
+    # LOFAR triggering thresholds for override sources
+    thresh_lofar_override:
       snr_min: 10
-      width_max: 25
+      width_max: 80
+      cb: 0  # remove or comment out this line to trigger on any CB
+      trigger_on_new_sources: False  # whether or not to also trigger on new sources
 
 # VOEvent generator
 voevent_generator:
@@ -91,6 +97,8 @@ lofar_trigger:
     server_auth: "pass"  # choose a password for the LOFAR trigger service and put it here (str)
     lofar_host: "localhost"  # LOFAR server that listens for triggers
     lofar_port: 31662  # Port the LOFAR server listens to
+    lofar_freq: 200  # MHz, reference frequency for TBBs
+    lofar_tbb_buffer_size: 5.  # seconds
     waterfall_sb: "{home}/ARTS-obs/external/arts-analysis/waterfall_sb.py"
     email_settings:
         to: ['test@localhost']

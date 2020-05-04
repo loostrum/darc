@@ -283,7 +283,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                  t_window=0.5, max_rows=None, t_max=np.inf,
                  sig_max=np.inf, dt=2 * 40.96, delta_nu_MHz=300. / 1536,
                  nu_GHz=1.4, fnout=False, tab=None, read_beam=False,
-                 dm_width_filter=False):
+                 dm_width_filter=False, return_clustcounts=False):
     """ Get brightest trigger in each 10s chunk.
 
     Parameters
@@ -308,6 +308,9 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     read_beam: bool
         read and return beam number (default: False)
         all beams are read if this is true
+    return_clustcounts: bool
+        return array of number of candidates per
+        trigger cluster
 
     Returns
     -------
@@ -323,6 +326,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         beam array of brightest trigger in each DM/T windows (only if read_beam is True)
     ind_cut : ndarray
         indexes of events that were kept
+    ntrig_clust_arr: ndarray
+        number of candidates per trigger cluster (only if return_clustcounts is True)
     """
     if tab is not None:
         beam_amber = tab
@@ -356,7 +361,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt = np.delete(tt, bad_sig_ind)
     dm = np.delete(dm, bad_sig_ind)
     downsample = np.delete(downsample, bad_sig_ind)
-    sig_cut, dm_cut, tt_cut, ds_cut = [], [], [], []
+    sig_cut, dm_cut, tt_cut, ds_cut, ntrig_clust_arr = [], [], [], [], []
 
     if read_beam:
         beam = np.delete(beam, bad_sig_ind)
@@ -397,6 +402,10 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 # and find max S/N trigger in each DM/time box
                 t0, tm = t_window * ii + tt_start, t_window * (ii + 1) + tt_start
                 ind = np.where((dm < dms[1]) & (dm > dms[0]) & (tt < tm) & (tt > t0))[0]
+                ntrig_clust = len(ind)
+                if ntrig_clust == 0:
+                    continue
+                ntrig_clust_arr.append(ntrig_clust)
                 ind_maxsnr = ind[np.argmax(sig[ind])]
                 sig_cut.append(sig[ind_maxsnr])
                 dm_cut.append(dm[ind_maxsnr])
@@ -419,6 +428,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     sig_cut = np.array(sig_cut)[ind]
     tt_cut = tt_cut[ind]
     ds_cut = np.array(ds_cut)[ind]
+    ntrig_clust_arr = np.array(ntrig_clust_arr)[ind]
     if read_beam:
         beam_cut = np.array(beam_cut)[ind]
 
@@ -439,6 +449,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     tt_cut = np.delete(tt_cut, rm_ii)
     sig_cut = np.delete(sig_cut, rm_ii)
     ds_cut = np.delete(ds_cut, rm_ii)
+    ntrig_clust_arr = np.delete(ntrig_clust_arr, rm_ii)
     if read_beam:
         beam_cut = np.delete(beam_cut, rm_ii)
     ind_full = np.delete(ind_full, rm_ii)
@@ -452,10 +463,16 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
             clustered_arr = clustered_arr.reshape(5, -1)
         np.savetxt(fnout, clustered_arr)
 
-    if read_beam:
-        return sig_cut, dm_cut, tt_cut, ds_cut, beam_cut, ind_full
+    if return_clustcounts:
+        if read_beam:
+            return sig_cut, dm_cut, tt_cut, ds_cut, beam_cut, ind_full, ntrig_clust_arr
+        else:
+            return sig_cut, dm_cut, tt_cut, ds_cut, ind_full, ntrig_clust_arr
     else:
-        return sig_cut, dm_cut, tt_cut, ds_cut, ind_full
+        if read_beam:
+            return sig_cut, dm_cut, tt_cut, ds_cut, beam_cut, ind_full
+        else:
+            return sig_cut, dm_cut, tt_cut, ds_cut, ind_full
 
 
 def add_tab_col(fdir, fnout='out'):

@@ -127,7 +127,7 @@ class LOFARTrigger(threading.Thread):
 
         # if multiple triggers are received, select one
         if isinstance(trigger, list):
-            self.logger.info("Received {} triggers, selecting highest S/N".format(len(trigger)))
+            self.logger.info("Received {} triggers, selecting known source / highest S/N".format(len(trigger)))
             trigger, num_unique_cb = self._select_trigger(trigger)
             self.logger.info("Number of unique CBs: {}".format(num_unique_cb))
         else:
@@ -188,14 +188,24 @@ class LOFARTrigger(threading.Thread):
             else:
                 self.logger.info("Sent warning email")
 
-    @staticmethod
-    def _select_trigger(triggers):
+    def _select_trigger(self, triggers):
         """
-        Select trigger with highest S/N from a list of triggers
+        Select trigger with highest S/N from a list of triggers.
+        If there are triggers from both known and new sources, select the known source
 
         :param list triggers: one dict per trigger
         :return: trigger with highest S/N and number of unique CBs in trigger list
         """
+
+        # check known vs new sources
+        # get known/new keyword for all triggers, and check if all are default name for new source
+        # if not, there are known sources. Select only those
+        if not np.all([trigger['name'] == 'candidate' for trigger in triggers]):
+            triggers_known_sources = [trigger for trigger in triggers if trigger['name'] != 'candidate']
+            ntrig_removed = len(triggers) - len(triggers_known_sources)
+            triggers = triggers_known_sources
+
+        # select max S/N
         max_snr = 0
         index = None
         cbs = []
@@ -211,8 +221,7 @@ class LOFARTrigger(threading.Thread):
         # index is now index of trigger with highest S/N
         return triggers[index], num_unique_cb
 
-    @staticmethod
-    def _new_trigger(dm, utc, nu_GHz=1.37, test=False):
+    def _new_trigger(self, dm, utc, nu_GHz=1.37, test=False):
         """
         Create a LOFAR trigger struct
 
@@ -226,13 +235,12 @@ class LOFARTrigger(threading.Thread):
         dm *= u.pc * u.cm**-3
 
         # calculate pulse arrival time at LOFAR
-        # AMBER uses top of band
-        fhi = nu_GHz + .5 * BANDWIDTH
-        # LOFAR is referenced to 200 MHz
-        flo = 200. * u.MHz
-        dm_delay = util.dm_to_delay(dm, flo, fhi)
-        # LOFAR TBB buffer size is 5 seconds, aim to have pulse in centre
-        lofar_buffer_delay = 2.5 * u.s
+        # AMBER uses top of band, but is already correct to centre by AMBERClustering
+        # LOFAR reference frequency
+        flo = self.lofar_freq * u.MHz
+        dm_delay = util.dm_to_delay(dm, flo, nu_GHz)
+        # aim to have pulse in centre of TBB buffer
+        lofar_buffer_delay = .5 * self.lofar_tbb_buffer_size * u.s
         # calculate buffer stop time
         tstop = Time(utc, scale='utc', format='isot') + dm_delay + lofar_buffer_delay
         # Use unix time, split into integer part and float part to ms accuracy
