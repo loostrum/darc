@@ -200,7 +200,7 @@ class TestDADATrigger(unittest.TestCase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
         # sleep until observation is over
         util.sleepuntil_utc(tstart + TimeDelta(duration, format='sec'))
-        
+
         # receive events
         received_events = []
         while True:
