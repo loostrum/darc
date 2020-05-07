@@ -178,9 +178,6 @@ class TestFullRun(unittest.TestCase):
                       "-snr_file {amber_conf_dir}/snr.conf " \
                       "-dms 32 -dm_first 0 -dm_step .2 -subbands 32 -subbanding_dms 64 " \
                       "-subbanding_dm_first 0 -subbanding_dm_step 6.4 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file {amber_conf_dir}/max_std.conf " \
-                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
-                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf " \
                       "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
                       "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
                       "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf" \
@@ -199,19 +196,16 @@ class TestFullRun(unittest.TestCase):
                       "-device_name ARTS_step2_81.92us_{freq}MHz " \
                       "-padding_file {amber_conf_dir}/padding.conf " \
                       "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
-                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
+                      "-integration_steps {amber_conf_dir}/integration_steps_x2.conf " \
                       "-subband_dedispersion " \
                       "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
                       "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
                       "-integration_file {amber_conf_dir}/integration.conf " \
                       "-snr_file {amber_conf_dir}/snr.conf " \
-                      "-dms 32 -dm_first 0 -dm_step .2 -subbands 32 -subbanding_dms 64 " \
-                      "-subbanding_dm_first 409.6 -subbanding_dm_step 6.4 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file {amber_conf_dir}/max_std.conf " \
-                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
-                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf  " \
+                      "-dms 32 -dm_first 0 -dm_step .3 -subbands 32 -subbanding_dms 128 " \
+                      "-subbanding_dm_first 409.6 -subbanding_dm_step 9.6 -snr_sc -nsigma 3.00 " \
                       "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
-                      "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
+                      "-downsampling_factor 2 -downsampling -rfim -time_domain_sigma_cut -frequency_domain_sigma_cut " \
                       "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf " \
                       "-time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
                       "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
@@ -225,22 +219,19 @@ class TestFullRun(unittest.TestCase):
                       "sbtable-sc4-12tabs-71sbs.txt".format(**self.settings)
 
         amber_step3 = "taskset -c 16 amber -sync -print -opencl_platform 0 -opencl_device 3 " \
-                      "-device_name ARTS_step3_nodownsamp_81.92us_{freq}MHz " \
+                      "-device_name ARTS_step3_81.92us_{freq}MHz " \
                       "-padding_file {amber_conf_dir}/padding.conf " \
                       "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
-                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
+                      "-integration_steps {amber_conf_dir}/integration_steps_x5.conf " \
                       "-subband_dedispersion " \
                       "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
                       "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
                       "-integration_file {amber_conf_dir}/integration.conf " \
                       "-snr_file {amber_conf_dir}/snr.conf " \
-                      "-dms 16 -dm_first 0 -dm_step 2.5 -subbands 32 -subbanding_dms 64 " \
-                      "-subbanding_dm_first 819.2 -subbanding_dm_step 40.0 -snr_sc -nsigma 3.00 " \
-                      "-max_std_file {amber_conf_dir}/max_std.conf " \
-                      "-mom_stepone_file {amber_conf_dir}/mom_stepone.conf " \
-                      "-mom_steptwo_file {amber_conf_dir}/mom_steptwo.conf " \
+                      "-dms 32 -dm_first 0 -dm_step 1.0 -subbands 32 -subbanding_dms 160 " \
+                      "-subbanding_dm_first 1638.4 -subbanding_dm_step 32.0 -snr_sc -nsigma 3.00 " \
                       "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
-                      "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
+                      "-downsampling_factor 5 -downsampling -rfim -time_domain_sigma_cut -frequency_domain_sigma_cut " \
                       "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf " \
                       "-time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
                       "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
