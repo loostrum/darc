@@ -366,9 +366,15 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
             dm, sig, tt, downsample = fn[:, 0], fn[:, 1], fn[:, 2], fn[:, 3]
     else:
         if read_beam:
-            return [], [], [], [], [], []
+            if return_clustcounts:
+                return [], [], [], [], [], [], []
+            else:
+                return [], [], [], [], [], []
         else:
-            return [], [], [], [], []
+            if return_clustcounts:
+                return [], [], [], [], [], []
+            else:
+                return [], [], [], [], []
 
     bad_sig_ind = np.where((sig < sig_thresh) | (sig > sig_max))[0]
     sig = np.delete(sig, bad_sig_ind)
@@ -385,9 +391,15 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     if len(tt) == 0:
         # print("Returning None: time array is empty")
         if read_beam:
-            return [], [], [], [], [], []
+            if return_clustcounts:
+                return [], [], [], [], [], [], []
+            else:
+                return [], [], [], [], [], []
         else:
-            return [], [], [], [], []
+            if return_clustcounts:
+                return [], [], [], [], [], []
+            else:
+                return [], [], [], [], []
 
     tduration = tt.max() - tt.min()
     ntime = int(tduration / t_window)
