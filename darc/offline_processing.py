@@ -206,7 +206,7 @@ class OfflineProcessing(threading.Thread):
 
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
-    def _start_observation_worker(self, obs_config, reload):
+    def _start_observation_worker(self, obs_config, reload=True):
         """
         Start observation on worker node:
 
