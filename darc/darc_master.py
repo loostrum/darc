@@ -367,7 +367,7 @@ class DARCMaster(object):
         thread = self.threads[service]
 
         # check if a new thread has to be generated
-        if thread is None:
+        if thread is None or not thread.isAlive():
             self.logger.info("Creating new thread for service {}".format(service))
             self.create_thread(service)
             thread = self.threads[service]
