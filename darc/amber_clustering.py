@@ -357,6 +357,8 @@ class AMBERClustering(DARCBase):
                 # check CB number
                 try:
                     allowed_cbs = self.thresh_lofar_override['cb']
+                    if isinstance(allowed_cbs, float):
+                        allowed_cbs = [allowed_cbs]
                     if self.obs_config['beam'] not in allowed_cbs:
                         return
                 except KeyError:
@@ -364,8 +366,8 @@ class AMBERClustering(DARCBase):
                     pass
                 else:
                     # source known, CB valid: set thresholds
-                    snr_min_lofar = self.thresh_override['snr_min']
-                    width_max_lofar = self.thresh_override['width_max']
+                    snr_min_lofar = self.thresh_lofar_override['snr_min']
+                    width_max_lofar = self.thresh_lofar_override['width_max']
                     self.logger.warning("Setting LOFAR trigger thresholds: S/N > {}, downsamp <= {}".format(snr_min_lofar,
                                                                                                             width_max_lofar))
         else:
