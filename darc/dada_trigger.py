@@ -242,7 +242,7 @@ class DADATrigger(DARCBase):
         tend = tstart + duration
 
         # round up polcal dump size to nearest 1.024 s
-        dump_size = np.ceil(self.polcal_dump_size / 1.024) * 1.024
+        dump_size = TimeDelta(np.ceil(self.polcal_dump_size / 1.024) * 1.024, format='sec')
         dump_interval = TimeDelta(self.polcal_interval, format='sec')
 
         # sleep until first trigger time
