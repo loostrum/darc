@@ -1,10 +1,12 @@
 # DARC
-Data Analysis of Real-time Candidates from the Apertif Radio Transient System
-
 [![DOI](https://zenodo.org/badge/165673299.svg)](https://zenodo.org/badge/latestdoi/165673299)[![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
 
+Data Analysis of Real-time Candidates from the Apertif Radio Transient System
+
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
-As of February 2020, DARC has discovered 11 FRBs.
+As of May 2020, DARC has discovered 17 new FRBs.
+
+An extended description of DARC and other ARTS software can be found in my PhD thesis, available [here](http://hdl.handle.net/11245.1/abe5c8fa-1fdf-490b-ac0d-61e946f5791f).
 
 ### Installation
 
