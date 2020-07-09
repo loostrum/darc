@@ -410,7 +410,7 @@ class AMBERClustering(DARCBase):
             # calculate arrival time at reference frequency = central frequency
             cent_freq = sys_params['nu_GHz'] * 1000.
             max_freq = cent_freq + .5 * BANDWIDTH.to(u.MHz).value
-            dm_delay = 4.15E3 * dm_to_send * (cent_freq**-2 - max_freq**-2)
+            dm_delay = 4.148808E3 * dm_to_send * (cent_freq**-2 - max_freq**-2)
             utc_arr = (utc_start + TimeDelta(cluster_time[mask][ind] - dm_delay, format='sec')).isot
             # set a source name
             if src_type is not None:
