@@ -79,6 +79,7 @@ class DARCMaster(object):
         while not command_socket and time() - start < self.socket_timeout:
             try:
                 command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                command_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 command_socket.bind(("", self.port))
             except socket.error as e:
                 self.logger.warning("Failed to create socket, will retry: {}".format(e))
