@@ -297,17 +297,17 @@ class VOEventGenerator(threading.Thread):
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.smajAxis", ac=True, value=semiMaj)
         beam_sma = vp.Param(name="beam_semi-minor_axis", unit="MM",
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.sminAxis", ac=True, value=semiMin)
-        beam_rot = vp.Param(name="beam_rotation_angle", value=posang, unit="Degrees",
+        beam_rot = vp.Param(name="beam_rotation_angle", value=str(posang), unit="Degrees",
                             ucd="instr.beam;pos.errorEllipse;instr.offset", ac=True)
-        tsamp = vp.Param(name="sampling_time", value=dt, unit="ms", ucd="time.resolution", ac=True)
-        bw = vp.Param(name="bandwidth", value=delta_nu_MHz, unit="MHz", ucd="instr.bandwidth", ac=True)
+        tsamp = vp.Param(name="sampling_time", value=str(dt), unit="ms", ucd="time.resolution", ac=True)
+        bw = vp.Param(name="bandwidth", value=str(delta_nu_MHz), unit="MHz", ucd="instr.bandwidth", ac=True)
         nchan = vp.Param(name="nchan", value=str(NCHAN), dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
         cf = vp.Param(name="centre_frequency", value=str(1000 * nu_GHz), unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
-        gain = vp.Param(name="gain", value=gain, unit="K/Jy", ac=True)
-        tsys = vp.Param(name="tsys", value=TSYS.to(u.Kelvin).value, unit="K", ucd="phot.antennaTemp", ac=True)
+        gain = vp.Param(name="gain", value=str(gain), unit="K/Jy", ac=True)
+        tsys = vp.Param(name="tsys", value=str(TSYS.to(u.Kelvin).value), unit="K", ucd="phot.antennaTemp", ac=True)
         backend = vp.Param(name="backend", value="ARTS")
         # beam = vp.Param(name="beam", value= )
 
