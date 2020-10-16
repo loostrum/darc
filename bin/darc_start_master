@@ -34,9 +34,9 @@ else
     echo "DARC master service offline, starting"
     # log to actual log dir if it exists
     if [ -d $HOME/darc/log ]; then
-        nohup darc_service 2>&1 >>$HOME/darc/log/darc_master.$(hostname).log &
+        nohup darc_service >>$HOME/darc/log/darc_master.$(hostname).log 2>&1 &
     else
-        nohup darc_service 2>&1 >/dev/null &
+        nohup darc_service >/dev/null 2>&1 &
     fi
     # Wait until online 
     echo "Waiting for DARC master to be online"
