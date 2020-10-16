@@ -542,14 +542,21 @@ class DARCMaster(object):
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
 
+        # create command
+        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
+
         # wait until start time
         utc_start = Time(config['startpacket'] / 781250., format='unix')
+        utc_end = utc_start + TimeDelta(obs_config['duration'], format='sec')
+        # if end time is in the past, only start offline processing
+        if utc_end < Time.now():
+            self.logger.warning("End time in past! Only starting offline processing")
+            self.processor_queue.put(command)
+            return "Warning", "Only offline processing started"
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
         self.logger.info("Starting observation at {}".format(t_setup.isot))
         util.sleepuntil_utc(t_setup)
 
-        # create command
-        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
         # clear queues, then send command
         for queue in self.all_queues:
             util.clear_queue(queue)
