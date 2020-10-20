@@ -56,7 +56,7 @@ class TestFullRun(unittest.TestCase):
         with open('/tank/data/sky/B1933+16/20200211_dump/parset', 'r') as f:
             parset = f.read().strip()
 
-        # nreader: one for each programme readding from the buffer, i.e. 3x AMBER
+        # nreader: one for each programme reading from the buffer, i.e. 3x AMBER
         self.settings = {'resolution': 1536 * 12500 * 12, 'nbuf': 5, 'key_i': 'aaaa',
                          'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
                          'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files) * 10,
