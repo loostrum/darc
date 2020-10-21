@@ -96,17 +96,14 @@ def parse_parset(parset_str):
     """
     # split per line, remove comments
     raw_parset = parset_str.split('\n')
-    # remove any line starting with #
+    # remove empty/whitespace-only lines and any line starting with #
     parset = []
     for line in raw_parset:
-        if not line.startswith('#'):
+        if line.strip() and not line.startswith('#'):
             parset.append(line)
     # Split keys/values. Separator might be "=" or " = "
     parset = [item.replace(' = ', '=').strip().split('=') for item in parset]
     # remove empty last line if present
-    if parset[-1] == ['']:
-        parset = parset[:-1]
-
     # convert to dict
     parset_dict = dict(parset)
     # remove any comments
