@@ -3,15 +3,18 @@
 import os
 import glob
 import unittest
-import subprocess
+import ast
+import yaml
 import multiprocessing as mp
 import socket
-from shutil import which
+from shutil import which, rmtree
 from time import sleep
 from queue import Empty
 import numpy as np
+from astropy.time import Time, TimeDelta
 
 from darc.processor import Processor
+from darc.amber_listener import AMBERListener
 from darc import util
 
 
@@ -23,8 +26,10 @@ class TestProcessor(unittest.TestCase):
 
     def setUp(self):
         if socket.gethostname() == 'zeus':
-            self.dada_files = glob.glob('/data/arts/data/dada/*.dada')
+            self.dada_files = glob.glob('/data/arts/data/dada/*.dada')[:1]
             self.dada_files.sort()
+            log_dir = '/data/arts/darc/output/log'
+            filterbank_dir = '/data/arts/darc/output/filterbank'
             amber_dir = '/data/arts/darc/output/amber'
             amber_conf_dir = '/data/arts/darc/amber_conf'
             amber_conf_file = '/data/arts/darc/amber.conf'
@@ -32,33 +37,72 @@ class TestProcessor(unittest.TestCase):
         else:
             self.skipTest("Test not supported yet on arts041")
 
+        # ensure we start clean
+        for d in (log_dir, amber_dir, filterbank_dir):
+            try:
+                rmtree(d)
+            except FileNotFoundError:
+                pass
+            util.makedirs(d)
+
         self.processes = {}
 
         # extract PSRDADA header
         self.header = self.get_psrdada_header(self.dada_files[0])
 
         # add general settings
-        self.header['nreader'] = 1
+        self.header['nreader'] = 2
         self.header['nbuffer'] = 5
         self.header['key_i'] = '5000'
         self.header['beam'] = 0
-        self.header['nbatch'] = int(float(self.header['SCANLEN']) / 1.024)
+        self.header['ntab'] = 12
+        self.header['nsb'] = 71
+        # self.header['nbatch'] = int(float(self.header['SCANLEN']) / 1.024)
+        self.header['nbatch'] = 10
+        self.header['log_dir'] = log_dir
+        self.header['filterbank_dir'] = filterbank_dir
         self.header['amber_dir'] = amber_dir
         self.header['amber_conf_dir'] = amber_conf_dir
-        self.header['amber_conf_file'] = amber_conf_file
+        self.header['amber_config'] = amber_conf_file
         self.header['sb_table'] = sb_table
-        self.header['parset'] = 'parset'
-        self.header['datetimesource'] = '2019-01-01-00:00:00.FAKE'
+        self.header['datetimesource'] = '2020-01-01-00:00:00.FAKE'
         self.header['freq'] = int(np.round(float(self.header['FREQ'])))
+        self.header['snrmin'] = 8
+        self.header['tstart'] = Time.now() + TimeDelta(5, format='sec')
+
+        # add encoded parset
+        parset = """
+        task.duration = {SCANLEN}
+        task.starttime = {tstart}
+        """.format(**self.header)
+        self.header['parset'] = util.encode_parset(parset)
 
         # create ringbuffer
         self.create_ringbuffer()
 
-        # create process to load data to buffer (but do not run it yet)
+        # create processes for the different pipeline steps
         self.diskdb_proc = self.diskdb_command()
-
-        # create process to run amber
         self.amber_proc = self.amber_command()
+        self.dadafilterbank_proc = self.dadafilterbank_command()
+
+        # start all except data reader
+        self.dadafilterbank_proc.start()
+        self.amber_proc.start()
+
+        # open processor config file
+        # self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_processor.yaml')
+        # with open(self.config_file, 'r') as f:
+        #     self.config = yaml.load(f, Loader=yaml.SafeLoader)
+
+        # initialize AMBERListener, used for feeding triggers to Processor
+        self.amber_listener = AMBERListener()
+        self.amber_listener.set_source_queue(mp.Queue())
+        self.amber_listener.set_target_queue(mp.Queue())
+        self.amber_listener.start()
+
+        # initialize Processor, connect input queue to output of AMBERListener
+        self.processor = Processor()
+        self.processor.set_source_queue(self.amber_listener.target_queue)
 
     def tearDown(self):
         # remove ringbuffers
@@ -106,46 +150,76 @@ class TestProcessor(unittest.TestCase):
 
     def amber_command(self):
         # load amber config file
-        with open(self.header['amber_conf_file']) as f:
+        with open(self.header['amber_config']) as f:
             amber_conf = util.parse_parset(f.read())
-        print(amber_conf)
-        amber_step1 = "taskset -c 3 amber -sync -print -opencl_platform 0 -opencl_device 0 " \
-                      "-device_name ARTS_step1_81.92us_{freq}MHz " \
+        # extract step1 settings and add to a full config dict
+        fullconfig = self.header.copy()
+        for key, value in amber_conf.items():
+            # some values are lists, interpret these
+            if value.startswith('['):
+                value = ast.literal_eval(value)
+            if isinstance(value, list):
+                # extract 1st item
+                fullconfig[key] = value[0]
+            else:
+                fullconfig[key] = value
+        # add freq to device name
+        fullconfig['device_name'] = fullconfig['device_name'].format(**self.header)
+        amber_step1 = "taskset -c 3 amber -sync -print -opencl_platform {opencl_platform} " \
+                      "-opencl_device {opencl_device} " \
+                      "-device_name {device_name} " \
                       "-padding_file {amber_conf_dir}/padding.conf " \
                       "-zapped_channels {amber_conf_dir}/zapped_channels_{freq}.conf " \
-                      "-integration_steps {amber_conf_dir}/integration_steps_x1.conf " \
+                      "-integration_steps {amber_conf_dir}/{integration_file} " \
                       "-subband_dedispersion " \
                       "-dedispersion_stepone_file {amber_conf_dir}/dedispersion_stepone.conf " \
                       "-dedispersion_steptwo_file {amber_conf_dir}/dedispersion_steptwo.conf " \
                       "-integration_file {amber_conf_dir}/integration.conf " \
                       "-snr_file {amber_conf_dir}/snr.conf " \
-                      "-dms 32 -dm_first 0 -dm_step .2 -subbands 32 -subbanding_dms 64 " \
-                      "-subbanding_dm_first 0 -subbanding_dm_step 6.4 -snr_sc -nsigma 3.00 " \
+                      "-dms {num_dm} -dm_first {dm_first} -dm_step {dm_step} -subbands {subbands} " \
+                      "-subbanding_dms {subbanding_dms} -subbanding_dm_first {subbanding_dm_first} " \
+                      "-subbanding_dm_step {subbanding_dm_step} -snr_sc -nsigma {snr_nsigma} " \
                       "-downsampling_configuration {amber_conf_dir}/downsampling.conf " \
-                      "-downsampling_factor 1 -rfim  -time_domain_sigma_cut -frequency_domain_sigma_cut " \
+                      "-downsampling_factor {downsamp} -rfim -time_domain_sigma_cut -frequency_domain_sigma_cut " \
                       "-time_domain_sigma_cut_steps {amber_conf_dir}/tdsc_steps.conf" \
                       " -time_domain_sigma_cut_configuration {amber_conf_dir}/tdsc.conf " \
                       "-frequency_domain_sigma_cut_steps {amber_conf_dir}/fdsc_steps.conf " \
                       "-frequency_domain_sigma_cut_configuration {amber_conf_dir}/fdsc.conf " \
-                      "-nr_bins 48  -threshold 8.0 " \
+                      "-nr_bins {fdsc_nbins} -threshold {snrmin} " \
                       "-output {amber_dir}/CB{beam:02d}_step1 " \
-                      "-beams 12 -synthesized_beams 71 -synthesized_beams_chunk 4 " \
-                      "-dada -dada_key {key_i} -batches {nbatch} " \
-                      "-compact_results " \
-                      "-synthesized_beams_file {sb_table}".format(**self.header)
+                      "-beams {ntab} -synthesized_beams {nsb} -synthesized_beams_chunk {nsynbeams_chunk} " \
+                      "-dada -dada_key {key_i} -batches {nbatch} {extra_flags}" \
+                      "-synthesized_beams_file {sb_table}".format(**fullconfig)
         proc = mp.Process(target=os.system, args=(amber_step1,))
-        print(amber_step1)
+        return proc
+
+    def dadafilterbank_command(self):
+        cmd = 'dadafilterbank -l {log_dir}/dadafilterbank.log -k {key_i} ' \
+              '-n {filterbank_dir}/CB{beam:02d}'.format(**self.header)
+        proc = mp.Process(target=os.system, args=(cmd, ))
         return proc
 
     def test_processor(self):
-        # read data into buffer
+        # set processor settings
+        self.processor.interval = 1.0
+        # start processor
+        self.processor.start()
+
+        # start amber listener and processor
+        self.amber_listener.start_observation(obs_config=self.header, reload=False)
+        self.processor.start_observation(obs_config=self.header, reload=False)
+
+        # at start time, read data into buffer, other processes are already set up and waiting for data
+        util.sleepuntil_utc(self.header['tstart'])
         self.diskdb_proc.start()
-        # run amber
-        self.amber_proc.start()
-        # wait until reader is done
-        self.diskdb_proc.join()
-        # wait until amber is done
-        self.amber_proc.join()
+
+        # wait until processes are done
+        for proc in (self.diskdb_proc, self.amber_proc, self.dadafilterbank_proc):
+            proc.join()
+
+        # stop observation
+        self.amber_listener.stop_observation()
+        self.processor.stop_observation()
 
 
 if __name__ == '__main__':
