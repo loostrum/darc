@@ -21,13 +21,15 @@ class TestAMBERListener(unittest.TestCase):
 
         # create input queue
         obs_queue = mp.Queue()
-        # create output queue
+        # create output queues
         amber_queue = mp.Queue()
+        amber_queue2 = mp.Queue()
         # init AMBER Listener
         listener = AMBERListener()
         # set the queues
         listener.set_source_queue(obs_queue)
         listener.set_target_queue(amber_queue)
+        listener.set_second_target_queue(amber_queue2)
         # start the listener
         listener.start()
         # start observation
@@ -39,6 +41,7 @@ class TestAMBERListener(unittest.TestCase):
         obs_queue.put(command)
 
         output = []
+        output2 = []
         # read queue until empty
         while True:
             try:
@@ -46,6 +49,13 @@ class TestAMBERListener(unittest.TestCase):
             except Empty:
                 break
             output.append(raw_trigger['trigger'])
+        # read second queue
+        while True:
+            try:
+                raw_trigger = amber_queue2.get(timeout=2)
+            except Empty:
+                break
+            output2.append(raw_trigger['trigger'])
 
         # stop the observation
         obs_queue.put({'command': 'stop_observation'})
@@ -56,6 +66,9 @@ class TestAMBERListener(unittest.TestCase):
 
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
+
+        # both outputs should be identical
+        self.assertListEqual(output, output2)
 
         # check the output is correct, i.e. equal to input
         # load all trigger files

@@ -31,6 +31,7 @@ class DARCBase(threading.Thread):
         self.needs_target_queue = False
         self.source_queue = None
         self.target_queue = None
+        self.second_target_queue = None
 
         # set names for config and logger
         self.module_name = type(self).__module__.split('.')[-1]
@@ -98,6 +99,18 @@ class DARCBase(threading.Thread):
             self.stop()
         else:
             self.target_queue = queue
+
+    def set_second_target_queue(self, queue):
+        """
+        Set second output queue
+
+        :param queues.Queue queue: Output queue
+        """
+        if not isinstance(queue, queues.Queue):
+            self.logger.error("Given target queue is not an instance of Queue")
+            self.stop()
+        else:
+            self.second_target_queue = queue
 
     def run(self):
         """

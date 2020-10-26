@@ -52,7 +52,7 @@ class DARCMaster(object):
         self.amber_trigger_queue = mp.Queue()  # for amber triggers
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
         self.processor_queue = mp.Queue()  # for semi-realtime processing
-        self.offline_queue = mp.Queue() # for offline processing
+        self.offline_queue = mp.Queue()  # for offline processing
 
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue, self.offline_queue]
@@ -335,9 +335,11 @@ class DARCMaster(object):
         """
 
         # settings for specific services
+        second_target_queue = None
         if service == 'amber_listener':
             source_queue = self.amber_listener_queue
             target_queue = self.amber_trigger_queue
+            second_target_queue = self.processor_queue
         elif service == 'amber_clustering':
             source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue
@@ -387,6 +389,8 @@ class DARCMaster(object):
                 thread.set_source_queue(source_queue)
             if target_queue:
                 thread.set_target_queue(target_queue)
+            if second_target_queue:
+                thread.set_second_target_queue(second_target_queue)
             # start
             thread.start()
             # check status

@@ -114,4 +114,8 @@ class AMBERListener(DARCBase):
             for line in util.tail(f, event):
                 line = line.strip()
                 if line:
+                    # put trigger on queue
                     self.target_queue.put({'command': 'trigger', 'trigger': line})
+                    # add same trigger to second queue if present
+                    if self.second_target_queue is not None:
+                        self.second_target_queue.put({'command': 'trigger', 'trigger': line})
