@@ -6,6 +6,7 @@ import multiprocessing as mp
 from time import sleep
 from astropy.time import Time
 from queue import Empty
+import numpy as np
 
 from darc.amber_clustering import AMBERClustering
 from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
@@ -15,9 +16,9 @@ from darc import util
 
 class TestAMBERClustering(unittest.TestCase):
 
-    def test_clustering_iquv(self):
+    def test_clustering_iquv_new(self):
         """
-        Test AMBER clustering without applying thresholds
+        Test AMBER clustering without applying thresholds, for a new source
         """
 
         # create queues
@@ -33,6 +34,7 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.dm_range = 10
         clustering.snr_min_global = 10
         clustering.sb_filter = False
+        clustering.interval = 0.5
 
         # start the clustering
         clustering.start()
@@ -51,9 +53,9 @@ class TestAMBERClustering(unittest.TestCase):
 
         # start observation
         # create input parset with required keys
-        # source has to match trigger file DMs
+        # source name cannot be a known source
         beam = 0
-        parset_dict = {'task.source.name': 'B0531+21',
+        parset_dict = {'task.source.name': 'B0531+21NEW',
                        'task.beamSet.0.compoundBeam.{}.phaseCenter'.format(beam): '[83.633deg, 22.0144deg]',
                        'task.directionReferenceFrame': 'J2000'}
         # encode parset
@@ -85,12 +87,11 @@ class TestAMBERClustering(unittest.TestCase):
         in_queue.put({'command': 'stop_observation'})
         clustering.stop()
 
-        expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
+        expected_output = [{'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 25.0833, 'time': 4.58277},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 10, 'width': 1000, 'snr': 15.1677, 'time': 6.02112},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 11.3797, 'time': 8.33061},
-                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 10.4506, 'time': 10.0863},
+                           {'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1, 'snr': 10.4506, 'time': 10.0863},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 19.8565, 'time': 11.0317}]
 
         self.assertEqual(len(output), len(expected_output))
