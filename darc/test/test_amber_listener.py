@@ -67,7 +67,10 @@ class TestAMBERListener(unittest.TestCase):
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
 
-        # both outputs should be identical
+        # both outputs should contain the same triggers, but not necessarily in the same order
+        # sort by last element (S/N)
+        output.sort()
+        output2.sort()
         self.assertListEqual(output, output2)
 
         # check the output is correct, i.e. equal to input
@@ -81,8 +84,7 @@ class TestAMBERListener(unittest.TestCase):
             triggers = [line.strip() for line in triggers]
             all_triggers.extend(triggers)
 
-        # sort input and output by last element (S/N)
-        output.sort()
+        # sort input by last element (S/N)
         all_triggers.sort()
         self.assertListEqual(output, all_triggers)
 
