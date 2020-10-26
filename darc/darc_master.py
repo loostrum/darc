@@ -51,10 +51,11 @@ class DARCMaster(object):
         self.amber_listener_queue = mp.Queue()  # only used for start observation commands
         self.amber_trigger_queue = mp.Queue()  # for amber triggers
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
-        self.processor_queue = mp.Queue()  # for offline or real-time processing
+        self.processor_queue = mp.Queue()  # for semi-realtime processing
+        self.offline_queue = mp.Queue() # for offline processing
 
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
-                           self.processor_queue]
+                           self.processor_queue, self.offline_queue]
 
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
@@ -347,7 +348,7 @@ class DARCMaster(object):
             source_queue = None
             target_queue = None
         elif service == 'offline_processing':
-            source_queue = self.processor_queue
+            source_queue = self.offline_queue
             target_queue = None
         elif service == 'dada_trigger':
             source_queue = self.dadatrigger_queue
@@ -357,7 +358,7 @@ class DARCMaster(object):
             target_queue = None
         elif service == 'processor':
             source_queue = self.processor_queue
-            target_queue = self.dadatrigger_queue
+            target_queue = None
         else:
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
@@ -551,7 +552,7 @@ class DARCMaster(object):
         # if end time is in the past, only start offline processing
         if utc_end < Time.now():
             self.logger.warning("End time in past! Only starting offline processing")
-            self.processor_queue.put(command)
+            self.offline_queue.put(command)
             return "Warning", "Only offline processing started"
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
         self.logger.info("Starting observation at {}".format(t_setup.isot))
@@ -573,8 +574,8 @@ class DARCMaster(object):
         """
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
-            # in mixed mode, skip stopping offline_procssing, unless abort is True
-            if (self.mode == 'mixed') and (queue == self.processor_queue) and not abort:
+            # in mixed mode, skip stopping offline_processing, unless abort is True
+            if (self.mode == 'mixed') and (queue == self.offline_queue) and not abort:
                 self.logger.info("Skipping stopping offline processing in mixed mode")
                 continue
             queue.put({'command': 'stop_observation'})
