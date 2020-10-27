@@ -220,7 +220,17 @@ class Processor(DARCBase):
         # set config
         self.obs_config = obs_config
 
-        self.observation_running = True
+        # create output dir
+        output_dir = os.path.join('{result_dir}'.format(**obs_config), self.output_dir)
+        try:
+            util.makedirs(output_dir)
+        except Exception as e:
+            self.logger.error(f"Failed to create output directory {output_dir}: {e}")
+            raise ProcessorException(f"Failed to create output directory {output_dir}: {e}")
+        # run in output dir
+        os.chdir(output_dir)
+
+        self.observation_running = True  # this must be set before starting the processing thread
 
         # start processing
         self.threads['processing'] = threading.Thread(target=self._read_and_process_data, name='processing')
@@ -471,6 +481,10 @@ class Extractor(threading.Thread):
 
         # load config
         self.config = self._load_config()
+
+        # create directory for output data
+        # this thread runs in output directory, so relative to current directory is fine
+        util.makedirs('data')
 
         # create stop event
         self.stop_event = mp.Event()
