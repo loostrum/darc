@@ -13,7 +13,7 @@ import yaml
 import numpy as np
 import astropy.units as u
 
-from darc import DARCBase
+from darc import DARCBase, SBGenerator
 from darc import util
 from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
 from darc.external import tools
@@ -177,6 +177,7 @@ class Processor(DARCBase):
         # create queues
         self.clustering_queue = mp.Queue()
         self.extractor_queue = mp.Queue()
+        self.classifier_queue = mp.Queue()
 
         # intialise analysis tools
         # self.rtproc = realtime_tools.RealtimeProc()
@@ -226,9 +227,18 @@ class Processor(DARCBase):
         self.threads['processing'].start()
 
         # start clustering
-        self.threads['clustering'] = Clustering(obs_config, self.logger, self.clustering_queue, self.extractor_queue)
+        self.threads['clustering'] = Clustering(obs_config, self.logger,
+                                                self.clustering_queue, self.extractor_queue)
         self.threads['clustering'].daemon = True
         self.threads['clustering'].start()
+
+        # start extractor(s)
+        for i in range(self.num_extractor):
+            self.logger.info(f"Starting {self.num_extractor} data extractors")
+            self.threads[f'extractor_{i}'] = Extractor(obs_config, self.logger,
+                                                       self.extractor_queue, self.classifier_queue)
+            self.threads[f'extractor_{i}'].daemon = True
+            self.threads[f'extractor_{i}'].start()
 
         self.logger.info("Observation started")
 
@@ -245,11 +255,25 @@ class Processor(DARCBase):
         # clear config
         self.obs_config = None
         # clear processing thread
-        if self.threads['processing'] is not None:
-            self.threads['processing'].join()
+        try:
+            if self.threads['processing'] is not None:
+                self.threads['processing'].join()
+        except KeyError:
+            # there was no processing thread
+            pass
         # signal clustering to stop
-        self.threads['clustering'].stop()
-        self.threads['clustering'].join()
+        try:
+            self.threads['clustering'].stop()
+            self.threads['clustering'].join()
+        except KeyError:
+            pass
+        # signal extractor(s) to stop
+        for i in range(self.num_extractor):
+            try:
+                self.threads[f'extractor_{i}'].stop()
+                self.threads[f'extractor_{i}'].join()
+            except KeyError:
+                pass
         self.threads = {}
 
     def _read_and_process_data(self):
@@ -340,18 +364,22 @@ class Clustering(threading.Thread):
         # create stop event
         self.stop_event = mp.Event()
 
+        self.input_empty = False
+
     def run(self):
         """
         Main loop
         """
-        self.logger.info("Starting Clustering thread")
+        self.logger.info("Starting clustering thread")
         while not self.stop_event.is_set():
             # read triggers from input queue
             try:
                 triggers = self.input_queue.get(timeout=.1)
             except Empty:
+                self.input_empty = True
                 continue
             else:
+                self.input_empty = False
                 # do clustering
                 self._cluster(triggers)
         self.logger.info("Stopping clustering thread")
@@ -360,6 +388,10 @@ class Clustering(threading.Thread):
         """
         Stop this thread
         """
+        # wait until the input queue is empty
+        while not self.input_empty:
+            sleep(1)
+        # then stop
         self.stop_event.set()
 
     @staticmethod
@@ -416,3 +448,88 @@ class Clustering(threading.Thread):
             self.output_queue.put([cluster_dm[ind], cluster_snr[ind], cluster_time[ind], cluster_downsamp[ind],
                                    cluster_sb[ind]])
         return
+
+
+class Extractor(threading.Thread):
+    """
+    Extract data from filterbank files
+    """
+
+    def __init__(self, obs_config, logger, input_queue, output_queue):
+        """
+        :param dict obs_config: Observation settings
+        :param Logger logger: Processor logger object
+        :param Queue input_queue: Input queue for triggers
+        :param Queue output_queue: Output queue for clusters
+        """
+        super(Extractor, self).__init__()
+        self.logger = logger
+        self.obs_config = obs_config
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+
+        # load config
+        self.config = self._load_config()
+
+        # create stop event
+        self.stop_event = mp.Event()
+
+        self.input_empty = False
+
+    def run(self):
+        """
+        Main loop
+        """
+        self.logger.info("Starting extractor thread")
+        while not self.stop_event.is_set():
+            # read parameters of a trigger from input queue
+            try:
+                params = self.input_queue.get(timeout=.1)
+            except Empty:
+                self.input_empty = True
+                continue
+            else:
+                self.input_empty = False
+                # do extraction
+                self._extract(*params)
+        self.logger.info("Stopping extractor thread")
+
+    def stop(self):
+        """
+        Stop this thread
+        """
+        # wait until the input queue is empty
+        while not self.input_empty:
+            sleep(1)
+        # then stop
+        self.stop_event.set()
+
+    @staticmethod
+    def _load_config():
+        """
+        Load configuration
+        """
+        with open(CONFIG_FILE, 'r') as f:
+            config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['extractor']
+        # set config, expanding strings
+        kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}
+        for key, value in config.items():
+            if isinstance(value, str):
+                config[key] = value.format(**kwargs)
+            # replace any -1 by infinite
+            elif value == -1:
+                config[key] = np.inf
+        # return as Namespace so the keys can be accessed as attributes
+        return Namespace(**config)
+
+    def _extract(self, dm, snr, toa, downsamp, sb):
+        """
+        Execute data extraction
+
+        :param float dm: Dispersion Measure (pc/cc)
+        :param float snr: AMBER S/N
+        :param float toa: Arrival time at top of band (s)
+        :param int downsamp: Downsampling factor
+        :param int sb: Synthesised beam index
+        """
+        pass

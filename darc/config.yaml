@@ -140,6 +140,7 @@ processor_manager:
 processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
     interval: 1.0  # how often to process candidates (seconds)
+    num_extractor: 2  # how many data extractors to run
     # clustering settings
     clustering:
         dm_min: 20
@@ -151,6 +152,9 @@ processor:
         sb_filter_period_max: 15
         clustering_window: 0.5
         width_max: -1  # max downsampling factor, -1 = infinite
+    # data extractor settings:
+    extractor:
+        test: 0
 
 # Offline processing
 offline_processing:

@@ -14,7 +14,7 @@ class SBGeneratorException(Exception):
     pass
 
 
-class SBGenerator(object):
+class SBGenerator:
     """
     Synthesized beam generator
     """

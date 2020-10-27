@@ -274,6 +274,10 @@ class TestProcessor(unittest.TestCase):
         self.amber_listener.stop_observation()
         self.processor.stop_observation()
 
+        # stop services
+        self.amber_listener.stop()
+        self.processor.stop()
+
 
 if __name__ == '__main__':
     unittest.main()
