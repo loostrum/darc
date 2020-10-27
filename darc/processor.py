@@ -157,12 +157,11 @@ class Processor(DARCBase):
     """
     Real-time processing of candidates
 
-    1. Clustering + thresholding
-    2. Extract data from filterbank
+    #. Clustering + thresholding
+    #. Extract data from filterbank
+    #. Run classifier
 
-    After observation end:
-    3. Run classifier
-    4. Send results to master node
+    After observation finishes, results are sent to the master node
     """
 
     def __init__(self):
@@ -572,4 +571,32 @@ class Extractor(threading.Thread):
         :param int downsamp: Downsampling factor
         :param int sb: Synthesized beam index
         """
-        pass
+
+        # calculate DM range to try, ensure detection DM is in the list
+
+        # calculate smearing timescale; if small enough we can downsample before dedispersion to
+        # speed things up
+
+        # calculate start/end bin we need to load from filterbank
+
+        # wait until this much of the filterbank should be present on disk
+
+        # if start time before start of file, or end time beyond end of file, shift the start and end time
+
+        # load the data
+
+        # apply AMBER RFI mask
+
+        # run rfi cleaning
+
+        # apply predownsampling as needed
+
+        # dedisperse
+
+        # apply any remaining downsampling
+
+        # find peak in DM-time
+
+        # extract freq-time of best DM, and roll data to put brightest pixel in center. Adapt arrival time accordingly
+
+        # create output file
