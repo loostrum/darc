@@ -131,15 +131,26 @@ sb_generator:
         sc3: 114
         sc4: 71
 
+# Trigger processor manager: share log file with processor
+processor_manager:
+    log_file: "{home}/darc/log/processor.{hostname}.log"
+    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+
 # Trigger processor
 processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
-    model_dir: "{home}/keras_models"
-    model_name_freqtime: '20190416freq_time.hdf5'
-    model_name_dmtime: 'heimdall_dm_time.hdf5'
-    nfreq: 32
-    ntime: 64
-    ndm: 64
+    interval: 1.0  # how often to process candidates (seconds)
+    # clustering settings
+    clustering:
+        dm_min: 20
+        dm_max: -1  # -1 = infinite
+        snr_min_clustering: 8  # during clustering
+        snr_min: 10  # post-clustering (i.e. also post SB periodicity filter)
+        sb_filter: False
+        sb_filter_period_min: 10
+        sb_filter_period_max: 15
+        clustering_window: 0.5
+        width_max: -1  # max downsampling factor, -1 = infinite
 
 # Offline processing
 offline_processing:

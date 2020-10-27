@@ -57,7 +57,7 @@ class DARCMaster(object):
                                 'amber_clustering': darc.AMBERClustering,
                                 'dada_trigger': darc.DADATrigger,
                                 'lofar_trigger': darc.LOFARTrigger,
-                                'processor': darc.Processor,
+                                'processor': darc.ProcessorManager,
                                 'offline_processing': darc.OfflineProcessing}
 
         # Load config file
@@ -237,7 +237,12 @@ class DARCMaster(object):
         # only stop in real-time modes, as offline processing runs after the observation
         elif command == 'stop_observation':
             if self.mode in ['real-time', 'mixed']:
-                status, reply = self.stop_observation()
+                if not payload:
+                    self.logger.error('Payload is required when stopping observation')
+                    status = 'Error'
+                    reply = {'error': 'Payload missing'}
+                else:
+                    status, reply = self.stop_observation(payload)
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
                 status = 'Success'
@@ -562,20 +567,35 @@ class DARCMaster(object):
             queue.put(command)
         return "Success", "Observation started"
 
-    def stop_observation(self, abort=False):
+    def stop_observation(self, config_file, abort=False):
         """
         Stop an observation
 
+        :param str config_file: path to observation config file
         :param bool abort: whether to abort the observation
         :return: status, reply message
         """
+        self.logger.info("Received stop_observation command with config file {}".format(config_file))
+        # check if config file exists
+        if not os.path.isfile(config_file):
+            self.logger.error("File not found: {}".format(config_file))
+            return "Error", "Failed: config file not found"
+        # load config
+        if config_file.endswith('.yaml'):
+            config = self._load_yaml(config_file)
+        elif config_file.endswith('.parset'):
+            config = self._load_parset(config_file)
+        else:
+            self.logger.error("Failed to determine config file type from {}".format(config_file))
+            return "Error", "Failed: unknown config file type"
+
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
             # in mixed mode, skip stopping offline_processing, unless abort is True
             if (self.mode == 'mixed') and (queue == self.offline_queue) and not abort:
                 self.logger.info("Skipping stopping offline processing in mixed mode")
                 continue
-            queue.put({'command': 'stop_observation'})
+            queue.put({'command': 'stop_observation', 'obs_config': config})
 
         status = 'Success'
         reply = "Stopped observation"

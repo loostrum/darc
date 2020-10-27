@@ -4,14 +4,70 @@ import os
 import glob
 import unittest
 import ast
+from time import sleep
+import threading
 import multiprocessing as mp
 import socket
 from shutil import which, rmtree
 import numpy as np
 from astropy.time import Time, TimeDelta
 
-from darc import Processor, AMBERListener
+from darc import Processor, ProcessorManager, AMBERListener
 from darc import util
+
+
+# An simple idling thread to test the thread scavenger
+class Idling(threading.Thread):
+
+    def __init__(self):
+        super(Idling, self).__init__()
+        self.event = mp.Event()
+
+    def run(self):
+        while not self.event.is_set():
+            self.event.wait(.1)
+
+    def stop_observation(self):
+        self.event.set()
+
+
+class TestProcessorManager(unittest.TestCase):
+
+    def test_scavenger(self):
+        # initialize the processor manager
+        manager = ProcessorManager()
+        # set the scavenger interval
+        manager.scavenger_interval = 0.1
+        # the thread scavenger should now be running
+        self.assertTrue(manager.scavenger.is_alive())
+
+        # create a thread that idles forever
+        thread = Idling()
+        thread.start()
+        # add the thread to the manager observation list
+        manager.observations['0'] = thread
+
+        # the scavenger should not remove either thread
+        sleep(manager.scavenger_interval)
+        self.assertTrue(thread.is_alive())
+
+        # now stop one thread
+        thread.event.set()
+        # the scavenger should remove this thread
+        sleep(manager.scavenger_interval)
+        self.assertTrue(not thread.is_alive())
+        # it should also be removed from the observation list
+        self.assertTrue('0' not in manager.observations.keys())
+
+        # start a new thread
+        thread = Idling()
+        thread.start()
+        # add the thread to the manager observation list
+        manager.observations['0'] = thread
+
+        # stop the manager, which should also stop the thread
+        manager.stop()
+        self.assertTrue(not thread.is_alive())
 
 
 # skip if not running on arts041 or zeus
@@ -64,6 +120,7 @@ class TestProcessor(unittest.TestCase):
         self.header['datetimesource'] = '2020-01-01-00:00:00.FAKE'
         self.header['freq'] = int(np.round(float(self.header['FREQ'])))
         self.header['snrmin'] = 8
+        self.header['min_freq'] = 1220.0
         self.header['tstart'] = Time.now() + TimeDelta(5, format='sec')
 
         # add encoded parset
@@ -195,7 +252,7 @@ class TestProcessor(unittest.TestCase):
         proc = mp.Process(target=os.system, args=(cmd, ))
         return proc
 
-    def test_processor(self):
+    def test_processor_obs(self):
         # set processor settings
         self.processor.interval = 1.0
         # start processor
