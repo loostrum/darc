@@ -7,7 +7,7 @@ from time import sleep, time
 import threading
 import ast
 
-from darc.base import DARCBase
+from darc import DARCBase
 from darc import util
 
 

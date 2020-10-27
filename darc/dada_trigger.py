@@ -9,7 +9,7 @@ import socket
 import numpy as np
 from astropy.time import Time, TimeDelta
 
-from darc.base import DARCBase
+from darc import DARCBase
 from darc import util
 
 

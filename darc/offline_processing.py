@@ -7,8 +7,6 @@ import os
 import ast
 import glob
 import yaml
-import codecs
-import multiprocessing as mp
 from multiprocessing import queues
 from queue import Empty
 import threading

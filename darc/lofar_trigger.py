@@ -18,7 +18,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 
-from darc.definitions import BANDWIDTH, CONFIG_FILE, TSAMP
+from darc.definitions import CONFIG_FILE, TSAMP
 from darc import util
 from darc.logger import get_logger
 

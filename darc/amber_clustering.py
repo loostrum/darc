@@ -15,9 +15,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 
 
-from darc.base import DARCBase
-from darc.voevent_generator import VOEventQueueServer
-from darc.lofar_trigger import LOFARTriggerQueueServer
+from darc import DARCBase, VOEventQueueServer, LOFARTriggerQueueServer
 from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
 from darc.external import tools
 from darc import util

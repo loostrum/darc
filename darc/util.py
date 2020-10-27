@@ -133,8 +133,8 @@ def tail(f, event, interval=.1):
     Read all lines of a file, then tail until stop event is set
 
     :param filehandle f: handle to file to tail
-    :param event: stop event
-    :param interval: sleep time between checks for new lines (default: .1)
+    :param threading.Event event: stop event
+    :param float interval: sleep time between checks for new lines (default: .1)
     """
     # first read any lines already present
     while not event.is_set():
