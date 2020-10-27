@@ -17,6 +17,7 @@ from darc import DARCBase
 from darc import util
 from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
 from darc.external import tools
+from darc.processor_tools import ARTSFilterbankReader
 
 
 class ProcessorException(Exception):
