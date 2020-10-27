@@ -221,7 +221,7 @@ class Processor(DARCBase):
         self.obs_config = obs_config
 
         # create output dir
-        output_dir = os.path.join('{result_dir}'.format(**obs_config), self.output_dir)
+        output_dir = os.path.join('{output_dir}'.format(**obs_config), self.output_dir)
         try:
             util.makedirs(output_dir)
         except Exception as e:
@@ -244,8 +244,8 @@ class Processor(DARCBase):
         self.threads['clustering'].start()
 
         # start extractor(s)
+        self.logger.info(f"Starting {self.num_extractor} data extractors")
         for i in range(self.num_extractor):
-            self.logger.info(f"Starting {self.num_extractor} data extractors")
             self.threads[f'extractor_{i}'] = Extractor(obs_config, self.logger,
                                                        self.extractor_queue, self.classifier_queue)
             self.threads[f'extractor_{i}'].daemon = True
@@ -376,12 +376,17 @@ class Clustering(threading.Thread):
         self.stop_event = mp.Event()
 
         self.input_empty = False
+        self.output_file_handle = None
 
     def run(self):
         """
         Main loop
         """
         self.logger.info("Starting clustering thread")
+        # open the output file (line-buffered)
+        self.output_file_handle = open(self.config.output_file, 'w', buffering=1)
+        # write header
+        self.output_file_handle.write("#snr dm time downsamp sb\n")
         while not self.stop_event.is_set():
             # read triggers from input queue
             try:
@@ -393,6 +398,8 @@ class Clustering(threading.Thread):
                 self.input_empty = False
                 # do clustering
                 self._cluster(triggers)
+        # close the output file
+        self.output_file_handle.close()
         self.logger.info("Stopping clustering thread")
 
     def stop(self):
@@ -428,9 +435,9 @@ class Clustering(threading.Thread):
         Execute trigger clustering
 
         :param np.ndarray triggers: Input triggers, columns: DM, S/N, time,
-                              integration_step, beam
+                              integration_step, sb
         """
-        # input columns are DM, SNR, time, integration step, beam
+        # input columns are DM, SNR, time, integration step, SB
         # run clustering
         # ignored column is indices of kept events in original triggers
         cluster_snr, cluster_dm, cluster_time, cluster_downsamp, cluster_sb, _, ncand_per_cluster = \
@@ -458,6 +465,9 @@ class Clustering(threading.Thread):
         for ind in range(ncluster):
             self.output_queue.put([cluster_dm[ind], cluster_snr[ind], cluster_time[ind], cluster_downsamp[ind],
                                    cluster_sb[ind]])
+            # write the cluster info to the output file (different order to remain compatible with old files)
+            self.output_file_handle.write(f"{cluster_snr[ind]:.2f} {cluster_dm[ind]:.2f} {cluster_time[ind]:.3f} "
+                                          f"{cluster_downsamp[ind]:.0f} {cluster_sb[ind]:.0f}\n")
         return
 
 

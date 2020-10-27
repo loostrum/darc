@@ -80,9 +80,10 @@ class TestProcessor(unittest.TestCase):
         if socket.gethostname() == 'zeus':
             self.dada_files = glob.glob('/data/arts/data/dada/*.dada')[:1]
             self.dada_files.sort()
-            log_dir = '/data/arts/darc/output/log'
-            filterbank_dir = '/data/arts/darc/output/filterbank'
-            amber_dir = '/data/arts/darc/output/amber'
+            output_dir = '/data/arts/darc/output'
+            log_dir = f'{output_dir}/log'
+            filterbank_dir = f'{output_dir}/filterbank'
+            amber_dir = f'{output_dir}/amber'
             amber_conf_dir = '/data/arts/darc/amber_conf'
             amber_conf_file = '/data/arts/darc/amber.conf'
             sb_table = '/data/arts/darc/sbtable-sc4-12tabs-71sbs.txt'
@@ -90,11 +91,11 @@ class TestProcessor(unittest.TestCase):
             self.skipTest("Test not supported yet on arts041")
 
         # ensure we start clean
-        for d in (log_dir, amber_dir, filterbank_dir):
-            try:
-                rmtree(d)
-            except FileNotFoundError:
-                pass
+        try:
+            rmtree(output_dir)
+        except FileNotFoundError:
+            pass
+        for d in (output_dir, log_dir, amber_dir, filterbank_dir):
             util.makedirs(d)
 
         self.processes = {}
@@ -112,6 +113,7 @@ class TestProcessor(unittest.TestCase):
         # self.header['nbatch'] = int(float(self.header['SCANLEN']) / 1.024)
         self.header['nbatch'] = 10
         self.header['log_dir'] = log_dir
+        self.header['output_dir'] = output_dir
         self.header['filterbank_dir'] = filterbank_dir
         self.header['amber_dir'] = amber_dir
         self.header['amber_conf_dir'] = amber_conf_dir
@@ -241,7 +243,7 @@ class TestProcessor(unittest.TestCase):
                       "-nr_bins {fdsc_nbins} -threshold {snrmin} " \
                       "-output {amber_dir}/CB{beam:02d}_step1 " \
                       "-beams {ntab} -synthesized_beams {nsb} -synthesized_beams_chunk {nsynbeams_chunk} " \
-                      "-dada -dada_key {key_i} -batches {nbatch} {extra_flags}" \
+                      "-dada -dada_key {key_i} -batches {nbatch} {extra_flags} " \
                       "-synthesized_beams_file {sb_table}".format(**fullconfig)
         proc = mp.Process(target=os.system, args=(amber_step1,))
         return proc

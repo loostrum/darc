@@ -4,7 +4,7 @@ import numpy as np
 from blimpy import Waterfall
 
 from darc import SBGenerator
-from darc.data_tools.spectra import Spectra
+from darc.processor_tools.spectra import Spectra
 from darc.definitions import NTAB
 
 # set blimpy to only log warnings

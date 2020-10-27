@@ -144,6 +144,7 @@ processor:
     output_dir: "triggers_realtime"  # output dir for triggers on each node
     # clustering settings
     clustering:
+        output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers
         dm_min: 20
         dm_max: -1  # -1 = infinite
         snr_min_clustering: 8  # during clustering
