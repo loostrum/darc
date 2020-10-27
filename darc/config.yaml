@@ -156,7 +156,7 @@ processor:
         width_max: -1  # max downsampling factor, -1 = infinite
     # data extractor settings:
     extractor:
-        test: 0
+        median_filter: True
 
 # Offline processing
 offline_processing:

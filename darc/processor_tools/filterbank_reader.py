@@ -7,8 +7,8 @@ from darc import SBGenerator
 from darc.processor_tools.spectra import Spectra
 from darc.definitions import NTAB
 
-# set blimpy to only log warnings
-logging.getLogger("blimpy").setLevel(logging.WARNING)
+# set blimpy to only log errors
+logging.getLogger("blimpy").setLevel(logging.ERROR)
 
 
 class ARTSFilterbankReaderError(Exception):
@@ -25,6 +25,9 @@ class ARTSFilterbankReader:
         :param int ntab: Number of TABs (Default: NTAB from constants)
         :param bool median_filter: Enable median removal (Default: True)
         """
+        # initialize the SB Generator for SC4
+        self.sb_generator = SBGenerator.from_science_case(4)
+
         self.ntab = ntab
         self.median_filter = median_filter
         self.fnames = [fname.format(cb=cb, tab=tab) for tab in range(ntab)]
@@ -34,9 +37,6 @@ class ARTSFilterbankReader:
         self.startbin = None
         self.chunksize = None
         self.times = None
-
-        # initialize the SB Generator for SC4
-        self.sb_generator = SBGenerator.from_science_case(4)
 
     def get_fil_params(self, tab=0):
         """
@@ -50,6 +50,11 @@ class ARTSFilterbankReader:
         nsamp, _, nfreq = fil.file_shape
         # construct frequency axis
         freqs = np.arange(fil.header['nchans']) * fil.header['foff'] + fil.header['fch1']
+        # set SB generator order
+        if fil.header['foff'] < 0:
+            self.sb_generator.reversed = True
+        else:
+            self.sb_generator.reversed = False
 
         return nfreq, freqs, nsamp, fil.header['tsamp']
 
@@ -64,7 +69,7 @@ class ARTSFilterbankReader:
         """
         fil = Waterfall(self.fnames[tab], load_data=False)
         # read chunk of data
-        fil.read_data(None, None, startbin, startbin + chunksize)
+        fil.read_data(t_tstart=startbin, t_stop=startbin + chunksize)
         # keep only time and freq axes, transpose to have frequency first
         data = fil.data[:, 0, :].T.astype(float)
         if self.median_filter:

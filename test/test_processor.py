@@ -144,11 +144,6 @@ class TestProcessor(unittest.TestCase):
         self.dadafilterbank_proc.start()
         self.amber_proc.start()
 
-        # open processor config file
-        # self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_processor.yaml')
-        # with open(self.config_file, 'r') as f:
-        #     self.config = yaml.load(f, Loader=yaml.SafeLoader)
-
         # initialize AMBERListener, used for feeding triggers to Processor
         self.amber_listener = AMBERListener()
         self.amber_listener.set_source_queue(mp.Queue())

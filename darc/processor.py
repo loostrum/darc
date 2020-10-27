@@ -498,14 +498,18 @@ class Extractor(threading.Thread):
 
         # create stop event
         self.stop_event = mp.Event()
-
         self.input_empty = False
+        self.filterbank_reader = None
 
     def run(self):
         """
         Main loop
         """
         self.logger.info("Starting extractor thread")
+
+        # initialize filterbank reader
+        self.filterbank_reader = self.init_filterbank_reader()
+
         while not self.stop_event.is_set():
             # read parameters of a trigger from input queue
             try:
@@ -547,6 +551,17 @@ class Extractor(threading.Thread):
         # return as Namespace so the keys can be accessed as attributes
         return Namespace(**config)
 
+    def init_filterbank_reader(self):
+        """
+        Initialize the ARTS filterbank reader
+        """
+        # get file name from obs config
+        fname = os.path.join(self.obs_config['output_dir'], 'filterbank', "CB{cb:02d}_{tab:02d}.fil")
+        # wait until the filterbank files exist
+        while not os.path.isfile(fname.format(cb=self.obs_config['beam'], tab=0)) and not self.stop_event.is_set():
+            self.stop_event.wait(.1)
+        return ARTSFilterbankReader(fname, self.obs_config['beam'], median_filter=self.config.median_filter)
+
     def _extract(self, dm, snr, toa, downsamp, sb):
         """
         Execute data extraction
@@ -555,6 +570,6 @@ class Extractor(threading.Thread):
         :param float snr: AMBER S/N
         :param float toa: Arrival time at top of band (s)
         :param int downsamp: Downsampling factor
-        :param int sb: Synthesised beam index
+        :param int sb: Synthesized beam index
         """
         pass
