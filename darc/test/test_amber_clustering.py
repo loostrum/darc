@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import unittest
@@ -6,11 +6,8 @@ import multiprocessing as mp
 from time import sleep
 from astropy.time import Time
 from queue import Empty
-import numpy as np
 
-from darc.amber_clustering import AMBERClustering
-from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
-
+from darc import AMBERClustering, VOEventGenerator, VOEventQueueServer
 from darc import util
 
 

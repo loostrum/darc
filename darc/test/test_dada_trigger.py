@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import os
 import sys
 import unittest
 import multiprocessing as mp
@@ -9,9 +8,8 @@ import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
-from queue import Empty
 
-from darc.dada_trigger import DADATrigger
+from darc import DADATrigger
 from darc import util
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # OfflineProcessing end to end test
 
@@ -11,7 +11,7 @@ import socket
 
 from astropy.time import Time
 
-from darc.offline_processing import OfflineProcessing
+from darc import OfflineProcessing
 from darc import util
 
 TESTDIR = os.path.dirname(os.path.abspath(__file__))

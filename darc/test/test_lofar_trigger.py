@@ -1,18 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import unittest
 from time import sleep
 import socket
 import struct
-import errno
 import multiprocessing as mp
 
 import numpy as np
 from astropy.time import Time
 
-from darc.amber_clustering import AMBERClustering
-from darc.lofar_trigger import LOFARTrigger, LOFARTriggerQueueServer
+from darc import AMBERClustering, LOFARTrigger, LOFARTriggerQueueServer
 from darc import util
 
 

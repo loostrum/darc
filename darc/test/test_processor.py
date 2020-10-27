@@ -1,20 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import glob
 import unittest
 import ast
-import yaml
 import multiprocessing as mp
 import socket
 from shutil import which, rmtree
-from time import sleep
-from queue import Empty
 import numpy as np
 from astropy.time import Time, TimeDelta
 
-from darc.processor import Processor
-from darc.amber_listener import AMBERListener
+from darc import Processor, AMBERListener
 from darc import util
 
 

@@ -20,11 +20,7 @@ try:
 except ImportError:
     psrdada = None
 
-from darc.darc_master import DARCMaster
-from darc.control import send_command
-from darc.amber_listener import AMBERListener
-from darc.amber_clustering import AMBERClustering
-from darc.dada_trigger import DADATrigger
+from darc import AMBERListener, AMBERClustering, DADATrigger
 from darc import util
 
 

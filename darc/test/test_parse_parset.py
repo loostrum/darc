@@ -1,10 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import unittest
-import multiprocessing as mp
-import threading
-from time import sleep
 
 from darc.util import parse_parset
 

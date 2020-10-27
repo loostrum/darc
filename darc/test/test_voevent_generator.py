@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import unittest
 from time import sleep
 
-from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
+from darc import VOEventGenerator, VOEventQueueServer
 
 
 class TestVOEventGenerator(unittest.TestCase):

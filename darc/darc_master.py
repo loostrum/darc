@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # DARC master process
 # Controls all services
@@ -14,17 +14,10 @@ from time import sleep, time
 from shutil import copy2
 from astropy.time import Time, TimeDelta
 
+import darc
 from darc.definitions import MASTER, WORKERS, CONFIG_FILE
 from darc import util
 from darc.logger import get_logger
-import darc.amber_listener
-import darc.amber_clustering
-import darc.voevent_generator
-import darc.status_website
-import darc.offline_processing
-import darc.dada_trigger
-import darc.processor
-import darc.lofar_trigger
 
 
 class DARCMasterException(Exception):
@@ -58,14 +51,14 @@ class DARCMaster(object):
                            self.processor_queue, self.offline_queue]
 
         # service to class mapper
-        self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
-                                'status_website': darc.status_website.StatusWebsite,
-                                'amber_listener': darc.amber_listener.AMBERListener,
-                                'amber_clustering': darc.amber_clustering.AMBERClustering,
-                                'dada_trigger': darc.dada_trigger.DADATrigger,
-                                'lofar_trigger': darc.lofar_trigger.LOFARTrigger,
-                                'processor': darc.processor.Processor,
-                                'offline_processing': darc.offline_processing.OfflineProcessing}
+        self.service_mapping = {'voevent_generator': darc.VOEventGenerator,
+                                'status_website': darc.StatusWebsite,
+                                'amber_listener': darc.AMBERListener,
+                                'amber_clustering': darc.AMBERClustering,
+                                'dada_trigger': darc.DADATrigger,
+                                'lofar_trigger': darc.LOFARTrigger,
+                                'processor': darc.Processor,
+                                'offline_processing': darc.OfflineProcessing}
 
         # Load config file
         self.config_file = config_file

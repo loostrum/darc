@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -22,7 +22,8 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
     :param str service: Service to send command to
     :param str command: Which command to send
     :param str payload: Payload for command (optional)
-    :param str host: Hostname (default: localhost)
+    :param str host: Hostname to connect to (default: localhost)
+    :param int port: Port to connect to (default: get from DARC config file)
     :return: reply from DARC master
     """
     # define message as literal python dict
