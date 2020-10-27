@@ -13,7 +13,7 @@ import yaml
 import numpy as np
 import astropy.units as u
 
-from darc import DARCBase, SBGenerator
+from darc import DARCBase
 from darc import util
 from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
 from darc.external import tools

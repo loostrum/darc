@@ -58,3 +58,6 @@ AP_EFF = .60
 
 #: Apertif/ARTS number of dishes in use
 NDISH = 8
+
+#: Number of tied-array beams
+NTAB = 12
