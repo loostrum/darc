@@ -16,27 +16,31 @@ class ARTSFilterbankReaderError(Exception):
 
 
 class ARTSFilterbankReader:
-    def __init__(self, fname, cb, ntab=NTAB, median_filter=True):
+    def __init__(self, fname, cb, ntab=NTAB):
         """
         Filterbank reader for ARTS data, one file per TAB
 
         :param str fname: path to filterbank files, with {cb:02d} and {tab:02d} for CB and TAB indices
         :param int cb: CB index
         :param int ntab: Number of TABs (Default: NTAB from constants)
-        :param bool median_filter: Enable median removal (Default: True)
         """
         # initialize the SB Generator for SC4
         self.sb_generator = SBGenerator.from_science_case(4)
 
         self.ntab = ntab
-        self.median_filter = median_filter
         self.fnames = [fname.format(cb=cb, tab=tab) for tab in range(ntab)]
-        self.nfreq, self.freqs, self.nsamp, self.tsamp = self.get_fil_params(tab=0)
+        self.store_fil_params()
 
         self.tab_data = None
         self.startbin = None
         self.chunksize = None
         self.times = None
+
+    def store_fil_params(self):
+        """
+        Store filterbank parameters as attributes
+        """
+        self.nfreq, self.freqs, self.nsamp, self.tsamp = self.get_fil_params(tab=0)
 
     def get_fil_params(self, tab=0):
         """
@@ -69,11 +73,9 @@ class ARTSFilterbankReader:
         """
         fil = Waterfall(self.fnames[tab], load_data=False)
         # read chunk of data
-        fil.read_data(t_tstart=startbin, t_stop=startbin + chunksize)
+        fil.read_data(t_start=startbin, t_stop=startbin + chunksize)
         # keep only time and freq axes, transpose to have frequency first
         data = fil.data[:, 0, :].T.astype(float)
-        if self.median_filter:
-            data -= np.median(data, axis=1, keepdims=True)
         return data
 
     def read_tabs(self, startbin, chunksize, tabs=None):
@@ -89,8 +91,6 @@ class ARTSFilterbankReader:
             tabs = range(self.ntab)
         for tab in tabs:
             tab_data[tab] = self.read_filterbank(tab, startbin, chunksize)
-            if self.median_filter:
-                tab_data[tab] -= np.median(tab_data[tab], axis=1, keepdims=True)
         self.tab_data = tab_data
         self.startbin = startbin
         self.chunksize = chunksize

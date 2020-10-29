@@ -19,7 +19,6 @@ import astropy.units as u
 import astropy.constants as const
 from astropy.coordinates import SkyCoord, FK5
 from queue import Empty
-from scipy import correlate
 
 from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT, NDISH
 
@@ -266,6 +265,19 @@ def dm_to_delay(dm, flo, fhi):
     return delay.to(u.s)
 
 
+def dm_to_smearing(dm, f, df):
+    """
+    Calculate intra-channel smearing time
+
+    :param astropy.units.quantity.Quantity dm: dispersion measure
+    :param astropy.units.quantity.Quantity f: frequency
+    :param astropy.units.quantity.Quantity df: channel width
+    """
+    k = 4.148808e3 * u.cm ** 3 * u.s * u.MHz ** 2 / u.pc
+    smearing = 2 * k * dm * df * f**-3
+    return smearing.to(u.s)
+
+
 def send_email(frm, to, subject, body, attachments=None):
     """
     Send email, only possible to ASTRON addresses
@@ -353,14 +365,14 @@ def calc_snr_matched_filter(data, widths=None):
     """
     Calculate S/N using several matched filter widths, then pick the highest S/N
 
-    :param array data: timeseries data
-    :param list widths: matched filters widhts to try
-                        (Default: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])
+    :param np.ndarray data: timeseries data
+    :param np.ndarray widths: matched filters widths to try
+                             (Default: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])
     :return: highest S/N, corresponding matched filter width
     """
     if widths is None:
         # all possible widths as used by AMBER
-        widths = [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500]
+        widths = np.array([1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])
 
     snr_max = 0
     width_max = None
@@ -369,7 +381,7 @@ def calc_snr_matched_filter(data, widths=None):
     for w in widths:
         # apply boxcar-shaped filter
         mf = np.ones(w)
-        data_mf = correlate(data, mf)
+        data_mf = np.correlate(data, mf)
 
         # get S/N
         snr = calc_snr_amber(data_mf)

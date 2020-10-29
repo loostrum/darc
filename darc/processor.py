@@ -4,6 +4,7 @@
 
 import os
 import socket
+import copy
 from argparse import Namespace
 import threading
 import multiprocessing as mp
@@ -12,10 +13,12 @@ from time import sleep
 import yaml
 import numpy as np
 import astropy.units as u
+from astropy.time import Time
+import h5py
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
+from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN, TIME_UNIT
 from darc.external import tools
 from darc.processor_tools import ARTSFilterbankReader
 
@@ -38,7 +41,7 @@ class ProcessorManager(DARCBase):
         self.current_observation = None
 
         # create a thread scavenger
-        self.scavenger = threading.Thread(target=self.thread_scavenger)
+        self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
         self.scavenger.start()
 
     def thread_scavenger(self):
@@ -54,12 +57,12 @@ class ProcessorManager(DARCBase):
 
     def cleanup(self):
         """
-        Upon stop of the manager, stop any remaining observations
+        Upon stop of the manager, abort any remaining observations
         """
         # loop over dictionary items. Use copy to avoid changing dict in loop
         for taskid, obs in self.observations.copy().items():
-            self.logger.info(f"Stopping observation with taskid {taskid}")
-            obs.stop_observation()
+            self.logger.info(f"Aborting observation with taskid {taskid}")
+            obs.stop_observation(abort=True)
             obs.join()
 
     def start_observation(self, obs_config, reload=True):
@@ -83,6 +86,7 @@ class ProcessorManager(DARCBase):
 
         # initialize a Processor for this observation
         proc = Processor()
+        proc.name = taskid
         # create a source queue
         proc.set_source_queue(mp.Queue())
         proc.start()
@@ -95,6 +99,8 @@ class ProcessorManager(DARCBase):
     def stop_observation(self, obs_config):
         """
         Stop observation with task ID as given in parset
+
+        :param dict obs_config: Observation config
         """
         # load the parset
         parset = self._load_parset(obs_config)
@@ -178,6 +184,7 @@ class Processor(DARCBase):
         self.clustering_queue = mp.Queue()
         self.extractor_queue = mp.Queue()
         self.classifier_queue = mp.Queue()
+        self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
 
         # intialise analysis tools
         # self.rtproc = realtime_tools.RealtimeProc()
@@ -232,29 +239,34 @@ class Processor(DARCBase):
         self.observation_running = True  # this must be set before starting the processing thread
 
         # start processing
-        self.threads['processing'] = threading.Thread(target=self._read_and_process_data, name='processing')
-        self.threads['processing'].daemon = True
-        self.threads['processing'].start()
+        thread = threading.Thread(target=self._read_and_process_data, name='processing')
+        thread.daemon = True
+        thread.start()
+        self.threads['processing'] = thread
 
         # start clustering
-        self.threads['clustering'] = Clustering(obs_config, self.logger,
-                                                self.clustering_queue, self.extractor_queue)
-        self.threads['clustering'].daemon = True
-        self.threads['clustering'].start()
+        thread = Clustering(obs_config, self.logger, self.clustering_queue, self.extractor_queue)
+        thread.name = 'clustering'
+        thread.daemon = True
+        thread.start()
+        self.threads['clustering'] = thread
 
         # start extractor(s)
         self.logger.info(f"Starting {self.num_extractor} data extractors")
         for i in range(self.num_extractor):
-            self.threads[f'extractor_{i}'] = Extractor(obs_config, self.logger,
-                                                       self.extractor_queue, self.classifier_queue)
-            self.threads[f'extractor_{i}'].daemon = True
-            self.threads[f'extractor_{i}'].start()
+            thread = Extractor(obs_config, self.logger, self.extractor_queue, self.classifier_queue)
+            thread.name = f'extractor_{i}'
+            thread.daemon = True
+            thread.start()
+            self.threads[f'extractor_{i}'] = thread
 
         self.logger.info("Observation started")
 
-    def stop_observation(self):
+    def stop_observation(self, abort=False):
         """
         Stop observation
+
+        :param bool abort: Whether or not to abort the observation
         """
         # set running to false
         self.observation_running = False
@@ -264,10 +276,13 @@ class Processor(DARCBase):
         self.hdr_mapping = {}
         # clear config
         self.obs_config = None
+        # if abort, clear all queues
+        if abort:
+            for queue in self.all_queues:
+                util.clear_queue(queue)
         # clear processing thread
         try:
-            if self.threads['processing'] is not None:
-                self.threads['processing'].join()
+            self.threads['processing'].join()
         except KeyError:
             # there was no processing thread
             pass
@@ -449,7 +464,7 @@ class Clustering(threading.Thread):
                                **self.sys_params)
 
         # apply S/N and width threshold to clusters
-        mask = (np.array(cluster_downsamp) <= self.config.width_max) | (np.array(cluster_snr) >= self.config.snr_min)
+        mask = (np.array(cluster_downsamp) <= self.config.width_max) & (np.array(cluster_snr) >= self.config.snr_min)
         cluster_snr = np.array(cluster_snr)[mask]
         cluster_dm = np.array(cluster_dm)[mask]
         cluster_time = np.array(cluster_time)[mask]
@@ -479,8 +494,8 @@ class Extractor(threading.Thread):
         """
         :param dict obs_config: Observation settings
         :param Logger logger: Processor logger object
-        :param Queue input_queue: Input queue for triggers
-        :param Queue output_queue: Output queue for clusters
+        :param Queue input_queue: Input queue for clusters
+        :param Queue output_queue: Output queue for classifier
         """
         super(Extractor, self).__init__()
         self.logger = logger
@@ -497,8 +512,13 @@ class Extractor(threading.Thread):
 
         # create stop event
         self.stop_event = mp.Event()
+
         self.input_empty = False
         self.filterbank_reader = None
+        self.rfi_mask = np.array([], dtype=int)
+
+        self.data = None
+        self.data_dm_time = None
 
     def run(self):
         """
@@ -509,10 +529,20 @@ class Extractor(threading.Thread):
         # initialize filterbank reader
         self.filterbank_reader = self.init_filterbank_reader()
 
+        # load AMBER RFI mask
+        freq = self.obs_config['freq']
+        try:
+            # note that filterbank stores highest-freq first, but AMBER masks use lowest-freq first
+            self.rfi_mask = self.filterbank_reader.nfreq - \
+                np.loadtxt(self.config.rfi_mask.replace('FREQ', str(freq))).astype(int)
+        except OSError:
+            self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
+            self.rfi_mask = np.array([], dtype=int)
+
         while not self.stop_event.is_set():
             # read parameters of a trigger from input queue
             try:
-                params = self.input_queue.get(timeout=.1)
+                params = self.input_queue.get(timeout=1)
             except Empty:
                 self.input_empty = True
                 continue
@@ -527,8 +557,10 @@ class Extractor(threading.Thread):
         Stop this thread
         """
         # wait until the input queue is empty
+        if not self.input_empty:
+            self.logger.debug("Extractor received stop but input queue not empty; waiting")
         while not self.input_empty:
-            sleep(1)
+            sleep(1)  # do not use event.wait here, as the whole point is to not stop until processing is done
         # then stop
         self.stop_event.set()
 
@@ -559,7 +591,7 @@ class Extractor(threading.Thread):
         # wait until the filterbank files exist
         while not os.path.isfile(fname.format(cb=self.obs_config['beam'], tab=0)) and not self.stop_event.is_set():
             self.stop_event.wait(.1)
-        return ARTSFilterbankReader(fname, self.obs_config['beam'], median_filter=self.config.median_filter)
+        return ARTSFilterbankReader(fname, self.obs_config['beam'])
 
     def _extract(self, dm, snr, toa, downsamp, sb):
         """
@@ -571,32 +603,243 @@ class Extractor(threading.Thread):
         :param int downsamp: Downsampling factor
         :param int sb: Synthesized beam index
         """
+        # keep track of the time taken to process this candidate
+        timer_start = Time.now()
 
-        # calculate DM range to try, ensure detection DM is in the list
+        # add units
+        dm = dm * u.pc / u.cm**3
+        toa = toa * u.s
 
-        # calculate smearing timescale; if small enough we can downsample before dedispersion to
-        # speed things up
+        # If the intra-channel smearing timescale is several samples, downsample
+        # by at most 1/4th of that factor
+        chan_width = BANDWIDTH / float(NCHAN)
+        t_smear = util.dm_to_smearing(dm, self.obs_config['freq'] * u.MHz, chan_width)
+        predownsamp = max(1, int(t_smear.to(u.s).value / self.filterbank_reader.tsamp / 4))
+        # calculate remaining downsampling to do after dedispersion
+        postdownsamp = max(1, downsamp // predownsamp)
+        # total downsampling factor (can be slightly different from original downsampling)
+        self.logger.debug(f"Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp}")
+        downsamp_effective = predownsamp * postdownsamp
+        tsamp_effective = self.filterbank_reader.tsamp * downsamp_effective
 
         # calculate start/end bin we need to load from filterbank
+        # DM delay in units of samples
+        dm_delay = util.dm_to_delay(dm, self.obs_config['min_freq'] * u.MHz,
+                                    self.obs_config['min_freq'] * u.MHz + BANDWIDTH)
+        sample_delay = dm_delay.to(u.s).value // self.filterbank_reader.tsamp
+        # number of input bins to store in final data
+        ntime = self.config.ntime * downsamp_effective
+        start_bin = int(toa.to(u.s).value // self.filterbank_reader.tsamp - .5 * ntime)
+        # ensure start bin is not before start of observation
+        if start_bin < 0:
+            self.logger.warning("Start bin before start of file, shifting")
+            start_bin = 0
+        # number of bins to load is number to store plus dm delay
+        nbin = int(ntime + sample_delay)
+        end_bin = start_bin + nbin
 
-        # wait until this much of the filterbank should be present on disk
+        # Wait if the filterbank does not have enough samples yet
+        # first update filterbank parameters to have correct nsamp
+        self.filterbank_reader.store_fil_params()
+        while end_bin >= self.filterbank_reader.nsamp:
+            # wait until this much of the filterbank should be present on disk
+            # start time, plus last bin to load, plus extra delay
+            # (because filterbank is not immediately flushed to disk)
+            tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
+            twait = tstart + end_bin * self.filterbank_reader.tsamp * u.s + self.config.delay * u.s
+            self.logger.debug(f"Waiting until {twait.isot} for filterbank data to be present on disk")
+            util.sleepuntil_utc(twait, event=self.stop_event)
+            # re-read the number of samples to check if the data are available now
+            self.filterbank_reader.store_fil_params()
+            # ensure we don't wait forever if there is an error in the filterbank writer
+            # if we are past the end time of the observation, we give up
+            tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
+            if Time.now() > tend:
+                break
 
         # if start time before start of file, or end time beyond end of file, shift the start and end time
+        # first update filterbank parameters to have correct nsamp
+        self.filterbank_reader.store_fil_params()
+        if end_bin >= self.filterbank_reader.nsamp:
+            # if start time is also beyond the end of the file, we cannot process this candidate and give an error
+            if start_bin >= self.filterbank_reader.nsamp:
+                self.logger.error("Start bin beyond end of file, error in filterbank data? Skipping this candidate")
+                # log time taken
+                timer_end = Time.now()
+                self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
+                                 f"in {(timer_end - timer_start).to(u.s):.0f}")
+                return
+            self.logger.warning("End bin beyond end of file, shifting")
+            diff = end_bin - self.filterbank_reader.nsamp + 1
+            start_bin -= diff
 
-        # load the data
+        # load the data. Store as attribute so it can be accessed from other methods (ok as we only run
+        # one extraction at a time)
+        self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
 
         # apply AMBER RFI mask
+        self.data[self.rfi_mask, :] = 0.
 
         # run rfi cleaning
+        if self.config.rfi_clean_type is not None:
+            self._rficlean()
 
-        # apply predownsampling as needed
+        # apply predownsampling
+        self.data.downsample(predownsamp)
+        # subtract median
+        self.data.data -= np.median(self.data.data, axis=1, keepdims=True)
 
-        # dedisperse
+        # calculate DM range to try, ensure detection DM is in the list
+        # increase dm half range by 5 units for each ms of pulse width
+        # add another unit for each 100 units of DM
+        dm_halfrange = self.config.dm_halfrange * u.pc / u.cm ** 3 + \
+            5 * tsamp_effective / 1000. * u.pc / u.cm ** 3 + \
+            dm / 100
+        if self.config.ndm % 2 == 0:
+            dms = np.linspace(dm - dm_halfrange, dm + dm_halfrange, self.config.ndm + 1)[:-1]
+        else:
+            dms = np.linspace(dm - dm_halfrange, dm + dm_halfrange, self.config.ndm)
+        # ensure DM does not go below zero by shifting the entire range if this happens
+        mindm = min(dms)
+        if mindm < 0:
+            dms += mindm
 
-        # apply any remaining downsampling
+        # Dedisperse and get max S/N
+        snrmax = 0
+        width_best = None
+        dm_best = None
+        # range of widths for S/N determination. Never go above 250 samples,
+        # which is typically RFI even without pre-downsampling
+        widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
+        # initialize DM-time array
+        self.data_dm_time = np.zeros((self.config.ndm, self.config.ntime))
+        for dm_ind, dm_val in enumerate(dms):
+            # copy the data and dedisperse
+            data = copy.deepcopy(self.data)
+            data.dedisperse(dm_val.to(u.pc / u.cm**3).value)
+            # create timeseries
+            timeseries = data.data.sum(axis=0)[:ntime]
+            # get S/N from timeseries
+            snr, width = util.calc_snr_matched_filter(timeseries, widths=widths)
+            # store index if this is the highest S/N
+            if snr > snrmax:
+                snrmax = snr
+                width_best = width * predownsamp
+                dm_best = dm_val
 
-        # find peak in DM-time
+            # apply any remaining downsampling
+            data.downsample(postdownsamp)
+            # cut of excess bins and store
+            self.data_dm_time[dm_ind] = data.data.sum(axis=0)[:self.config.ntime]
 
-        # extract freq-time of best DM, and roll data to put brightest pixel in center. Adapt arrival time accordingly
+        # if max S/N is below local threshold, skip this trigger
+        if snrmax < self.config.snr_min_local or dm_best.to(u.pc / u.cm**3).value < self.config.dm_min:
+            if snrmax < self.config.snr_min_local:
+                self.logger.warning(f"Skipping trigger with S/N ({snrmax}) below local threshold")
+            else:
+                self.logger.warning(f"Skipping trigger with DM ({dm_best}) below local threshold")
+            # log time taken
+            timer_end = Time.now()
+            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in {(timer_end - timer_start).to(u.s):.0f}")
+            return
+
+        # extract freq-time of best DM, and roll data to put brightest pixel in center
+        self.data.dedisperse(dm_best.to(u.pc / u.cm ** 3).value)
+        # apply downsampling in time and freq
+        self.data.downsample(postdownsamp)
+        self.data.subband(nsub=self.config.nfreq)
+        # roll data
+        brightest_pixel = np.argmax(self.data.data.sum(axis=0))
+        shift = self.config.ntime // 2 - brightest_pixel
+        self.data.data = np.roll(self.data.data, shift, axis=1)
+        # cut off extra bins
+        self.data.data = self.data.data[:, :self.config.ntime]
+
+        # calculate effective toa after applying shift
+        toa_effective = toa + shift * tsamp_effective * u.s
 
         # create output file
+        output_file = f'data/TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp_effective:.0f}_SNR{snr:.0f}.hdf5'
+        params_amber = (dm.value, snr, toa.value, downsamp)
+        params_opt = (dm_best.value, snrmax, toa_effective.value, width_best)
+        self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)
+
+        # put path to file on output queue to be picked up by classifier
+        self.output_queue.put(output_file)
+
+        # log time taken
+        timer_end = Time.now()
+        self.logger.info(f"Processed ToA={toa:.4f}, DM={dm.value:.2f} in {(timer_end - timer_start).to(u.s):.0f}")
+
+    def _rficlean(self):
+        """
+        Clean data of RFI
+        """
+        # ToDo: clean up this code, currently it is a copy from triggers.py as-is
+        dtmean = self.data.data.mean(axis=1)
+        nfreq = self.data.data.shape[0]
+
+        # cleaning in time
+        if self.config.rfi_clean_type in ['time', 'both']:
+            for i in range(self.config.rfi_n_iter_time):
+                dfmean = np.mean(self.data.data, axis=0)
+                stdevf = np.std(dfmean)
+                medf = np.median(dfmean)
+                maskf = np.where(np.abs(dfmean - medf) > self.config.rfi_threshold_time * stdevf)[0]
+                # replace with mean spectrum
+                self.data.data[:, maskf] = dtmean[:, None] * np.ones(len(maskf))[None]
+
+        if self.config.rfi_clean_type == 'perchannel':
+            for i in range(self.config.rfi_n_iter_time):
+                dtmean = np.mean(self.data.data, axis=1, keepdims=True)
+                dtsig = np.std(self.data.data, axis=1)
+                for nu in range(nfreq):
+                    d = dtmean[nu]
+                    sig = dtsig[nu]
+                    maskpc = np.where(np.abs(self.data.data[nu] - d) > self.config.rfi_threshold_time * sig)[0]
+                    self.data.data[nu][maskpc] = d
+
+        # Clean in frequency
+        # remove bandpass by averaging over bin_size adjacent channels
+        if self.config.rfi_clean_type in ['frequency', 'both']:
+            for i in range(self.config.rfi_n_iter_frequency):
+                dtmean_nobandpass = self.data.data.mean(1) - dtmean.reshape(-1, self.config.rfi_bin_size).mean(
+                    -1).repeat(self.config.rfi_bin_size)
+                stdevt = np.std(dtmean_nobandpass)
+                medt = np.median(dtmean_nobandpass)
+                maskt = np.abs(dtmean_nobandpass - medt) > self.config.rfi_threshold_frequency * stdevt
+                self.data.data[maskt] = np.median(dtmean)
+
+    def _store_data(self, fname, sb, tsamp, dms, params_amber, params_opt):
+        """
+        Save candidate to HDF5 file
+
+        :param str fname: Output file
+        :param int sb: Synthesized beam index
+        :param float tsamp: Sampling time (s)
+        :param Quantity dms: array of DMs used in DM-time array
+        :param tuple params_amber: AMBER parameters: dm, snr, toa
+        :param tuple params_opt: Optimized parameters: dm, snr, toa
+        """
+        nfreq, ntime = self.data.data.shape
+        ndm = self.data_dm_time.shape[0]
+        with h5py.File(fname, 'w') as f:
+            f.create_dataset('data_freq_time', data=self.data.data)
+            f.create_dataset('data_dm_time', data=self.data_dm_time)
+
+            f.attrs.create('nfreq', data=nfreq)
+            f.attrs.create('ntime', data=ntime)
+            f.attrs.create('ndm', data=ndm)
+            f.attrs.create('tsamp', data=tsamp)
+            f.attrs.create('sb', data=sb)
+            f.attrs.create('dms', data=dms.value)
+
+            f.attrs.create('dm', data=params_opt[0])
+            f.attrs.create('snr', data=params_opt[1])
+            f.attrs.create('toa', data=params_opt[2])
+            f.attrs.create('downsamp', data=params_opt[3])
+
+            f.attrs.create('dm_amber', data=params_amber[0])
+            f.attrs.create('snr_amber', data=params_amber[1])
+            f.attrs.create('toa_amber', data=params_amber[2])
+            f.attrs.create('downsamp_amber', data=params_amber[3])

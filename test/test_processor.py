@@ -2,18 +2,22 @@
 
 import os
 import glob
+import logging
 import unittest
 import ast
 from time import sleep
 import threading
 import multiprocessing as mp
+from queue import Empty
 import socket
 from shutil import which, rmtree
 import numpy as np
 from astropy.time import Time, TimeDelta
 
 from darc import Processor, ProcessorManager, AMBERListener
+from darc.processor import Clustering, Extractor
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 # An simple idling thread to test the thread scavenger
@@ -27,7 +31,7 @@ class Idling(threading.Thread):
         while not self.event.is_set():
             self.event.wait(.1)
 
-    def stop_observation(self):
+    def stop_observation(self, abort=False):
         self.event.set()
 
 
@@ -43,6 +47,7 @@ class TestProcessorManager(unittest.TestCase):
 
         # create a thread that idles forever
         thread = Idling()
+        thread.name = 'obs'
         thread.start()
         # add the thread to the manager observation list
         manager.observations['0'] = thread
@@ -61,6 +66,7 @@ class TestProcessorManager(unittest.TestCase):
 
         # start a new thread
         thread = Idling()
+        thread.name = 'obs'
         thread.start()
         # add the thread to the manager observation list
         manager.observations['0'] = thread
@@ -112,6 +118,7 @@ class TestProcessor(unittest.TestCase):
         self.header['nsb'] = 71
         # self.header['nbatch'] = int(float(self.header['SCANLEN']) / 1.024)
         self.header['nbatch'] = 10
+        self.header['duration'] = self.header['SCANLEN']
         self.header['log_dir'] = log_dir
         self.header['output_dir'] = output_dir
         self.header['filterbank_dir'] = filterbank_dir
@@ -124,6 +131,7 @@ class TestProcessor(unittest.TestCase):
         self.header['snrmin'] = 8
         self.header['min_freq'] = 1220.0
         self.header['tstart'] = Time.now() + TimeDelta(5, format='sec')
+        self.header['startpacket'] = int(self.header['tstart'].unix * TIME_UNIT)
 
         # add encoded parset
         parset = """
@@ -274,6 +282,52 @@ class TestProcessor(unittest.TestCase):
         # stop services
         self.amber_listener.stop()
         self.processor.stop()
+
+
+@unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
+class TestExtractor(unittest.TestCase):
+
+    def setUp(self):
+        self.output_dir = '/data/arts/darc/output/'
+        # run in output dir
+        self.olddir = os.getcwd()
+        os.chdir(self.output_dir)
+
+        startpacket = Time.now().unix // TIME_UNIT
+        obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
+                      'output_dir': self.output_dir, 'beam': 0}
+        logger = logging.getLogger()
+        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
+                            level='DEBUG')
+        self.extractor = Extractor(obs_config, logger, mp.Queue(), mp.Queue())
+        # set filterbank reader (normally done in run method)
+        self.extractor.filterbank_reader = self.extractor.init_filterbank_reader()
+        # ensure we start clean
+        for fname in glob.glob(os.path.join(self.output_dir, 'data', '*.hdf5')):
+            os.remove(fname)
+
+    def test_extract(self):
+        # parameters from an earlier amber run
+        snr = 71.26
+        dm = 159.8
+        toa = 5.79174
+        sb = 35
+        downsamp = 100
+
+        # run extractor
+        self.extractor._extract(dm, snr, toa, downsamp, sb)
+        # read output file name
+        try:
+            fname = self.extractor.output_queue.get(timeout=.1)
+        except Empty:
+            fname = None
+        self.assertTrue(fname is not None)
+        # check that the output file exists
+        self.assertTrue(os.path.isfile(fname))
+
+    def tearDown(self):
+        # go back to original dir
+        os.chdir(self.olddir)
 
 
 if __name__ == '__main__':
