@@ -61,3 +61,6 @@ NDISH = 8
 
 #: Number of tied-array beams
 NTAB = 12
+
+#: Beamformer time constant: number of samples per second
+TIME_UNIT = 781250

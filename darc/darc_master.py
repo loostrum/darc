@@ -15,7 +15,7 @@ from shutil import copy2
 from astropy.time import Time, TimeDelta
 
 import darc
-from darc.definitions import MASTER, WORKERS, CONFIG_FILE
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE, TIME_UNIT
 from darc import util
 from darc.logger import get_logger
 
@@ -549,7 +549,7 @@ class DARCMaster(object):
         command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
 
         # wait until start time
-        utc_start = Time(config['startpacket'] / 781250., format='unix')
+        utc_start = Time(config['startpacket'] / TIME_UNIT, format='unix')
         utc_end = utc_start + TimeDelta(config['duration'], format='sec')
         # if end time is in the past, only start offline processing
         if utc_end < Time.now():

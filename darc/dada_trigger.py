@@ -11,6 +11,7 @@ from astropy.time import Time, TimeDelta
 
 from darc import DARCBase
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 class DADATriggerException(Exception):
@@ -237,7 +238,7 @@ class DADATrigger(DARCBase):
 
         :param dict obs_config: Observation config
         """
-        tstart = Time(obs_config['startpacket'] / 781250., format='unix')
+        tstart = Time(obs_config['startpacket'] / TIME_UNIT, format='unix')
         duration = TimeDelta(obs_config['duration'], format='sec')
         tend = tstart + duration
 

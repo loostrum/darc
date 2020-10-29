@@ -16,7 +16,7 @@ from astropy.coordinates import SkyCoord
 
 
 from darc import DARCBase, VOEventQueueServer, LOFARTriggerQueueServer
-from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
+from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER, TIME_UNIT
 from darc.external import tools
 from darc import util
 
@@ -462,7 +462,7 @@ class AMBERClustering(DARCBase):
         """
 
         # set observation parameters
-        utc_start = Time(self.obs_config['startpacket'] / 781250., format='unix')
+        utc_start = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         datetimesource = self.obs_config['datetimesource']
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value

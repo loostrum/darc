@@ -11,6 +11,7 @@ import socket
 
 from darc import DADATrigger
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 class TestDADATrigger(unittest.TestCase):
@@ -191,7 +192,7 @@ class TestDADATrigger(unittest.TestCase):
         for k, v in parset.items():
             parset_str += '{} = {}\n'.format(k, v)
         # create full configuration
-        obs_config = {'startpacket': tstart.unix * 781250, 'duration': duration, 'beam': 0,
+        obs_config = {'startpacket': tstart.unix * TIME_UNIT, 'duration': duration, 'beam': 0,
                       'parset': util.encode_parset(parset_str)}
 
         # start observation

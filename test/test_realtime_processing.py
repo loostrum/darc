@@ -22,6 +22,7 @@ except ImportError:
 
 from darc import AMBERListener, AMBERClustering, DADATrigger
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 # only run this test if this script is run directly, _not_ in automated testing (pytest etc)
@@ -308,7 +309,7 @@ class TestFullRun(unittest.TestCase):
         # start DARC observation 5s in the future
         tstart = Time.now() + TimeDelta(5, format='sec')
         # add start time to config
-        self.settings['startpacket'] = tstart.unix * 781250
+        self.settings['startpacket'] = tstart.unix * TIME_UNIT
 
         # Todo: ensure DARC waits for start time
 

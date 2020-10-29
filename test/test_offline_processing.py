@@ -13,6 +13,7 @@ from astropy.time import Time
 
 from darc import OfflineProcessing
 from darc import util
+from darc.definitions import TIME_UNIT
 
 TESTDIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,7 +37,7 @@ class TestOfflineProcessing(unittest.TestCase):
         result_dir = os.path.join(output_dir, 'results')
 
         duration = 300.032
-        startpacket = int((Time.now().unix - duration) * 781250)
+        startpacket = int((Time.now().unix - duration) * TIME_UNIT)
         endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
 
         # generate parset
