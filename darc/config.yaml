@@ -156,8 +156,8 @@ processor:
         width_max: -1  # max downsampling factor, -1 = infinite
     # data extractor settings:
     extractor:
-        ndm: 64
         dm_halfrange: 10
+        ndm: 64
         ntime: 64  # number of time samples in output
         nfreq: 64  # number of frequency channels in output
         delay: 5   # how long to wait until attempting to read filterbank (s)
@@ -167,9 +167,19 @@ processor:
         rfi_n_iter_time: 3
         rfi_threshold_freq: 2.75
         rfi_n_iter_freq: 3
-        rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels
+        rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels in the filterbank data
         snr_min_local: 5  # skip any triggers with a local S/N below this value
         dm_min: 5  # skip any triggers with a local optimum DM below this value
+    classifier:
+        gpu: 0
+        thresh_freqtime: 0.5
+        thresh_dmtime: 0.0
+        ndm: 64  # fixed by model shape
+        ntime: 64  # fixed by model shape
+        nfreq: 32  # fixed by model shape
+        model_dir: "{home}/keras_models"
+        model_freqtime: "20190501freq_time.hdf5"
+        model_dmtime: "heimdall_dm_time.hdf5"
 
 # Offline processing
 offline_processing:

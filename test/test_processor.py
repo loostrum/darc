@@ -10,12 +10,13 @@ import threading
 import multiprocessing as mp
 from queue import Empty
 import socket
-from shutil import which, rmtree
+from shutil import which, rmtree, copyfile
 import numpy as np
 from astropy.time import Time, TimeDelta
+import h5py
 
 from darc import Processor, ProcessorManager, AMBERListener
-from darc.processor import Clustering, Extractor
+from darc.processor import Clustering, Extractor, Classifier
 from darc import util
 from darc.definitions import TIME_UNIT
 
@@ -42,6 +43,9 @@ class TestProcessorManager(unittest.TestCase):
         manager = ProcessorManager()
         # set the scavenger interval
         manager.scavenger_interval = 0.1
+        # the manager needs a queue before it can be started
+        manager.set_source_queue(mp.Queue())
+        manager.start()
         # the thread scavenger should now be running
         self.assertTrue(manager.scavenger.is_alive())
 
@@ -73,6 +77,7 @@ class TestProcessorManager(unittest.TestCase):
 
         # stop the manager, which should also stop the thread
         manager.stop()
+        manager.join()
         self.assertTrue(not thread.is_alive())
 
 
@@ -160,6 +165,7 @@ class TestProcessor(unittest.TestCase):
 
         # initialize Processor, connect input queue to output of AMBERListener
         self.processor = Processor()
+        self.processor.logger.setLevel('INFO')
         self.processor.set_source_queue(self.amber_listener.target_queue)
 
     def tearDown(self):
@@ -281,7 +287,9 @@ class TestProcessor(unittest.TestCase):
 
         # stop services
         self.amber_listener.stop()
+        self.amber_listener.join()
         self.processor.stop()
+        self.processor.join()
 
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
@@ -328,6 +336,41 @@ class TestExtractor(unittest.TestCase):
     def tearDown(self):
         # go back to original dir
         os.chdir(self.olddir)
+
+
+@unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
+class TestClassifier(unittest.TestCase):
+
+    def setUp(self):
+        # path to test file
+        fname_in = '/data/arts/darc/output/triggers_realtime/data/TOA5.7917_DM159.80_DS100_SNR32.hdf5'
+        self.fname = '/data/arts/darc/output/triggers_realtime/data/TOA5.7917_DM159.80_DS100_SNR32_test.hdf5'
+        # copy over for testing as not to overwrite the original
+        copyfile(fname_in, self.fname)
+
+        # initialize the classifier
+        logger = logging.getLogger()
+        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
+                            level='DEBUG')
+        self.classifier = Classifier(logger, mp.Queue(), mp.Queue())
+
+    def test_classify(self):
+        # start the classifier
+        self.classifier.start()
+        # feed the file path
+        self.classifier.input_queue.put(self.fname)
+        # stop the classifier
+        self.classifier.stop()
+        self.classifier.join()
+        # read the output
+        try:
+            fname = self.classifier.output_queue.get(timeout=.1)
+        except Empty:
+            self.fail("No classifier output found")
+        # read the probabilities
+        with h5py.File(fname, 'r') as f:
+            self.assertTrue('prob_freqtime' in f.attrs.keys())
+            self.assertTrue('prob_dmtime' in f.attrs.keys())
 
 
 if __name__ == '__main__':

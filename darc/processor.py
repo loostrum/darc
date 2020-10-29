@@ -174,7 +174,9 @@ class Processor(DARCBase):
         self.clustering_queue = mp.Queue()
         self.extractor_queue = mp.Queue()
         self.classifier_queue = mp.Queue()
-        self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
+        self.visualizer_queue = mp.Queue()
+        self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue,
+                           self.visualizer_queue)
 
     def process_command(self, command):
         """
@@ -240,7 +242,7 @@ class Processor(DARCBase):
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue)
+        thread = Classifier(self.logger, self.classifier_queue, self.visualizer_queue)
         thread.name = 'classifier'
         thread.daemon = True
         thread.start()

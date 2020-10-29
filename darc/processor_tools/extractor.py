@@ -221,12 +221,13 @@ class Extractor(threading.Thread):
         # subtract median
         self.data.data -= np.median(self.data.data, axis=1, keepdims=True)
 
-        # calculate DM range to try, ensure detection DM is in the list
+        # calculate DM range to try
         # increase dm half range by 5 units for each ms of pulse width
         # add another unit for each 100 units of DM
         dm_halfrange = self.config.dm_halfrange * u.pc / u.cm ** 3 + \
             5 * tsamp_effective / 1000. * u.pc / u.cm ** 3 + \
             dm / 100
+        # get dms, ensure detection DM is in the list
         if self.config.ndm % 2 == 0:
             dms = np.linspace(dm - dm_halfrange, dm + dm_halfrange, self.config.ndm + 1)[:-1]
         else:
@@ -280,18 +281,21 @@ class Extractor(threading.Thread):
         # apply downsampling in time and freq
         self.data.downsample(postdownsamp)
         self.data.subband(nsub=self.config.nfreq)
+        # cut off extra bins
+        self.data.data = self.data.data[:, :self.config.ntime]
         # roll data
         brightest_pixel = np.argmax(self.data.data.sum(axis=0))
         shift = self.config.ntime // 2 - brightest_pixel
         self.data.data = np.roll(self.data.data, shift, axis=1)
-        # cut off extra bins
-        self.data.data = self.data.data[:, :self.config.ntime]
+        # apply the same roll to the DM-time data
+        for row in range(self.config.ndm):
+            self.data_dm_time[row] = np.roll(self.data_dm_time[row], shift)
 
         # calculate effective toa after applying shift
         toa_effective = toa + shift * tsamp_effective * u.s
 
         # create output file
-        output_file = f'data/TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp_effective:.0f}_SNR{snr:.0f}.hdf5'
+        output_file = f'data/TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp:.0f}_SNR{snr:.0f}.hdf5'
         params_amber = (dm.value, snr, toa.value, downsamp)
         params_opt = (dm_best.value, snrmax, toa_effective.value, width_best)
         self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)
@@ -307,8 +311,8 @@ class Extractor(threading.Thread):
         """
         Clean data of RFI
         """
-        # ToDo: clean up this code, currently it is a copy from triggers.py as-is
-        dtmean = self.data.data.mean(axis=1)
+        # ToDo: check if this code needs cleanup / can be sped up, currently it is a copy from triggers.py as-is
+        dtmean = self.data.data.mean(axis=1, keepdims=True)
         nfreq = self.data.data.shape[0]
 
         # cleaning in time
@@ -319,11 +323,10 @@ class Extractor(threading.Thread):
                 medf = np.median(dfmean)
                 maskf = np.where(np.abs(dfmean - medf) > self.config.rfi_threshold_time * stdevf)[0]
                 # replace with mean spectrum
-                self.data.data[:, maskf] = dtmean[:, None] * np.ones(len(maskf))[None]
+                self.data.data[:, maskf] = dtmean * np.ones(len(maskf))[None]
 
         if self.config.rfi_clean_type == 'perchannel':
             for i in range(self.config.rfi_n_iter_time):
-                dtmean = np.mean(self.data.data, axis=1, keepdims=True)
                 dtsig = np.std(self.data.data, axis=1)
                 for nu in range(nfreq):
                     d = dtmean[nu]
