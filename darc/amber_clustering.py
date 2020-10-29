@@ -54,6 +54,7 @@ class AMBERClustering(DARCBase):
         self.observation_running = False
         self.amber_triggers = []
         self.source_list = None
+        self.lock = threading.Lock()
 
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
@@ -113,7 +114,8 @@ class AMBERClustering(DARCBase):
             if not self.observation_running:
                 self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
-                self.amber_triggers.append(command['trigger'])
+                with self.lock:
+                    self.amber_triggers.append(command['trigger'])
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
@@ -410,7 +412,7 @@ class AMBERClustering(DARCBase):
             # calculate arrival time at reference frequency = central frequency
             cent_freq = sys_params['nu_GHz'] * 1000.
             max_freq = cent_freq + .5 * BANDWIDTH.to(u.MHz).value
-            dm_delay = 4.15E3 * dm_to_send * (cent_freq**-2 - max_freq**-2)
+            dm_delay = 4.148808E3 * dm_to_send * (cent_freq**-2 - max_freq**-2)
             utc_arr = (utc_start + TimeDelta(cluster_time[mask][ind] - dm_delay, format='sec')).isot
             # set a source name
             if src_type is not None:
@@ -514,9 +516,9 @@ class AMBERClustering(DARCBase):
         while self.observation_running:
             if self.amber_triggers:
                 # Copy the triggers so class-wide list can receive new triggers without those getting lost
-                triggers = self.amber_triggers
-
-                self.amber_triggers = []
+                with self.lock:
+                    triggers = self.amber_triggers
+                    self.amber_triggers = []
                 # check for header (always, because it is received once for every amber instance)
                 if not self.hdr_mapping:
                     for trigger in triggers:
@@ -554,7 +556,6 @@ class AMBERClustering(DARCBase):
                     self.logger.error("Failed to process triggers: {}".format(e))
                     continue
 
-                #
                 # pick columns to feed to clustering algorithm
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
                                                        self.hdr_mapping['time'], self.hdr_mapping['integration_step'],
