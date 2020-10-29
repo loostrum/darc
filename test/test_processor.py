@@ -118,7 +118,7 @@ class TestProcessor(unittest.TestCase):
         self.header['nsb'] = 71
         # self.header['nbatch'] = int(float(self.header['SCANLEN']) / 1.024)
         self.header['nbatch'] = 10
-        self.header['duration'] = self.header['SCANLEN']
+        self.header['duration'] = float(self.header['SCANLEN'])
         self.header['log_dir'] = log_dir
         self.header['output_dir'] = output_dir
         self.header['filterbank_dir'] = filterbank_dir

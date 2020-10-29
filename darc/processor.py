@@ -9,7 +9,7 @@ from time import sleep
 import numpy as np
 
 from darc import DARCBase
-from darc.processor_tools import Clustering, Extractor
+from darc.processor_tools import Clustering, Extractor, Classifier
 from darc import util
 
 
@@ -176,16 +176,6 @@ class Processor(DARCBase):
         self.classifier_queue = mp.Queue()
         self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
 
-        # intialise analysis tools
-        # self.rtproc = realtime_tools.RealtimeProc()
-        # self.model_freqtime = frbkeras.load_model(os.path.join(self.model_dir, self.model_name_freqtime))
-        # self.model_dmtime = frbkeras.load_model(os.path.join(self.model_dir, self.model_name_dmime))
-
-        # For some reason, the model's first prediction takes a long time.
-        # pre-empt this by classifying an array of zeros before looking at real data
-        # self.model_freqtime.predict(np.zeros([1, self.nfreq, self.ntime, 1]))
-        # self.model_dmtime.predict(np.zeros([1, self.ndm, self.ntime, 1]))
-
     def process_command(self, command):
         """
         Process command received from queue
@@ -242,13 +232,19 @@ class Processor(DARCBase):
         self.threads['clustering'] = thread
 
         # start extractor(s)
-        self.logger.info(f"Starting {self.num_extractor} data extractors")
         for i in range(self.num_extractor):
             thread = Extractor(obs_config, self.logger, self.extractor_queue, self.classifier_queue)
             thread.name = f'extractor_{i}'
             thread.daemon = True
             thread.start()
             self.threads[f'extractor_{i}'] = thread
+
+        # start classifier
+        thread = Classifier(self.logger, self.classifier_queue)
+        thread.name = 'classifier'
+        thread.daemon = True
+        thread.start()
+        self.threads['classifier'] = thread
 
         self.logger.info("Observation started")
 
@@ -289,6 +285,12 @@ class Processor(DARCBase):
                 self.threads[f'extractor_{i}'].join()
             except KeyError:
                 pass
+        # signal classifier to stop
+        try:
+            self.threads['classifier'].stop()
+            self.threads['classifier'].join()
+        except KeyError:
+            pass
         self.threads = {}
 
     def _read_and_process_data(self):

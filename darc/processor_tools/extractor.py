@@ -174,23 +174,22 @@ class Extractor(threading.Thread):
         # Wait if the filterbank does not have enough samples yet
         # first update filterbank parameters to have correct nsamp
         self.filterbank_reader.store_fil_params()
+        tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
+        # wait until this much of the filterbank should be present on disk
+        # start time, plus last bin to load, plus extra delay
+        # (because filterbank is not immediately flushed to disk)
+        twait = tstart + end_bin * self.filterbank_reader.tsamp * u.s + self.config.delay * u.s
         while end_bin >= self.filterbank_reader.nsamp:
-            # wait until this much of the filterbank should be present on disk
-            # start time, plus last bin to load, plus extra delay
-            # (because filterbank is not immediately flushed to disk)
-            tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
-            twait = tstart + end_bin * self.filterbank_reader.tsamp * u.s + self.config.delay * u.s
             self.logger.debug(f"Waiting until {twait.isot} for filterbank data to be present on disk")
             util.sleepuntil_utc(twait, event=self.stop_event)
             # re-read the number of samples to check if the data are available now
             self.filterbank_reader.store_fil_params()
-            # ensure we don't wait forever if there is an error in the filterbank writer
-            # if we are past the end time of the observation, we give up
+            # if we are past the end time of the observation, we give up and try shifting the end bin instead
             tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
             if Time.now() > tend:
                 break
 
-        # if start time before start of file, or end time beyond end of file, shift the start and end time
+        # if start time before start of file, or end time beyond end of file, shift the start/end time
         # first update filterbank parameters to have correct nsamp
         self.filterbank_reader.store_fil_params()
         if end_bin >= self.filterbank_reader.nsamp:
