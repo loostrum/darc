@@ -471,10 +471,7 @@ class AMBERClustering(DARCBase):
         cent_freq = (self.obs_config['min_freq'] * u.MHz + 0.5 * BANDWIDTH).to(u.GHz).value
         sys_params = {'dt': dt, 'delta_nu_MHz': chan_width, 'nu_GHz': cent_freq}
         pointing = self._get_pointing()
-        if pointing is not None:
-            dmgal = self._get_ymw16(pointing)
-        else:
-            dmgal = 0
+        dmgal = util.get_ymw16(self.obs_config['parset'], self.obs_config['beam'], self.logger)
 
         # get known source dm and type
         dm_src, src_type, src_name = self._get_source()
@@ -618,30 +615,6 @@ class AMBERClustering(DARCBase):
         # create SkyCoord object
         pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
         return pointing
-
-    def _get_ymw16(self, pointing):
-        """
-        Get YMW16 DM from pointing
-
-        :param astropy.coordinates.SkyCoord pointing: Compound beam pointing
-        :return: YMW16 DM
-        """
-        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
-        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
-        # run ymw16 command
-        try:
-            result = subprocess.check_output(cmd)
-        except OSError as e:
-            self.logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
-            return 0
-        # parse output
-        try:
-            dm = float(result.split()[7])
-        except Exception as e:
-            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
-            return 0
-        return dm
 
     def _load_parset(self, obs_config):
         """

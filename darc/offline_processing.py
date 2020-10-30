@@ -595,7 +595,7 @@ class OfflineProcessing(threading.Thread):
             sb_option = ''
 
         # Galactic DM
-        dmgal = self._get_ymw16(obs_config)
+        dmgal = util.get_ymw16(obs_config['parset'], obs_config['beam'], self.logger)
 
         # Add optional classifier models (1D time and DM-time)
         model_option = ''
@@ -806,55 +806,11 @@ class OfflineProcessing(threading.Thread):
         info['utc_start'] = parset['task.startTime']
         info['tobs'] = parset['task.duration']
         info['source'] = parset['task.source.name']
-        info['ymw16'] = "{:.2f}".format(self._get_ymw16(obs_config))
+        info['ymw16'] = "{:.2f}".format(util.get_ymw16(parset, obs_config['beam'], self.logger))
         info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
         info['taskid'] = parset['task.taskID']
         with open(info_file, 'w') as f:
             yaml.dump(info, f, default_flow_style=False)
-
-    def _get_ymw16(self, obs_config):
-        """
-        Get YMW16 DM
-
-        :param dict obs_config: Observation config
-        :return: YMW16 DM
-        """
-        # get pointing
-        parset = obs_config['parset']
-        if self.host_type == 'master':
-            beam = 0
-        else:
-            beam = obs_config['beam']
-        try:
-            key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
-            c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
-        except Exception as e:
-            self.logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
-            return 0
-        # convert HA to RA if HADEC is used
-        if parset['task.directionReferenceFrame'].upper() == 'HADEC':
-            # RA = LST - HA. Get RA at the start of the observation
-            start_time = Time(parset['task.startTime'])
-            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-            start_time.delta_ut1_utc = 0
-            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-            c1 = lst_start.to(u.deg).value - c1
-        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
-
-        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
-        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
-        try:
-            result = subprocess.check_output(cmd)
-        except OSError as e:
-            self.logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
-            return 0
-        try:
-            dm = float(result.split()[7])
-        except Exception as e:
-            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
-            return 0
-        return dm
 
     def _fold_pulsar(self, source, obs_config):
         """

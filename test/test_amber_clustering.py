@@ -51,9 +51,9 @@ class TestAMBERClustering(unittest.TestCase):
 
         # start observation
         # create input parset with required keys
-        # source name cannot be a known source
+        # use known source triggering
         beam = 0
-        parset_dict = {'task.source.name': 'B0531+21NEW',
+        parset_dict = {'task.source.name': 'B0531+21',
                        'task.beamSet.0.compoundBeam.{}.phaseCenter'.format(beam): '[83.633deg, 22.0144deg]',
                        'task.directionReferenceFrame': 'J2000'}
         # encode parset
@@ -85,11 +85,12 @@ class TestAMBERClustering(unittest.TestCase):
         in_queue.put({'command': 'stop_observation'})
         clustering.stop()
 
-        expected_output = [{'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
+        expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 25.0833, 'time': 4.58277},
+                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 10, 'width': 1000, 'snr': 15.1677, 'time': 6.02112},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 11.3797, 'time': 8.33061},
-                           {'stokes': 'IQUV', 'dm': 56.6, 'beam': 0, 'width': 1, 'snr': 10.4506, 'time': 10.0863},
+                           {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 10.4506, 'time': 10.0863},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 19.8565, 'time': 11.0317}]
 
         self.assertEqual(len(output), len(expected_output))
