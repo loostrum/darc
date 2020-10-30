@@ -9,7 +9,7 @@ from time import sleep
 import numpy as np
 
 from darc import DARCBase
-from darc.processor_tools import Clustering, Extractor, Classifier
+from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
 from darc import util
 
 
@@ -174,9 +174,10 @@ class Processor(DARCBase):
         self.clustering_queue = mp.Queue()
         self.extractor_queue = mp.Queue()
         self.classifier_queue = mp.Queue()
-        self.visualizer_queue = mp.Queue()
-        self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue,
-                           self.visualizer_queue)
+        self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
+
+        # lock for accessing AMBER trigger list
+        self.lock = threading.Lock()
 
     def process_command(self, command):
         """
@@ -188,7 +189,8 @@ class Processor(DARCBase):
             if not self.observation_running:
                 self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
-                self.amber_triggers.append(command['trigger'])
+                with self.lock:
+                    self.amber_triggers.append(command['trigger'])
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
@@ -242,7 +244,7 @@ class Processor(DARCBase):
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue, self.visualizer_queue)
+        thread = Classifier(self.logger, self.classifier_queue)
         thread.name = 'classifier'
         thread.daemon = True
         thread.start()
@@ -258,12 +260,6 @@ class Processor(DARCBase):
         """
         # set running to false
         self.observation_running = False
-        # clear triggers
-        self.amber_triggers = []
-        # clear header
-        self.hdr_mapping = {}
-        # clear config
-        self.obs_config = None
         # if abort, clear all queues
         if abort:
             for queue in self.all_queues:
@@ -293,7 +289,11 @@ class Processor(DARCBase):
             self.threads['classifier'].join()
         except KeyError:
             pass
-        self.threads = {}
+
+        # now fire up the visualization
+        if not abort:
+            Visualizer(self.logger, self.obs_config, self.threads['classifier'].candidates_to_visualize)
+        self.logger.info("Observation finished: {taskid}: {datetimesource}".format(**self.obs_config))
 
     def _read_and_process_data(self):
         """
@@ -303,9 +303,9 @@ class Processor(DARCBase):
         while self.observation_running and not self.stop_event.is_set():
             if self.amber_triggers:
                 # Copy the triggers so class-wide list can receive new triggers without those getting lost
-                triggers = self.amber_triggers
-
-                self.amber_triggers = []
+                with self.lock:
+                    triggers = self.amber_triggers
+                    self.amber_triggers = []
                 # check for header (always, because it is received once for every amber instance)
                 if not self.hdr_mapping:
                     for trigger in triggers:

@@ -16,7 +16,7 @@ from astropy.time import Time, TimeDelta
 import h5py
 
 from darc import Processor, ProcessorManager, AMBERListener
-from darc.processor import Clustering, Extractor, Classifier
+from darc.processor import Clustering, Extractor, Classifier, Visualizer
 from darc import util
 from darc.definitions import TIME_UNIT
 
@@ -352,7 +352,7 @@ class TestClassifier(unittest.TestCase):
         logger = logging.getLogger()
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
                             level='DEBUG')
-        self.classifier = Classifier(logger, mp.Queue(), mp.Queue())
+        self.classifier = Classifier(logger, mp.Queue())
 
     def test_classify(self):
         # start the classifier
@@ -363,14 +363,28 @@ class TestClassifier(unittest.TestCase):
         self.classifier.stop()
         self.classifier.join()
         # read the output
-        try:
-            fname = self.classifier.output_queue.get(timeout=.1)
-        except Empty:
-            self.fail("No classifier output found")
+        fnames = self.classifier.candidates_to_visualize
+        self.assertEqual(len(fnames), 1)
         # read the probabilities
-        with h5py.File(fname, 'r') as f:
+        with h5py.File(fnames[0], 'r') as f:
             self.assertTrue('prob_freqtime' in f.attrs.keys())
             self.assertTrue('prob_dmtime' in f.attrs.keys())
+
+
+@unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
+class TestVisualizer(unittest.TestCase):
+
+    def test_visualize(self):
+        files = glob.glob('/data/arts/darc/output/triggers_realtime/data/*.hdf5')
+        logger = logging.getLogger()
+        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
+                            level='DEBUG')
+
+        parset = {'task.taskID': '001122'}
+        obs_config = {'datetimesource': '2020-01-01-00:00:00.FAKE',
+                      'min_freq': 1220.7,
+                      'parset': parset}
+        Visualizer(logger, obs_config, files)
 
 
 if __name__ == '__main__':

@@ -23,16 +23,14 @@ class Classifier(threading.Thread):
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, logger, input_queue, output_queue):
+    def __init__(self, logger, input_queue):
         """
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
-        :param Queue output_queue: Output queue for triggers above classifier threshold
         """
         super(Classifier, self).__init__()
         self.logger = logger
         self.input_queue = input_queue
-        self.output_queue = output_queue
 
         # load config
         self.config = self._load_config()
@@ -40,7 +38,7 @@ class Classifier(threading.Thread):
         # set GPU visible to classifier
         os.environ['CUDA_VISIBLE_DEVICES'] = str(self.config.gpu)
         # set memory growth parameter to avoid allocating all GPU memory
-        # only one GPU is visible, to always select first GPU
+        # only one GPU is visible, so always selecting first GPU is fine
         # this is only available on tensorflow >= 2.0
         if int(tf.__version__[0]) >= 2:
             gpu = tf.config.experimental.list_physical_devices('GPU')[0]
@@ -63,6 +61,7 @@ class Classifier(threading.Thread):
         self.nfreq_data = None
         self.ndm_data = None
         self.ntime_data = None
+        self.candidates_to_visualize = []
 
     def run(self):
         """
@@ -157,9 +156,9 @@ class Classifier(threading.Thread):
             f.attrs.create('prob_freqtime', data=prob_freqtime)
             f.attrs.create('prob_dmtime', data=prob_dmtime)
 
-        # if the probabilities are above threshold, send the file path to the visualizer
+        # if the probabilities are above threshold, store the file path
         if (prob_freqtime > self.config.thresh_freqtime) and (prob_dmtime > self.config.thresh_dmtime):
-            self.output_queue.put(fname)
+            self.candidates_to_visualize.append(fname)
 
     def _prepare_data(self):
         # verify shapes and downsample if needed
