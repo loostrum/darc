@@ -300,7 +300,8 @@ class Extractor(threading.Thread):
 
         # create output file
         output_file = os.path.join(self.output_dir,
-                                   'TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp:.0f}_SNR{snr:.0f}.hdf5')
+                                   f'TOA{toa_effective.value:.4f}_DM{dm_best.value:.2f}_'
+                                   f'DS{width_best:.0f}_SNR{snrmax:.0f}.hdf5')
         params_amber = (dm.value, snr, toa.value, downsamp)
         params_opt = (dm_best.value, snrmax, toa_effective.value, width_best)
         self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)

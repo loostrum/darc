@@ -304,7 +304,7 @@ class TestExtractor(unittest.TestCase):
         logger = logging.getLogger()
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
                             level='DEBUG')
-        self.extractor = Extractor(obs_config, logger, mp.Queue(), mp.Queue())
+        self.extractor = Extractor(obs_config, self.output_dir, logger, mp.Queue(), mp.Queue())
         # set filterbank reader (normally done in run method)
         self.extractor.filterbank_reader = self.extractor.init_filterbank_reader()
         # ensure we start clean
@@ -336,8 +336,8 @@ class TestClassifier(unittest.TestCase):
 
     def setUp(self):
         # path to test file
-        fname_in = '/data/arts/darc/output/triggers_realtime/data/TOA5.7917_DM159.80_DS100_SNR32.hdf5'
-        self.fname = '/data/arts/darc/output/triggers_realtime/data/TOA5.7917_DM159.80_DS100_SNR32_test.hdf5'
+        fname_in = '/data/arts/darc/output/triggers_realtime/data/TOA4.3581_DM159.50_DS88_SNR92.hdf5'
+        self.fname = '/data/arts/darc/output/triggers_realtime/data/TOA4.3581_DM159.50_DS88_SNR92_test.hdf5'
         # copy over for testing as not to overwrite the original
         copyfile(fname_in, self.fname)
 
