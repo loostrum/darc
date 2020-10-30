@@ -162,6 +162,7 @@ processor:
         nfreq: 64  # number of frequency channels in output
         delay: 5   # how long to wait until attempting to read filterbank (s)
         rfi_mask: "{home}/.controller/amber_conf/zapped_channels_FREQ.conf"  # path to rfi mask. FREQ is replace by central frequency
+        rfi_apply_mask: True
         rfi_clean_type: "perchannel"  # RFI cleaning type, options: time, freqency, both, perchannel, None
         rfi_threshold_time: 3.25
         rfi_n_iter_time: 3

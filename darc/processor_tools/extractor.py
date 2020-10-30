@@ -210,7 +210,8 @@ class Extractor(threading.Thread):
         self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
 
         # apply AMBER RFI mask
-        self.data[self.rfi_mask, :] = 0.
+        if self.config.rfi_apply_mask:
+            self.data[self.rfi_mask, :] = 0.
 
         # run rfi cleaning
         if self.config.rfi_clean_type is not None:
@@ -273,7 +274,8 @@ class Extractor(threading.Thread):
                 self.logger.warning(f"Skipping trigger with DM ({dm_best}) below local threshold")
             # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+                             f"{(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # extract freq-time of best DM, and roll data to put brightest pixel in center
