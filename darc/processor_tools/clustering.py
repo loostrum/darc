@@ -20,15 +20,17 @@ class Clustering(threading.Thread):
     Clustering and thresholding of AMBER triggers
     """
 
-    def __init__(self, obs_config, logger, input_queue, output_queue):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue):
         """
         :param dict obs_config: Observation settings
+        :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
         :param Queue output_queue: Output queue for clusters
         """
         super(Clustering, self).__init__()
         self.logger = logger
+        self.output_dir = output_dir
         self.obs_config = obs_config
         self.input_queue = input_queue
         self.output_queue = output_queue
@@ -54,7 +56,7 @@ class Clustering(threading.Thread):
         """
         self.logger.info("Starting clustering thread")
         # open the output file (line-buffered)
-        self.output_file_handle = open(self.config.output_file, 'w', buffering=1)
+        self.output_file_handle = open(self.output_dir, self.config.output_file, 'w', buffering=1)
         # write header
         self.output_file_handle.write("#snr dm time downsamp sb\n")
         while not self.stop_event.is_set():

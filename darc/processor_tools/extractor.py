@@ -23,15 +23,17 @@ class Extractor(threading.Thread):
     Extract data from filterbank files
     """
 
-    def __init__(self, obs_config, logger, input_queue, output_queue):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue):
         """
         :param dict obs_config: Observation settings
+        :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for clusters
         :param Queue output_queue: Output queue for classifier
         """
         super(Extractor, self).__init__()
         self.logger = logger
+        self.output_dir = os.path.join(output_dir, 'data')
         self.obs_config = obs_config
         self.input_queue = input_queue
         self.output_queue = output_queue
@@ -40,8 +42,7 @@ class Extractor(threading.Thread):
         self.config = self._load_config()
 
         # create directory for output data
-        # this thread runs in output directory, so relative to current directory is fine
-        util.makedirs('data')
+        util.makedirs(self.output_dir)
 
         # create stop event
         self.stop_event = mp.Event()
@@ -297,7 +298,8 @@ class Extractor(threading.Thread):
         toa_effective = toa + shift * tsamp_effective * u.s
 
         # create output file
-        output_file = f'data/TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp:.0f}_SNR{snr:.0f}.hdf5'
+        output_file = os.path.join(self.output_dir,
+                                   'TOA{toa.value:.4f}_DM{dm.value:.2f}_DS{downsamp:.0f}_SNR{snr:.0f}.hdf5')
         params_amber = (dm.value, snr, toa.value, downsamp)
         params_opt = (dm_best.value, snrmax, toa_effective.value, width_best)
         self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)

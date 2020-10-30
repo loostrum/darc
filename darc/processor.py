@@ -169,6 +169,7 @@ class Processor(DARCBase):
         self.amber_triggers = []
         self.hdr_mapping = {}
         self.obs_config = None
+        self.output_dir = None
 
         # create queues
         self.clustering_queue = mp.Queue()
@@ -210,15 +211,20 @@ class Processor(DARCBase):
         # set config
         self.obs_config = obs_config
 
+        # add observation-specific path to result_dir
+        self.central_result_dir = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
+
         # create output dir
         output_dir = os.path.join('{output_dir}'.format(**obs_config), self.output_dir)
-        try:
-            util.makedirs(output_dir)
-        except Exception as e:
-            self.logger.error(f"Failed to create output directory {output_dir}: {e}")
-            raise ProcessorException(f"Failed to create output directory {output_dir}: {e}")
-        # run in output dir
-        os.chdir(output_dir)
+
+        for path in (output_dir, self.central_result_dir):
+            try:
+                util.makedirs(path)
+            except Exception as e:
+                self.logger.error(f"Failed to create directory {path}: {e}")
+                raise ProcessorException(f"Failed to create directory {path}: {e}")
+
+        self.output_dir = output_dir
 
         self.observation_running = True  # this must be set before starting the processing thread
 
@@ -229,7 +235,7 @@ class Processor(DARCBase):
         self.threads['processing'] = thread
 
         # start clustering
-        thread = Clustering(obs_config, self.logger, self.clustering_queue, self.extractor_queue)
+        thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue)
         thread.name = 'clustering'
         thread.daemon = True
         thread.start()
@@ -237,7 +243,7 @@ class Processor(DARCBase):
 
         # start extractor(s)
         for i in range(self.num_extractor):
-            thread = Extractor(obs_config, self.logger, self.extractor_queue, self.classifier_queue)
+            thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue)
             thread.name = f'extractor_{i}'
             thread.daemon = True
             thread.start()
@@ -292,7 +298,8 @@ class Processor(DARCBase):
 
         # now fire up the visualization
         if not abort:
-            Visualizer(self.logger, self.obs_config, self.threads['classifier'].candidates_to_visualize)
+            Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
+                       self.threads['classifier'].candidates_to_visualize)
         self.logger.info("Observation finished: {taskid}: {datetimesource}".format(**self.obs_config))
 
     def _read_and_process_data(self):

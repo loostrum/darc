@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os
+import glob
+from shutil import copy
 import socket
 from argparse import Namespace
 import numpy as np
@@ -10,6 +12,7 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH
+from darc import util
 
 
 # redefine here because import from darc.processor would result in a circular import
@@ -22,9 +25,16 @@ class Visualizer:
     Visualize candidates
     """
 
-    def __init__(self, logger, obs_config, files):
+    def __init__(self, output_dir, result_dir, logger, obs_config, files):
         """
+        :param str output_dir: Output directory for data products
+        :param str result_dir: central directory to copy output PDF to
+        :param Logger logger: Processor logger object
+        :param dict obs_config: Observations settings
+        :param list files: HDF5 files to visualize
         """
+        self.output_dir = output_dir
+        self.result_dir = result_dir
         self.logger = logger
         self.obs_config = obs_config
         self.files = np.array(files)
@@ -36,7 +46,7 @@ class Visualizer:
 
         # switch the plot backend to pdf
         old_backend = plt.get_backend()
-        # plt.switch_backend('PDF')
+        plt.switch_backend('PDF')
         self._visualize()
         # put back the old backend
         plt.switch_backend(old_backend)
@@ -69,12 +79,19 @@ class Visualizer:
         # get plot order
         order = self._get_plot_order()
         # get the number of plot pages
-        npage = int(np.ceil(len(order) / self.config.nplot_per_side ** 2))
-        # split the input files per page and order them
-        files_split = np.array_split(self.files[order], npage)
+        nplot_per_page = self.config.nplot_per_side ** 2
+        npage = int(np.ceil(len(order) / nplot_per_page))
+        # order files, then split per page
+        files = self.files[order]
+        num_full_page, nplot_last_incomplete_page = divmod(len(files), nplot_per_page)
+        files_split = []
+        for page in range(num_full_page):
+            files_split.append(files[page * nplot_per_page: (page + 1) * nplot_per_page])
+        if nplot_last_incomplete_page != 0:
+            files_split.append(files[-nplot_last_incomplete_page:])
 
         for page in range(npage):
-            for plot_type in ('freq_time', 'dm_time', '1d_time'):
+            for plot_type in self.config.plot_types:
                 # create figure
                 fig, axes = plt.subplots(nrows=self.config.nplot_per_side, ncols=self.config.nplot_per_side,
                                          figsize=(self.config.figsize, self.config.figsize))
@@ -88,7 +105,6 @@ class Visualizer:
                     except IndexError:
                         ntime = len(data)
                     times = np.arange(-ntime / 2, ntime / 2) * params['tsamp'] * 1e3
-                    # times = np.arange(ntime) * params['tsamp'] * 1e3
 
                     ax = axes[i]
                     xlabel = 'Time (ms)'
@@ -100,12 +116,19 @@ class Visualizer:
                         freqs = np.linspace(0, BANDWIDTH.to(u.MHz).value, nfreq) + self.obs_config['min_freq']
                         X, Y = np.meshgrid(times, freqs)
                         ax.pcolormesh(X, Y, data, cmap=self.config.cmap_freqtime, shading='nearest')
+                        # Add DM 0 curve
+                        delays = util.dm_to_delay(params['dm'] * u.pc / u.cm ** 3,
+                                                  freqs[0] * u.MHz, freqs * u.MHz).to(u.ms).value
+                        ax.plot(times[0] + delays, freqs, c='r')
                     elif plot_type == 'dm_time':
                         ylabel = r'DM (pc cm$^{-3}$)'
                         title = 'p:{prob_dmtime:.2f} DM:{dm:.2f} t:{toa:.2f}\n' \
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         X, Y = np.meshgrid(times, params['dms'])
                         ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest')
+                        # add line if DM 0 is in plot range
+                        if min(params['dms']) <= 0 <= max(params['dms']):
+                            ax.axhline(0, ls='--', c='r')
                     elif plot_type == '1d_time':
                         ylabel = 'Power (norm.)'
                         title = 'DM:{dm:.2f} t:{toa:.2f}\n' \
@@ -132,13 +155,28 @@ class Visualizer:
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:
-                        remainder = self.config.nplot_per_side ** 2 - len(files_split[page])
+                        remainder = nplot_per_page - nplot_last_incomplete_page
                         if remainder > 0:
                             for ax in axes[-remainder:]:
                                 ax.axis('off')
 
                 fig.tight_layout()
-        plt.show()
+                # ensure the number of digits used for the page index is always the same, and large enough
+                # then sorting works as expected
+                page_str = str(page).zfill(len(str(npage)))
+                fig_fname = os.path.join(self.output_dir, f'ranked_{plot_type}_{page_str}.pdf')
+                fig.savefig(fig_fname)
+        # merge the plots
+        output_file = f"{self.output_dir}/CB{self.obs_config['beam']:02d}.pdf"
+        input_files = []
+        for plot_type in self.config.plot_types:
+            input_files.extend(glob.glob(f'{self.output_dir}/*{plot_type}*.pdf'))
+        input_file_str = ' '.join(input_files)
+        cmd = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {input_file_str}"
+        self.logger.debug("Running {}".format(cmd))
+        os.system(cmd)
+        # copy the file to the central output directory
+        copy(output_file, self.result_dir)
 
     def _get_plot_order(self):
         """

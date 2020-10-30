@@ -297,9 +297,6 @@ class TestExtractor(unittest.TestCase):
 
     def setUp(self):
         self.output_dir = '/data/arts/darc/output/'
-        # run in output dir
-        self.olddir = os.getcwd()
-        os.chdir(self.output_dir)
 
         startpacket = Time.now().unix // TIME_UNIT
         obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
@@ -332,10 +329,6 @@ class TestExtractor(unittest.TestCase):
         self.assertTrue(fname is not None)
         # check that the output file exists
         self.assertTrue(os.path.isfile(fname))
-
-    def tearDown(self):
-        # go back to original dir
-        os.chdir(self.olddir)
 
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
@@ -370,9 +363,25 @@ class TestClassifier(unittest.TestCase):
             self.assertTrue('prob_freqtime' in f.attrs.keys())
             self.assertTrue('prob_dmtime' in f.attrs.keys())
 
+    def tearDown(self):
+        # remove the test file
+        os.remove(self.fname)
+
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
 class TestVisualizer(unittest.TestCase):
+
+    def setUp(self):
+        self.output_dir = '/data/arts/darc/output/triggers_realtime'
+        self.result_dir = '/data/arts/darc/output/central'
+        # ensure we start clean
+        try:
+            rmtree(self.result_dir)
+        except FileNotFoundError:
+            pass
+        util.makedirs(self.result_dir)
+        for fname in glob.glob(os.path.join(self.output_dir, '*.pdf')):
+            os.remove(fname)
 
     def test_visualize(self):
         files = glob.glob('/data/arts/darc/output/triggers_realtime/data/*.hdf5')
@@ -381,10 +390,16 @@ class TestVisualizer(unittest.TestCase):
                             level='DEBUG')
 
         parset = {'task.taskID': '001122'}
-        obs_config = {'datetimesource': '2020-01-01-00:00:00.FAKE',
+        obs_config = {'date': '2020-01-01',
+                      'datetimesource': '2020-01-01-00:00:00.FAKE',
                       'min_freq': 1220.7,
+                      'beam': 0,
                       'parset': parset}
-        Visualizer(logger, obs_config, files)
+        Visualizer(self.output_dir, self.result_dir, logger, obs_config, files)
+        # verify the output files are present
+        for key in ('freq_time', 'dm_time', '1d_time'):
+            self.assertTrue(len(glob.glob(f'{self.output_dir}/*{key}*.pdf')) > 0)
+        self.assertTrue(os.path.isfile(f'{self.result_dir}/CB{obs_config["beam"]:02d}.pdf'))
 
 
 if __name__ == '__main__':
