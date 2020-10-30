@@ -180,6 +180,9 @@ class Processor(DARCBase):
         # lock for accessing AMBER trigger list
         self.lock = threading.Lock()
 
+        # load config
+        self.config = self.load_config()
+
     def process_command(self, command):
         """
         Process command received from queue
@@ -298,9 +301,11 @@ class Processor(DARCBase):
 
         # now fire up the visualization
         if not abort:
+            self.logger.debug(self.threads['classifier'].candidates_to_visualize)
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
                        self.threads['classifier'].candidates_to_visualize)
-        self.logger.info("Observation finished: {taskid}: {datetimesource}".format(**self.obs_config))
+        self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
+                         f"{self.obs_config['datetimesource']}")
 
     def _read_and_process_data(self):
         """

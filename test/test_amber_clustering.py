@@ -14,9 +14,9 @@ from darc.definitions import TIME_UNIT
 
 class TestAMBERClustering(unittest.TestCase):
 
-    def test_clustering_iquv_new(self):
+    def test_clustering_iquv(self):
         """
-        Test AMBER clustering without applying thresholds, for a new source
+        Test AMBER clustering without applying thresholds, for a known source
         """
 
         # create queues

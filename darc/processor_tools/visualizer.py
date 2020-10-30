@@ -40,7 +40,6 @@ class Visualizer:
         self.files = np.array(files)
 
         self.config = self._load_config()
-
         self.logger.info(f"Starting visualization of task ID "
                          f"{self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']}")
 

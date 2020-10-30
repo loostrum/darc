@@ -114,6 +114,7 @@ class TestProcessor(unittest.TestCase):
         # extract PSRDADA header
         self.header = self.get_psrdada_header(self.dada_files[0])
 
+        self.tstart = Time.now() + TimeDelta(5, format='sec')
         # add general settings
         self.header['nreader'] = 2
         self.header['nbuffer'] = 5
@@ -131,19 +132,20 @@ class TestProcessor(unittest.TestCase):
         self.header['amber_conf_dir'] = amber_conf_dir
         self.header['amber_config'] = amber_conf_file
         self.header['sb_table'] = sb_table
+        self.header['date'] = '20200101'
         self.header['datetimesource'] = '2020-01-01-00:00:00.FAKE'
         self.header['freq'] = int(np.round(float(self.header['FREQ'])))
         self.header['snrmin'] = 8
-        self.header['min_freq'] = 1220.0
-        self.header['tstart'] = Time.now() + TimeDelta(5, format='sec')
-        self.header['startpacket'] = int(self.header['tstart'].unix * TIME_UNIT)
+        self.header['min_freq'] = 1220.7
+        self.header['startpacket'] = int(self.tstart.unix * TIME_UNIT)
 
-        # add encoded parset
-        parset = """
-        task.duration = {SCANLEN}
-        task.starttime = {tstart}
-        """.format(**self.header)
-        self.header['parset'] = util.encode_parset(parset)
+        # add parset
+        parset = {'task.duration': self.header['SCANLEN'],
+                  'task.starttime': self.tstart.isot,
+                  'task.taskID': '001122',
+                  'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
+                  'task.directionReferenceFrame': 'J2000'}
+        self.header['parset'] = parset
 
         # create ringbuffer
         self.create_ringbuffer()
@@ -264,8 +266,6 @@ class TestProcessor(unittest.TestCase):
         return proc
 
     def test_processor_obs(self):
-        # set processor settings
-        self.processor.interval = 1.0
         # start processor
         self.processor.start()
 
@@ -274,7 +274,7 @@ class TestProcessor(unittest.TestCase):
         self.processor.start_observation(obs_config=self.header, reload=False)
 
         # at start time, read data into buffer, other processes are already set up and waiting for data
-        util.sleepuntil_utc(self.header['tstart'])
+        util.sleepuntil_utc(self.tstart)
         self.diskdb_proc.start()
 
         # wait until processes are done
@@ -392,7 +392,7 @@ class TestVisualizer(unittest.TestCase):
         parset = {'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
                   'task.directionReferenceFrame': 'J2000'}
-        obs_config = {'date': '2020-01-01',
+        obs_config = {'date': '20200101',
                       'datetimesource': '2020-01-01-00:00:00.FAKE',
                       'min_freq': 1220.7,
                       'beam': 0,

@@ -295,6 +295,7 @@ class Extractor(threading.Thread):
             self.data_dm_time[row] = np.roll(self.data_dm_time[row], shift)
 
         # calculate effective toa after applying shift
+        # ToDo: only apply this shift if not caused by candidate near start/end of observation
         toa_effective = toa + shift * tsamp_effective * u.s
 
         # create output file

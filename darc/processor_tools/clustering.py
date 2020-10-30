@@ -56,7 +56,7 @@ class Clustering(threading.Thread):
         """
         self.logger.info("Starting clustering thread")
         # open the output file (line-buffered)
-        self.output_file_handle = open(self.output_dir, self.config.output_file, 'w', buffering=1)
+        self.output_file_handle = open(os.path.join(self.output_dir, self.config.output_file), 'w', buffering=1)
         # write header
         self.output_file_handle.write("#snr dm time downsamp sb\n")
         while not self.stop_event.is_set():

@@ -29,12 +29,12 @@ def sleepuntil_utc(end_time, event=None):
     """
     Sleep until specified time
 
-    :param datetime.datetime/astropy.time.Time end_time: sleep until this time
+    :param datetime.datetime/astropy.time.Time/str end_time: sleep until this time
     :param threading.Event event: if specified, uses event.wait instead of time.sleep
     """
 
     # convert datetime to astropy time
-    if isinstance(end_time, datetime.datetime):
+    if isinstance(end_time, datetime.datetime) or isinstance(end_time, str):
         end_time = Time(end_time)
 
     # get seconds to sleep
