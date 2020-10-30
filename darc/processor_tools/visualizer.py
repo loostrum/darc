@@ -76,6 +76,12 @@ class Visualizer:
         ncand = len(self.files)
         self.logger.debug(f"Visualizing {ncand} candidates")
 
+        # get max galactic DM
+        dmgal = util.get_ymw16(self.obs_config['parset'], self.obs_config['beam'], self.logger)
+        # DMgal is zero if something failed, in that case set the value to infinite so no plots are marked
+        if dmgal == 0:
+            dmgal = np.inf
+
         # get plot order
         order = self._get_plot_order()
         # get the number of plot pages
@@ -119,7 +125,7 @@ class Visualizer:
                         # Add DM 0 curve
                         delays = util.dm_to_delay(params['dm'] * u.pc / u.cm ** 3,
                                                   freqs[0] * u.MHz, freqs * u.MHz).to(u.ms).value
-                        ax.plot(times[0] + delays, freqs, c='r')
+                        ax.plot(times[0] + delays, freqs, c='r', alpha=.5)
                     elif plot_type == 'dm_time':
                         ylabel = r'DM (pc cm$^{-3}$)'
                         title = 'p:{prob_dmtime:.2f} DM:{dm:.2f} t:{toa:.2f}\n' \
@@ -128,7 +134,7 @@ class Visualizer:
                         ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest')
                         # add line if DM 0 is in plot range
                         if min(params['dms']) <= 0 <= max(params['dms']):
-                            ax.axhline(0, ls='--', c='r')
+                            ax.axhline(0, c='r', alpha=.5)
                     elif plot_type == '1d_time':
                         ylabel = 'Power (norm.)'
                         title = 'DM:{dm:.2f} t:{toa:.2f}\n' \
@@ -152,6 +158,9 @@ class Visualizer:
                         if nplot_remaining < self.config.nplot_per_side:
                             ax.set_xlabel(xlabel)
                     ax.set_xlim(times[0], times[-1])
+                    # add red border if DM > DMgal
+                    if params['dm'] > dmgal:
+                        plt.setp(ax.spines.values(), color='red', linewidth=2, alpha=0.85)
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:

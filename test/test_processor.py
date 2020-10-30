@@ -389,7 +389,9 @@ class TestVisualizer(unittest.TestCase):
         logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
                             level='DEBUG')
 
-        parset = {'task.taskID': '001122'}
+        parset = {'task.taskID': '001122',
+                  'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
+                  'task.directionReferenceFrame': 'J2000'}
         obs_config = {'date': '2020-01-01',
                       'datetimesource': '2020-01-01-00:00:00.FAKE',
                       'min_freq': 1220.7,

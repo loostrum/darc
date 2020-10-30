@@ -4,6 +4,8 @@
 
 import os
 import errno
+import ast
+import subprocess
 import datetime
 import time
 import json
@@ -392,3 +394,49 @@ def calc_snr_matched_filter(data, widths=None):
             width_max = w
 
     return snr_max, width_max
+
+
+def get_ymw16(parset, beam=0, logger=None):
+    """
+    Get YMW16 DM
+
+    :param dict parset: Observation parset
+    :param int beam: CB for which to get YMW16 DM
+    :param Logger logger: Logger object (optional)
+    :return: YMW16 DM (float)
+    """
+    # get pointing
+    try:
+        key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
+        c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+    except Exception as e:
+        if logger is not None:
+            logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
+        return 0
+    # convert HA to RA if HADEC is used
+    if parset['task.directionReferenceFrame'].upper() == 'HADEC':
+        # RA = LST - HA. Get RA at the mid point of the observation
+        timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+        # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
+        timestamp.delta_ut1_utc = 0
+        lst_start = timestamp.sidereal_time('mean', WSRT_LON).to(u.deg)
+        c1 = lst_start.to(u.deg).value - c1
+
+    pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+
+    # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
+    gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+    cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
+    try:
+        result = subprocess.check_output(cmd)
+    except OSError as e:
+        if logger is not None:
+            logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
+        return 0
+    try:
+        dm = float(result.split()[7])
+    except Exception as e:
+        if logger is not None:
+            logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
+        return 0
+    return dm
