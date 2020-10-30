@@ -142,6 +142,7 @@ processor:
     interval: 1.0  # how often to process candidates (seconds)
     num_extractor: 2  # how many data extractors to run
     output_dir: "triggers_realtime"  # output dir for triggers on each node
+    result_dir: "{home}/darc/results"  # central output dir for observation results
     # clustering settings
     clustering:
         output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers
@@ -181,7 +182,14 @@ processor:
         model_dir: "{home}/keras_models"
         model_freqtime: "20190501freq_time.hdf5"
         model_dmtime: "heimdall_dm_time.hdf5"
-
+    # Visualization settings:
+    visualizer:
+        nplot_per_side: 5
+        figsize: 15
+        cmap_freqtime: "viridis"  # any matplotlib colour map
+        cmap_dmtime: "viridis"  # any matplotlib colour map
+        colour_1dtime: "black"  # any matplotlib colour
+        plot_types: ['freq_time', 'dm_time', '1d_time']  # which plots order of plots in PDF output. Options: freq_time, dm_time, 1d_time
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
