@@ -234,8 +234,12 @@ class Visualizer:
             # load the data
             if data_type == 'freq_time':
                 data = f['data_freq_time'][:]
+                data -= np.median(data)
+                data /= np.std(data, axis=1, keepdims=True)
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
+                data -= np.median(data)
+                data /= np.std(data, axis=1, keepdims=True)
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
                 data -= np.median(data)
