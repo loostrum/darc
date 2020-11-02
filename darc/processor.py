@@ -277,30 +277,17 @@ class Processor(DARCBase):
             for queue in self.all_queues:
                 util.clear_queue(queue)
         # clear processing thread
-        try:
-            self.threads['processing'].join()
-        except KeyError:
-            # there was no processing thread
-            pass
+        self.threads['processing'].join()
         # signal clustering to stop
-        try:
-            self.threads['clustering'].stop()
-            self.threads['clustering'].join()
-        except KeyError:
-            pass
+        self.threads['clustering'].stop()
+        self.threads['clustering'].join()
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
-            try:
-                self.threads[f'extractor_{i}'].stop()
-                self.threads[f'extractor_{i}'].join()
-            except KeyError:
-                pass
+            self.threads[f'extractor_{i}'].stop()
+            self.threads[f'extractor_{i}'].join()
         # signal classifier to stop
-        try:
-            self.threads['classifier'].stop()
-            self.threads['classifier'].join()
-        except KeyError:
-            pass
+        self.threads['classifier'].stop()
+        self.threads['classifier'].join()
 
         # now fire up the visualization
         if not abort:
