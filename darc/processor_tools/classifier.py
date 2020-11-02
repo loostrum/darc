@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import socket
 from argparse import Namespace
@@ -10,12 +9,16 @@ import multiprocessing as mp
 import yaml
 import numpy as np
 import h5py
-import tensorflow as tf
 
 from darc.definitions import CONFIG_FILE
 
 # silence the tensorflow logger
-tf.get_logger().setLevel('ERROR')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
+
+# silence the tensorflow logger even more
+if int(tf.__version__[0]) >= 2:
+    tf.get_logger().setLevel('ERROR')
 
 
 class Classifier(threading.Thread):
