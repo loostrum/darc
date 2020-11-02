@@ -198,9 +198,11 @@ class Classifier(threading.Thread):
 
         # scale data
         self.data_freq_time -= np.median(self.data_freq_time, axis=-1, keepdims=True)
-        self.data_freq_time /= np.std(self.data_freq_time, axis=-1, keepdims=True)
         self.data_dm_time -= np.median(self.data_dm_time, axis=-1, keepdims=True)
-        self.data_dm_time /= np.std(self.data_dm_time, axis=-1, keepdims=True)
+        # silence the potential runtime warning due to divide-by-zero
+        with np.errstate(divide='ignore'):
+            self.data_freq_time /= np.std(self.data_freq_time, axis=-1, keepdims=True)
+            self.data_dm_time /= np.std(self.data_dm_time, axis=-1, keepdims=True)
         # note: for classifier do not replace non-finite numbers by zero
 
         # add required axes for classifier
