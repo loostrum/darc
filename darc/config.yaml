@@ -189,7 +189,7 @@ processor:
         cmap_freqtime: "viridis"  # any matplotlib colour map
         cmap_dmtime: "viridis"  # any matplotlib colour map
         colour_1dtime: "black"  # any matplotlib colour
-        plot_types: ['freq_time', 'dm_time', '1d_time']  # which plots order of plots in PDF output. Options: freq_time, dm_time, 1d_time
+        plot_types: ['freq_time', 'dm_time', '1d_time']  # order of plots in PDF output. Options: freq_time, dm_time, 1d_time
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"

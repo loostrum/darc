@@ -77,7 +77,8 @@ class Visualizer:
 
         # get max galactic DM
         dmgal = util.get_ymw16(self.obs_config['parset'], self.obs_config['beam'], self.logger)
-        # DMgal is zero if something failed, in that case set the value to infinite so no plots are marked
+        # DMgal is zero if something failed, in that case set the value to infinity so no plots are marked, instead of
+        # all
         if dmgal == 0:
             dmgal = np.inf
 
@@ -184,6 +185,7 @@ class Visualizer:
         self.logger.debug("Running {}".format(cmd))
         os.system(cmd)
         # copy the file to the central output directory
+        self.logger.info(f"Saving {os.path.basename(output_file)} to {self.result_dir}")
         copy(output_file, self.result_dir)
 
     def _get_plot_order(self):
@@ -231,15 +233,21 @@ class Visualizer:
                     params[key] = f.attrs[key]
                 except KeyError:
                     self.logger.error(r"Failed to load key {key} from {fname}")
-            # load the data
+            # load and scale the data
             if data_type == 'freq_time':
                 data = f['data_freq_time'][:]
                 data -= np.median(data)
-                data /= np.std(data, axis=1, keepdims=True)
+                # silence the potential runtime warning due to divide-by-zero
+                with np.errstate(divide='ignore'):
+                    data /= np.std(data, axis=1, keepdims=True)
+                data[~np.isfinite(data)] = 0.
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
                 data -= np.median(data)
-                data /= np.std(data, axis=1, keepdims=True)
+                # silence the potential runtime warning due to divide-by-zero
+                with np.errstate(divide='ignore'):
+                    data /= np.std(data, axis=1, keepdims=True)
+                data[~np.isfinite(data)] = 0.
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
                 data -= np.median(data)

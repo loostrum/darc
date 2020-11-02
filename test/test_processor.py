@@ -167,7 +167,7 @@ class TestProcessor(unittest.TestCase):
 
         # initialize Processor, connect input queue to output of AMBERListener
         self.processor = Processor()
-        self.processor.logger.setLevel('INFO')
+        self.processor.logger.setLevel('DEBUG')
         self.processor.set_source_queue(self.amber_listener.target_queue)
 
     def tearDown(self):

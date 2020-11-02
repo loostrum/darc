@@ -267,6 +267,9 @@ class Processor(DARCBase):
 
         :param bool abort: Whether or not to abort the observation
         """
+        if not self.observation_running:
+            # nothing to do
+            return
         # set running to false
         self.observation_running = False
         # if abort, clear all queues
@@ -301,7 +304,6 @@ class Processor(DARCBase):
 
         # now fire up the visualization
         if not abort:
-            self.logger.debug(self.threads['classifier'].candidates_to_visualize)
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
                        self.threads['classifier'].candidates_to_visualize)
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "

@@ -201,10 +201,7 @@ class Classifier(threading.Thread):
         self.data_freq_time /= np.std(self.data_freq_time, axis=-1, keepdims=True)
         self.data_dm_time -= np.median(self.data_dm_time, axis=-1, keepdims=True)
         self.data_dm_time /= np.std(self.data_dm_time, axis=-1, keepdims=True)
-
-        # zero out NaNs
-        self.data_freq_time[np.isnan(self.data_freq_time)] = 0.
-        self.data_dm_time[np.isnan(self.data_dm_time)] = 0.
+        # note: for classifier do not replace non-finite numbers by zero
 
         # add required axes for classifier
         self.data_freq_time = self.data_freq_time[None, ..., None]

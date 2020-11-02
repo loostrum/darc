@@ -152,7 +152,8 @@ class Extractor(threading.Thread):
         # calculate remaining downsampling to do after dedispersion
         postdownsamp = max(1, downsamp // predownsamp)
         # total downsampling factor (can be slightly different from original downsampling)
-        self.logger.debug(f"Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp}")
+        self.logger.debug(f"Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp} "
+                          f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
         downsamp_effective = predownsamp * postdownsamp
         tsamp_effective = self.filterbank_reader.tsamp * downsamp_effective
 
@@ -166,7 +167,7 @@ class Extractor(threading.Thread):
         start_bin = int(toa.to(u.s).value // self.filterbank_reader.tsamp - .5 * ntime)
         # ensure start bin is not before start of observation
         if start_bin < 0:
-            self.logger.warning("Start bin before start of file, shifting")
+            self.logger.warning("Start bin before start of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             start_bin = 0
         # number of bins to load is number to store plus dm delay
         nbin = int(ntime + sample_delay)
@@ -181,7 +182,8 @@ class Extractor(threading.Thread):
         # (because filterbank is not immediately flushed to disk)
         twait = tstart + end_bin * self.filterbank_reader.tsamp * u.s + self.config.delay * u.s
         while end_bin >= self.filterbank_reader.nsamp:
-            self.logger.debug(f"Waiting until {twait.isot} for filterbank data to be present on disk")
+            self.logger.debug(f"Waiting until {twait.isot} for filterbank data to be present on disk "
+                              f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             util.sleepuntil_utc(twait, event=self.stop_event)
             # re-read the number of samples to check if the data are available now
             self.filterbank_reader.store_fil_params()
@@ -196,19 +198,28 @@ class Extractor(threading.Thread):
         if end_bin >= self.filterbank_reader.nsamp:
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
             if start_bin >= self.filterbank_reader.nsamp:
-                self.logger.error("Start bin beyond end of file, error in filterbank data? Skipping this candidate")
+                self.logger.error("Start bin beyond end of file, error in filterbank data? Skipping"
+                                  " ToA={toa.value:.4f}, DM={dm.value:.2f}")
                 # log time taken
                 timer_end = Time.now()
                 self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
                                  f"in {(timer_end - timer_start).to(u.s):.0f}")
                 return
-            self.logger.warning("End bin beyond end of file, shifting")
+            self.logger.warning("End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             diff = end_bin - self.filterbank_reader.nsamp + 1
             start_bin -= diff
 
         # load the data. Store as attribute so it can be accessed from other methods (ok as we only run
         # one extraction at a time)
-        self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
+        try:
+            self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
+        except ValueError as e:
+            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}")
+            # log time taken
+            timer_end = Time.now()
+            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
+                             f"in {(timer_end - timer_start).to(u.s):.0f}")
+            return
 
         # apply AMBER RFI mask
         if self.config.rfi_apply_mask:
@@ -270,9 +281,11 @@ class Extractor(threading.Thread):
         # if max S/N is below local threshold, skip this trigger
         if snrmax < self.config.snr_min_local or dm_best.to(u.pc / u.cm**3).value < self.config.dm_min:
             if snrmax < self.config.snr_min_local:
-                self.logger.warning(f"Skipping trigger with S/N ({snrmax}) below local threshold")
+                self.logger.warning(f"Skipping trigger with S/N ({snrmax}) below local threshold, "
+                                    f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             else:
-                self.logger.warning(f"Skipping trigger with DM ({dm_best}) below local threshold")
+                self.logger.warning(f"Skipping trigger with DM ({dm_best}) below local threshold, "
+                                    f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             # log time taken
             timer_end = Time.now()
             self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in "
@@ -311,7 +324,8 @@ class Extractor(threading.Thread):
 
         # log time taken
         timer_end = Time.now()
-        self.logger.info(f"Processed ToA={toa:.4f}, DM={dm.value:.2f} in {(timer_end - timer_start).to(u.s):.0f}")
+        self.logger.info(f"Successfully processed ToA={toa:.4f}, DM={dm.value:.2f} in "
+                         f"{(timer_end - timer_start).to(u.s):.0f}")
 
     def _rficlean(self):
         """
