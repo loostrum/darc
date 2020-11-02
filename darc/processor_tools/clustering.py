@@ -49,6 +49,7 @@ class Clustering(threading.Thread):
 
         self.input_empty = False
         self.output_file_handle = None
+        self.ncluster = 0
 
     def run(self):
         """
@@ -131,6 +132,7 @@ class Clustering(threading.Thread):
         ncluster = len(cluster_snr)
 
         self.logger.info(f"Clustered {len(triggers)} triggers into {ncluster} clusters")
+        self.ncluster += ncluster
 
         # put the clusters on the output queue for further analysis
         # note the for-loop is effectively skipped if ncluster is zero

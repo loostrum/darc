@@ -62,6 +62,7 @@ class Classifier(threading.Thread):
         self.ndm_data = None
         self.ntime_data = None
         self.candidates_to_visualize = []
+        self.ncand_post_classifier = 0
 
     def run(self):
         """
@@ -159,6 +160,7 @@ class Classifier(threading.Thread):
         # if the probabilities are above threshold, store the file path
         if (prob_freqtime > self.config.thresh_freqtime) and (prob_dmtime > self.config.thresh_dmtime):
             self.candidates_to_visualize.append(fname)
+            self.ncand_post_classifier += 1
 
     def _prepare_data(self):
         # verify shapes and downsample if needed

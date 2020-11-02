@@ -7,6 +7,7 @@ import threading
 import multiprocessing as mp
 from time import sleep
 import numpy as np
+import yaml
 
 from darc import DARCBase
 from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
@@ -177,8 +178,15 @@ class Processor(DARCBase):
         self.classifier_queue = mp.Queue()
         self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
 
-        # lock for accessing AMBER trigger list
-        self.lock = threading.Lock()
+        # lock for accessing AMBER trigger list and
+        self.amber_lock = threading.Lock()
+        self.obs_stats_lock = threading.Lock()
+
+        # initalize observation statistics.
+        self.obs_stats = {'ncand_raw': 0,
+                          'ncand_post_clustering': 0,
+                          'ncand_post_thresholds': 0,
+                          'ncand_post_classifier': 0}
 
         # load config
         self.config = self.load_config()
@@ -193,7 +201,7 @@ class Processor(DARCBase):
             if not self.observation_running:
                 self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
-                with self.lock:
+                with self.amber_lock:
                     self.amber_triggers.append(command['trigger'])
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
@@ -289,8 +297,25 @@ class Processor(DARCBase):
         self.threads['classifier'].stop()
         self.threads['classifier'].join()
 
-        # now fire up the visualization
+        # store obs statistics
+        # if no AMBER header was received, something failed and there are no candidates
+        # set all values to -1 to indicate this
+        if not self.hdr_mapping:
+            for key in self.obs_stats.keys():
+                self.obs_stats[key] = -1
+        else:
+            # already have number of raw candidates
+            # store number of post-clustering candidates
+            self.obs_stats['ncand_post_clustering'] = self.threads['clustering'].ncluster
+            # store number of candidates above local S/N threshold
+            for i in range(self.num_extractor):
+                self.obs_stats['ncand_post_thresholds'] += self.threads[f'extractor_{i}'].ncand_above_threshold
+            # store number of candidates post-classifier
+            self.obs_stats['ncand_post_classifier'] = self.threads['classifier'].ncand_post_classifier
+
+        # Store the statistics and start the visualization
         if not abort:
+            self._store_obs_stats()
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
                        self.threads['classifier'].candidates_to_visualize)
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
@@ -304,9 +329,12 @@ class Processor(DARCBase):
         while self.observation_running and not self.stop_event.is_set():
             if self.amber_triggers:
                 # Copy the triggers so class-wide list can receive new triggers without those getting lost
-                with self.lock:
+                with self.amber_lock:
                     triggers = self.amber_triggers
                     self.amber_triggers = []
+                # update number of raw candidates
+                with self.obs_stats_lock:
+                    self.obs_stats['ncand_raw'] += len(triggers)
                 # check for header (always, because it is received once for every amber instance)
                 if not self.hdr_mapping:
                     for trigger in triggers:
@@ -352,3 +380,12 @@ class Processor(DARCBase):
                 # put triggers on clustering queue
                 self.threads['clustering'].input_queue.put(triggers_for_clustering)
             sleep(self.interval)
+
+    def _store_obs_stats(self):
+        """
+        Store observation statistics to central result directory
+        """
+        output_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}.yaml')
+        self.logger.debug(f"Storing observation statistics to {output_file}")
+        with open(output_file, 'w') as f:
+            yaml.dump(self.obs_stats, f, default_flow_style=False)

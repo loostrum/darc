@@ -53,6 +53,7 @@ class Extractor(threading.Thread):
 
         self.data = None
         self.data_dm_time = None
+        self.ncand_above_threshold = 0
 
     def run(self):
         """
@@ -321,6 +322,8 @@ class Extractor(threading.Thread):
 
         # put path to file on output queue to be picked up by classifier
         self.output_queue.put(output_file)
+
+        self.ncand_above_threshold += 1
 
         # log time taken
         timer_end = Time.now()
