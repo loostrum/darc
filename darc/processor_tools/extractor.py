@@ -242,6 +242,28 @@ class Extractor(threading.Thread):
         # subtract median
         self.data.data -= np.median(self.data.data, axis=1, keepdims=True)
 
+        # get S/N and width at AMBER DM
+        self.data.dedisperse(dm.to(u.pc / u.cm ** 3).value)
+        # create timeseries
+        timeseries = self.data.data.sum(axis=0)[:ntime]
+        # get S/N and width
+        # range of widths for S/N determination. Never go above 250 samples,
+        # which is typically RFI even without pre-downsampling
+        widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
+        snrmax, width_best = util.calc_snr_matched_filter(timeseries, widths=widths)
+        # correct for already applied downsampling
+        width_best *= predownsamp
+
+        # if max S/N is below local threshold, skip this trigger
+        if snrmax < self.config.snr_min_local:
+            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            # log time taken
+            timer_end = Time.now()
+            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+                             f"{(timer_end - timer_start).to(u.s):.0f}")
+            return
+
         # calculate DM range to try
         # increase dm half range by 5 units for each ms of pulse width
         # add another unit for each 100 units of DM
@@ -258,60 +280,24 @@ class Extractor(threading.Thread):
         if mindm < 0:
             dms += mindm
 
-        # Dedisperse and get max S/N
-        snrmax = 0
-        width_best = None
-        dm_best = None
-        # range of widths for S/N determination. Never go above ~250 samples,
-        # which is typically RFI even without pre-downsampling
-        minwidth = max(1, postdownsamp // 2)
-        maxwidth = min(250, postdownsamp * 2)
-        # width step has to be an integer
-        widthstep = int((maxwidth - minwidth) / self.config.nwidth)
-        widths = np.arange(self.config.nwidth) * widthstep + minwidth
+        # Dedisperse
         # initialize DM-time array
         self.data_dm_time = np.zeros((self.config.ndm, self.config.ntime))
         for dm_ind, dm_val in enumerate(dms):
             # copy the data and dedisperse
             data = copy.deepcopy(self.data)
             data.dedisperse(dm_val.to(u.pc / u.cm**3).value)
-            # create timeseries
-            timeseries = data.data.sum(axis=0)[:ntime]
-            # get S/N from timeseries
-            snr, width = util.calc_snr_matched_filter(timeseries, widths=widths)
-            # store index if this is the highest S/N
-            if snr > snrmax:
-                snrmax = snr
-                width_best = width * predownsamp
-                dm_best = dm_val
-
             # apply any remaining downsampling
             data.downsample(postdownsamp)
             # cut of excess bins and store
             self.data_dm_time[dm_ind] = data.data.sum(axis=0)[:self.config.ntime]
 
-        # if max S/N is below local threshold, skip this trigger
-        if snrmax < self.config.snr_min_local or dm_best.to(u.pc / u.cm**3).value < self.config.dm_min:
-            if snrmax < self.config.snr_min_local:
-                self.logger.warning(f"Skipping trigger with S/N ({snrmax}) below local threshold, "
-                                    f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
-            else:
-                self.logger.warning(f"Skipping trigger with DM ({dm_best}) below local threshold, "
-                                    f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
-            # log time taken
-            timer_end = Time.now()
-            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in "
-                             f"{(timer_end - timer_start).to(u.s):.0f}")
-            return
-
-        # extract freq-time of best DM, and roll data to put brightest pixel in center
-        self.data.dedisperse(dm_best.to(u.pc / u.cm ** 3).value)
-        # apply downsampling in time and freq
+        # apply downsampling in time and freq to global freq-time data
         self.data.downsample(postdownsamp)
         self.data.subband(nsub=self.config.nfreq)
         # cut off extra bins
         self.data.data = self.data.data[:, :self.config.ntime]
-        # roll data
+        # roll data to put brightest pixel in the centre
         brightest_pixel = np.argmax(self.data.data.sum(axis=0))
         shift = self.config.ntime // 2 - brightest_pixel
         self.data.data = np.roll(self.data.data, shift, axis=1)
@@ -325,10 +311,10 @@ class Extractor(threading.Thread):
 
         # create output file
         output_file = os.path.join(self.output_dir,
-                                   f'TOA{toa_effective.value:.4f}_DM{dm_best.value:.2f}_'
+                                   f'TOA{toa_effective.value:.4f}_DM{dm.value:.2f}_'
                                    f'DS{width_best:.0f}_SNR{snrmax:.0f}.hdf5')
         params_amber = (dm.value, snr, toa.value, downsamp)
-        params_opt = (dm_best.value, snrmax, toa_effective.value, width_best)
+        params_opt = (snrmax, toa_effective.value, width_best)
         self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)
 
         # put path to file on output queue to be picked up by classifier
@@ -388,7 +374,7 @@ class Extractor(threading.Thread):
         :param float tsamp: Sampling time (s)
         :param Quantity dms: array of DMs used in DM-time array
         :param tuple params_amber: AMBER parameters: dm, snr, toa
-        :param tuple params_opt: Optimized parameters: dm, snr, toa
+        :param tuple params_opt: Optimized parameters: snr, toa
         """
         nfreq, ntime = self.data.data.shape
         ndm = self.data_dm_time.shape[0]
@@ -403,12 +389,12 @@ class Extractor(threading.Thread):
             f.attrs.create('sb', data=sb)
             f.attrs.create('dms', data=dms.value)
 
-            f.attrs.create('dm', data=params_opt[0])
-            f.attrs.create('snr', data=params_opt[1])
-            f.attrs.create('toa', data=params_opt[2])
-            f.attrs.create('downsamp', data=params_opt[3])
+            f.attrs.create('dm', data=params_amber[0])  # DM is only an AMBER parameter
+            f.attrs.create('snr', data=params_opt[0])
+            f.attrs.create('toa', data=params_opt[1])
+            f.attrs.create('downsamp', data=params_opt[2])
 
-            f.attrs.create('dm_amber', data=params_amber[0])
+            f.attrs.create('dm_amber', data=params_amber[0])  # this is duplicate, but there for completeness
             f.attrs.create('snr_amber', data=params_amber[1])
             f.attrs.create('toa_amber', data=params_amber[2])
             f.attrs.create('downsamp_amber', data=params_amber[3])

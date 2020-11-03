@@ -161,7 +161,6 @@ processor:
         ndm: 64
         ntime: 64  # number of time samples in output
         nfreq: 64  # number of frequency channels in output
-        nwidth: 10  # number of width trials to run at each DM to get optimal S/N (Note: a higher number significantly slows down the processing)
         delay: 5   # how long to wait until attempting to read filterbank (s)
         rfi_mask: "{home}/.controller/amber_conf/zapped_channels_FREQ.conf"  # path to rfi mask. FREQ is replace by central frequency
         rfi_apply_mask: True
@@ -172,7 +171,6 @@ processor:
         rfi_n_iter_freq: 3
         rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels in the filterbank data
         snr_min_local: 5  # skip any triggers with a local S/N below this value
-        dm_min: 5  # skip any triggers with a local optimum DM below this value
     classifier:
         gpu: 0
         thresh_freqtime: 0.5
