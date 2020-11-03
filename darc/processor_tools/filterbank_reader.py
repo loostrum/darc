@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import numpy as np
-from blimpy import Waterfall
+from sigpyproc import FilReader
 
 from darc import SBGenerator
 from darc.processor_tools.spectra import Spectra
@@ -27,40 +27,33 @@ class ARTSFilterbankReader:
         # initialize the SB Generator for SC4
         self.sb_generator = SBGenerator.from_science_case(4)
 
+        self.header = None
+
         self.ntab = ntab
         self.fnames = [fname.format(cb=cb, tab=tab) for tab in range(ntab)]
-        self.store_fil_params()
+        self.get_header()
 
         self.tab_data = None
         self.startbin = None
         self.chunksize = None
         self.times = None
 
-    def store_fil_params(self):
+    def get_header(self, tab=0):
         """
-        Store filterbank parameters as attributes
-        """
-        self.nfreq, self.freqs, self.nsamp, self.tsamp = self.get_fil_params(tab=0)
-
-    def get_fil_params(self, tab=0):
-        """
-        Read filterbank parameters
+        Read filterbank parameters to self.header
 
         :param int tab: TAB index (Default: 0)
-        :return: nfreq (int), freqs (array), nsamp (int), tsamp (float)
         """
-        fil = Waterfall(self.fnames[tab], load_data=False)
-        # read data shape
-        nsamp, _, nfreq = fil.file_shape
-        # construct frequency axis
-        freqs = np.arange(fil.header['nchans']) * fil.header['foff'] + fil.header['fch1']
+        fil = FilReader(self.fnames[tab])
         # set SB generator order
-        if fil.header['foff'] < 0:
+        if fil.header.foff < 0:
             self.sb_generator.reversed = True
         else:
             self.sb_generator.reversed = False
-
-        return nfreq, freqs, nsamp, fil.header['tsamp']
+        # store header
+        self.header = fil.header
+        # Add full frequency axis
+        self.header.freqs = np.arange(fil.header.nchans) * fil.header.foff + fil.header.fch1
 
     def read_filterbank(self, tab, startbin, chunksize):
         """
@@ -71,12 +64,9 @@ class ARTSFilterbankReader:
         :param int chunksize: Number of time samples to read
         :return: chunk of data with shape (nfreq, chunksize)
         """
-        fil = Waterfall(self.fnames[tab], load_data=False)
-        # read chunk of data
-        fil.read_data(t_start=startbin, t_stop=startbin + chunksize)
-        # keep only time and freq axes, transpose to have frequency first
-        data = fil.data[:, 0, :].T.astype(float)
-        return data
+        fil = FilReader(self.fnames[tab])
+        # read chunk of data as numpy array
+        return fil.readBlock(startbin, chunksize, as_filterbankBlock=False)
 
     def read_tabs(self, startbin, chunksize, tabs=None):
         """
@@ -86,7 +76,7 @@ class ARTSFilterbankReader:
         :param int chunksize: Number of time samples to read
         :param list tabs: which TABs to read (Default: all)
         """
-        tab_data = np.zeros((self.ntab, self.nfreq, chunksize))
+        tab_data = np.zeros((self.ntab, self.header.nchans, chunksize))
         if tabs is None:
             tabs = range(self.ntab)
         for tab in tabs:
@@ -94,7 +84,7 @@ class ARTSFilterbankReader:
         self.tab_data = tab_data
         self.startbin = startbin
         self.chunksize = chunksize
-        self.times = np.arange(chunksize) * self.tsamp
+        self.times = np.arange(chunksize) * self.header.tsamp
 
     def get_sb(self, sb):
         """
@@ -108,7 +98,7 @@ class ARTSFilterbankReader:
         # synthesize the beam
         sb_data = self.sb_generator.synthesize_beam(self.tab_data, sb)
         # return as spectra object
-        return Spectra(self.freqs, self.tsamp, sb_data, starttime=self.startbin * self.tsamp, dm=0)
+        return Spectra(self.header.freqs, self.header.tsamp, sb_data, starttime=self.startbin * self.header.tsamp, dm=0)
 
     def load_single_sb(self, sb, startbin, chunksize):
         """

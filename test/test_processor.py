@@ -20,6 +20,9 @@ from darc.processor import Clustering, Extractor, Classifier, Visualizer
 from darc import util
 from darc.definitions import TIME_UNIT
 
+# disable debug log messages from matplotlib
+logging.getLogger('matplotlib').setLevel(logging.ERROR)
+
 
 # An simple idling thread to test the thread scavenger
 class Idling(threading.Thread):
@@ -310,9 +313,12 @@ class TestExtractor(unittest.TestCase):
         startpacket = Time.now().unix // TIME_UNIT
         obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
                       'output_dir': self.output_dir, 'beam': 0}
-        logger = logging.getLogger()
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
-                            level='DEBUG')
+        logger = logging.getLogger('test_extractor')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
         self.extractor = Extractor(obs_config, self.output_dir, logger, mp.Queue(), mp.Queue())
         # set filterbank reader (normally done in run method)
         self.extractor.filterbank_reader = self.extractor.init_filterbank_reader()
@@ -351,9 +357,12 @@ class TestClassifier(unittest.TestCase):
         copyfile(fname_in, self.fname)
 
         # initialize the classifier
-        logger = logging.getLogger()
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
-                            level='DEBUG')
+        logger = logging.getLogger('test_classifier')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
         self.classifier = Classifier(logger, mp.Queue())
 
     def test_classify(self):
@@ -394,9 +403,12 @@ class TestVisualizer(unittest.TestCase):
 
     def test_visualize(self):
         files = glob.glob('/data/arts/darc/output/triggers_realtime/data/*.hdf5')
-        logger = logging.getLogger()
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s',
-                            level='DEBUG')
+        logger = logging.getLogger('test_visualizer')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
         parset = {'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',

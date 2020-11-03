@@ -42,7 +42,6 @@ class Visualizer:
         self.config = self._load_config()
         self.logger.info(f"Starting visualization of task ID "
                          f"{self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']}")
-
         # switch the plot backend to pdf
         old_backend = plt.get_backend()
         plt.switch_backend('PDF')
@@ -238,7 +237,7 @@ class Visualizer:
                 data = f['data_freq_time'][:]
                 data -= np.median(data)
                 # silence the potential runtime warning due to divide-by-zero
-                with np.errstate(divide='ignore'):
+                with np.errstate(invalid='ignore'):
                     data /= np.std(data, axis=1, keepdims=True)
                 data[~np.isfinite(data)] = np.nan
             elif data_type == 'dm_time':

@@ -1,12 +1,15 @@
-dist: xenial   # required for Python >= 3.7
+dist: xenial
 language: python
 python:
     - "3.6"
     - "3.7"
     - "3.8"
 install:
-    - pip install pycodestyle
+    # testing environment
+    - pip install pycodestyle pytest pytest-cov sphinx
+    # requirements that are not part of setup.py
+    - pip install tensorflow git+https://github.com/FRBs/sigpyproc3
     - pip install .
-script: 
+script:
     - pytest
     - find . -name "*.py" -exec pycodestyle --ignore E501,E402,W503 {} +

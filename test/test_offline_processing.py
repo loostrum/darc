@@ -70,8 +70,12 @@ class TestOfflineProcessing(unittest.TestCase):
         # config
         config = self.gen_config(sb=False)
 
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
-        logger = logging.getLogger()
+        logger = logging.getLogger('test_worker_processing_tab')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
         # output file names
         fname_yaml = "CB00_summary.yaml"
@@ -147,8 +151,12 @@ class TestOfflineProcessing(unittest.TestCase):
         # config
         config = self.gen_config(sb=True)
 
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
-        logger = logging.getLogger()
+        logger = logging.getLogger('test_worker_processing_sb')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
         # output file names
         fname_yaml = "CB00_summary.yaml"

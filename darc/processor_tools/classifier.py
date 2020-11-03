@@ -210,7 +210,7 @@ class Classifier(threading.Thread):
         self.data_freq_time -= np.median(self.data_freq_time, axis=-1, keepdims=True)
         self.data_dm_time -= np.median(self.data_dm_time, axis=-1, keepdims=True)
         # silence the potential runtime warning due to divide-by-zero
-        with np.errstate(divide='ignore'):
+        with np.errstate(invalid='ignore'):
             self.data_freq_time /= np.std(self.data_freq_time, axis=-1, keepdims=True)
             self.data_dm_time /= np.std(self.data_dm_time, axis=-1, keepdims=True)
         # note: for classifier do not replace non-finite numbers by zero

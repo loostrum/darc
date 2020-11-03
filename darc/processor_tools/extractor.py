@@ -68,7 +68,7 @@ class Extractor(threading.Thread):
         freq = self.obs_config['freq']
         try:
             # note that filterbank stores highest-freq first, but AMBER masks use lowest-freq first
-            self.rfi_mask = self.filterbank_reader.nfreq - \
+            self.rfi_mask = self.filterbank_reader.header.nchans - \
                 np.loadtxt(self.config.rfi_mask.replace('FREQ', str(freq))).astype(int)
         except OSError:
             self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
@@ -149,23 +149,23 @@ class Extractor(threading.Thread):
         # by at most 1/4th of that factor
         chan_width = BANDWIDTH / float(NCHAN)
         t_smear = util.dm_to_smearing(dm, self.obs_config['freq'] * u.MHz, chan_width)
-        predownsamp = max(1, int(t_smear.to(u.s).value / self.filterbank_reader.tsamp / 4))
+        predownsamp = max(1, int(t_smear.to(u.s).value / self.filterbank_reader.header.tsamp / 4))
         # calculate remaining downsampling to do after dedispersion
         postdownsamp = max(1, downsamp // predownsamp)
         # total downsampling factor (can be slightly different from original downsampling)
         self.logger.debug(f"Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp} "
                           f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
         downsamp_effective = predownsamp * postdownsamp
-        tsamp_effective = self.filterbank_reader.tsamp * downsamp_effective
+        tsamp_effective = self.filterbank_reader.header.tsamp * downsamp_effective
 
         # calculate start/end bin we need to load from filterbank
         # DM delay in units of samples
         dm_delay = util.dm_to_delay(dm, self.obs_config['min_freq'] * u.MHz,
                                     self.obs_config['min_freq'] * u.MHz + BANDWIDTH)
-        sample_delay = dm_delay.to(u.s).value // self.filterbank_reader.tsamp
+        sample_delay = dm_delay.to(u.s).value // self.filterbank_reader.header.tsamp
         # number of input bins to store in final data
         ntime = self.config.ntime * downsamp_effective
-        start_bin = int(toa.to(u.s).value // self.filterbank_reader.tsamp - .5 * ntime)
+        start_bin = int(toa.to(u.s).value // self.filterbank_reader.header.tsamp - .5 * ntime)
         # ensure start bin is not before start of observation
         if start_bin < 0:
             self.logger.warning("Start bin before start of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
@@ -176,18 +176,25 @@ class Extractor(threading.Thread):
 
         # Wait if the filterbank does not have enough samples yet
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.store_fil_params()
+        self.filterbank_reader.get_header()
         tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         # wait until this much of the filterbank should be present on disk
         # start time, plus last bin to load, plus extra delay
         # (because filterbank is not immediately flushed to disk)
-        twait = tstart + end_bin * self.filterbank_reader.tsamp * u.s + self.config.delay * u.s
-        while end_bin >= self.filterbank_reader.nsamp:
-            self.logger.debug(f"Waiting until {twait.isot} for filterbank data to be present on disk "
-                              f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
-            util.sleepuntil_utc(twait, event=self.stop_event)
+        twait = tstart + end_bin * self.filterbank_reader.header.tsamp * u.s + self.config.delay * u.s
+        first_loop = True
+        while end_bin >= self.filterbank_reader.header.nsamples:
+            if first_loop:
+                # wait until data should be present on disk
+                self.logger.debug(f"Waiting until at least {twait.isot} for filterbank data to be present on disk "
+                                  f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
+                util.sleepuntil_utc(twait, event=self.stop_event)
+                first_loop = False
+            else:
+                # data should be there, but is not. Wait just a short time, then check again
+                self.stop_event.wait(.5)
             # re-read the number of samples to check if the data are available now
-            self.filterbank_reader.store_fil_params()
+            self.filterbank_reader.get_header()
             # if we are past the end time of the observation, we give up and try shifting the end bin instead
             tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
             if Time.now() > tend:
@@ -195,19 +202,19 @@ class Extractor(threading.Thread):
 
         # if start time before start of file, or end time beyond end of file, shift the start/end time
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.store_fil_params()
-        if end_bin >= self.filterbank_reader.nsamp:
+        self.filterbank_reader.get_header()
+        if end_bin >= self.filterbank_reader.header.nsamples:
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
-            if start_bin >= self.filterbank_reader.nsamp:
-                self.logger.error("Start bin beyond end of file, error in filterbank data? Skipping"
-                                  " ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            if start_bin >= self.filterbank_reader.header.nsamples:
+                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping"
+                                  f" ToA={toa.value:.4f}, DM={dm.value:.2f}")
                 # log time taken
                 timer_end = Time.now()
                 self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
                                  f"in {(timer_end - timer_start).to(u.s):.0f}")
                 return
             self.logger.warning("End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
-            diff = end_bin - self.filterbank_reader.nsamp + 1
+            diff = end_bin - self.filterbank_reader.nsamples + 1
             start_bin -= diff
 
         # load the data. Store as attribute so it can be accessed from other methods (ok as we only run

@@ -9,10 +9,16 @@ As of February 2020, DARC has discovered 11 FRBs.
 ### Installation
 
 ## Requirements:
+* Tensorflow with GPU support (`pip install tensorflow-gpu` for tensorflow < 2.0, `pip install tensorflow` for tensorflow >= 2.0)
+* sigpyproc3 (https://github.com/FRBs/sigpyproc3)
+
+The following packages are automatically installed when installing DARC through pip:
+
 * astropy
 * h5py
 * matplotlib
 * numpy
+* pytz
 * pyyaml
 * scipy
 * voevent-parse
