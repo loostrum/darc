@@ -235,7 +235,10 @@ class Visualizer:
             # load and scale the data
             if data_type == 'freq_time':
                 data = f['data_freq_time'][:]
+                badchan = data.sum(axis=1) == 0
                 data -= np.median(data)
+                # ensure bad channels are still zero
+                data[badchan] = 0
                 # silence the potential runtime warning due to divide-by-zero
                 with np.errstate(invalid='ignore'):
                     data /= np.std(data, axis=1, keepdims=True)
@@ -243,10 +246,6 @@ class Visualizer:
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
                 data -= np.median(data)
-                # silence the potential runtime warning due to divide-by-zero
-                with np.errstate(divide='ignore'):
-                    data /= np.std(data, axis=1, keepdims=True)
-                data[~np.isfinite(data)] = np.nan
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
                 data -= np.median(data)
