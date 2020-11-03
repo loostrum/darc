@@ -178,7 +178,9 @@ class Visualizer:
         output_file = f"{self.output_dir}/CB{self.obs_config['beam']:02d}.pdf"
         input_files = []
         for plot_type in self.config.plot_types:
-            input_files.extend(glob.glob(f'{self.output_dir}/*{plot_type}*.pdf'))
+            fnames = glob.glob(f'{self.output_dir}/*{plot_type}*.pdf')
+            fnames.sort()
+            input_files.extend(fnames)
         input_file_str = ' '.join(input_files)
         cmd = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {input_file_str}"
         self.logger.debug("Running {}".format(cmd))
