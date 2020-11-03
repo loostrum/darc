@@ -99,7 +99,16 @@ class TestProcessor(unittest.TestCase):
             amber_conf_file = '/data/arts/darc/amber.conf'
             sb_table = '/data/arts/darc/sbtable-sc4-12tabs-71sbs.txt'
         else:
-            self.skipTest("Test not supported yet on arts041")
+            self.dada_files = glob.glob('/tank/data/sky/B1933+16/20200211_dump/dada/*.dada')[:1]
+            self.dada_files.sort()
+            main_dir = '/tank/users/oostrum/darc/automated_testing'
+            output_dir = f'{main_dir}/output'
+            log_dir = f'{output_dir}/log'
+            filterbank_dir = f'{output_dir}/filterbank'
+            amber_dir = f'{output_dir}/amber'
+            amber_conf_dir = f'{main_dir}/amber//amber_conf'
+            amber_conf_file = f'{main_dir}/amber/amber.conf'
+            sb_table = '/home/arts/.controller/synthesized_beam_tables/sbtable-sc4-12tabs-71sbs.txt'
 
         # ensure we start clean
         try:

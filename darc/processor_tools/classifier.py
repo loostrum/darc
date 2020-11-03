@@ -46,12 +46,11 @@ class Classifier(threading.Thread):
         if int(tf.__version__[0]) >= 2:
             gpu = tf.config.experimental.list_physical_devices('GPU')[0]
             tf.config.experimental.set_memory_growth(gpu, True)
-            self.tf_session = None
         else:
             # for TF 1.X, create a session with the required growth parameter
             tf_config = tf.ConfigProto()
             tf_config.gpu_options.allow_growth = True
-            self.tf_session = tf.Session(config=tf_config)
+            tf.Session(config=tf_config)
 
         # create stop event
         self.stop_event = mp.Event()
@@ -86,9 +85,6 @@ class Classifier(threading.Thread):
                 self.input_empty = False
                 # do classification
                 self._classify(fname)
-        # close the TF session if it exists
-        if self.tf_session is not None:
-            self.tf_session.close()
         self.logger.info("Stopping classifier thread")
 
     def stop(self):

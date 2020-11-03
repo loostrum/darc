@@ -169,7 +169,7 @@ class Visualizer:
                             for ax in axes[-remainder:]:
                                 ax.axis('off')
 
-                fig.tight_layout()
+                fig.set_tight_layout(True)
                 # ensure the number of digits used for the page index is always the same, and large enough
                 # then sorting works as expected
                 page_str = str(page).zfill(len(str(npage)))
