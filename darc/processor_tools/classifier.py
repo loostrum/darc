@@ -207,18 +207,15 @@ class Classifier(threading.Thread):
                                                           self.config.ntime, modulo).mean(axis=2)
 
         # scale data and add required axis for classifier
-        badchan = self.data_freq_time.sum(axis=1) == 0
-        self.data_freq_time -= np.median(self.data_freq_time, axis=-1, keepdims=True)
-        # ensure bad channels are still zero
-        self.data_freq_time[badchan] = 0
+        self.data_freq_time -= np.median(self.data_freq_time, axis=1, keepdims=True)
 
         # silence the potential runtime warning due to divide-by-zero
         with np.errstate(invalid='ignore'):
-            self.data_freq_time /= np.std(self.data_freq_time, axis=-1, keepdims=True)
+            self.data_freq_time /= np.std(self.data_freq_time, axis=1, keepdims=True)
         self.data_freq_time = self.data_freq_time[None, ..., None]
 
-        self.data_dm_time -= np.median(self.data_dm_time, axis=-1, keepdims=True)
-        self.data_dm_time /= np.std(self.data_dm_time, axis=-1, keepdims=True)
+        self.data_dm_time -= np.median(self.data_dm_time, axis=1, keepdims=True)
+        self.data_dm_time /= np.std(self.data_dm_time, axis=1, keepdims=True)
         self.data_dm_time = self.data_dm_time[None, ..., None]
 
         return True
