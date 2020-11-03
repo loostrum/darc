@@ -168,7 +168,7 @@ class Extractor(threading.Thread):
         start_bin = int(toa.to(u.s).value // self.filterbank_reader.header.tsamp - .5 * ntime)
         # ensure start bin is not before start of observation
         if start_bin < 0:
-            self.logger.warning("Start bin before start of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            self.logger.warning(f"Start bin before start of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             start_bin = 0
         # number of bins to load is number to store plus dm delay
         nbin = int(ntime + sample_delay)
@@ -213,8 +213,8 @@ class Extractor(threading.Thread):
                 self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
                                  f"in {(timer_end - timer_start).to(u.s):.0f}")
                 return
-            self.logger.warning("End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
-            diff = end_bin - self.filterbank_reader.nsamples + 1
+            self.logger.warning(f"End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            diff = end_bin - self.filterbank_reader.header.nsamples + 1
             start_bin -= diff
 
         # load the data. Store as attribute so it can be accessed from other methods (ok as we only run
@@ -262,9 +262,13 @@ class Extractor(threading.Thread):
         snrmax = 0
         width_best = None
         dm_best = None
-        # range of widths for S/N determination. Never go above 250 samples,
+        # range of widths for S/N determination. Never go above ~250 samples,
         # which is typically RFI even without pre-downsampling
-        widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
+        minwidth = max(1, postdownsamp // 2)
+        maxwidth = min(250, postdownsamp * 2)
+        # width step has to be an integer
+        widthstep = int((maxwidth - minwidth) / self.config.nwidth)
+        widths = np.arange(self.config.nwidth) * widthstep + minwidth
         # initialize DM-time array
         self.data_dm_time = np.zeros((self.config.ndm, self.config.ntime))
         for dm_ind, dm_val in enumerate(dms):
