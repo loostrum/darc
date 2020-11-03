@@ -240,14 +240,14 @@ class Visualizer:
                 # silence the potential runtime warning due to divide-by-zero
                 with np.errstate(divide='ignore'):
                     data /= np.std(data, axis=1, keepdims=True)
-                data[~np.isfinite(data)] = 0.
+                data[~np.isfinite(data)] = np.nan
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
                 data -= np.median(data)
                 # silence the potential runtime warning due to divide-by-zero
                 with np.errstate(divide='ignore'):
                     data /= np.std(data, axis=1, keepdims=True)
-                data[~np.isfinite(data)] = 0.
+                data[~np.isfinite(data)] = np.nan
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
                 data -= np.median(data)
