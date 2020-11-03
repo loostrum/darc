@@ -158,7 +158,7 @@ class Processor(DARCBase):
     #. Extract data from filterbank
     #. Run classifier
 
-    After observation finishes, results are sent to the master node
+    After observation finishes, results are gathered in a central location to be picked up by the master node
     """
 
     def __init__(self):
@@ -187,9 +187,6 @@ class Processor(DARCBase):
                           'ncand_post_clustering': 0,
                           'ncand_post_thresholds': 0,
                           'ncand_post_classifier': 0}
-
-        # load config
-        self.config = self.load_config()
 
     def process_command(self, command):
         """
@@ -316,9 +313,10 @@ class Processor(DARCBase):
 
         # Store the statistics and start the visualization
         if not abort:
-            self._store_obs_stats()
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
                        self.threads['classifier'].candidates_to_visualize)
+            # Store statistics after visualisation, as master will start combining results once all stats are present
+            self._store_obs_stats()
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
                          f"{self.obs_config['datetimesource']}")
 
