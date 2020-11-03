@@ -156,7 +156,8 @@ class Classifier(threading.Thread):
         # classify
         prob_freqtime = self.model_freqtime.predict(self.data_freq_time)[0, 1]
         prob_dmtime = self.model_dmtime.predict(self.data_dm_time)[0, 1]
-        self.logger.debug(f"Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}, fname={fname}")
+        self.logger.debug(f"Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}, "
+                          f"fname={os.path.basename(fname)}")
 
         # append the probabilities to the file
         with h5py.File(fname, 'a') as f:
