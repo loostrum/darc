@@ -93,7 +93,7 @@ class Extractor(threading.Thread):
         """
         # wait until the input queue is empty
         if not self.input_empty:
-            self.logger.debug("Extractor received stop but input queue not empty; waiting")
+            self.logger.debug("Extractor waiting to finish processing")
         while not self.input_empty:
             sleep(1)  # do not use event.wait here, as the whole point is to not stop until processing is done
         # then stop

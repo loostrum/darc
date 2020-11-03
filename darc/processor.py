@@ -278,6 +278,7 @@ class Processor(DARCBase):
         if not self.observation_running:
             # nothing to do
             return
+        self.logger.info("Finishing observation")
         # set running to false
         self.observation_running = False
         # if abort, clear all queues

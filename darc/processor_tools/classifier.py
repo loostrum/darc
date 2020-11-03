@@ -92,6 +92,8 @@ class Classifier(threading.Thread):
         Stop this thread
         """
         # wait until the input queue is empty
+        if not self.input_empty:
+            self.logger.debug("Classifier waiting to finish processing")
         while not self.input_empty:
             sleep(1)
         # then stop

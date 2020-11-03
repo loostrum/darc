@@ -80,6 +80,8 @@ class Clustering(threading.Thread):
         Stop this thread
         """
         # wait until the input queue is empty
+        if not self.input_empty:
+            self.logger.debug("Clustering waiting to finish processing")
         while not self.input_empty:
             sleep(1)
         # then stop
