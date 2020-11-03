@@ -113,7 +113,7 @@ class Classifier(threading.Thread):
         for key, value in config.items():
             if isinstance(value, str):
                 config[key] = value.format(**kwargs)
-            # replace any -1 by infinite
+            # replace any -1 by infinity
             elif value == -1:
                 config[key] = np.inf
 
@@ -121,13 +121,16 @@ class Classifier(threading.Thread):
         return Namespace(**config)
 
     def _init_models(self):
+        """
+        Load the keras models
+        """
         # intialise analysis tools
         self.model_freqtime = tf.keras.models.load_model(os.path.join(self.config.model_dir,
                                                                       self.config.model_freqtime))
         self.model_dmtime = tf.keras.models.load_model(os.path.join(self.config.model_dir,
                                                                     self.config.model_dmtime))
 
-        # The model's first prediction takes longer.
+        # The model's first prediction takes longer
         # pre-empt this by classifying an array of zeros before looking at real data
         self.model_freqtime.predict(np.zeros([1, self.config.nfreq, self.config.ntime, 1]))
         self.model_dmtime.predict(np.zeros([1, self.config.ndm, self.config.ntime, 1]))
@@ -148,12 +151,14 @@ class Classifier(threading.Thread):
             self.ndm_data = f.attrs['ndm']
 
         # prepare data: verify shape and scale as needed
-        self._prepare_data()
+        # returns False if something failed
+        if not self._prepare_data():
+            return
 
         # classify
         prob_freqtime = self.model_freqtime.predict(self.data_freq_time)[0, 1]
         prob_dmtime = self.model_dmtime.predict(self.data_dm_time)[0, 1]
-        self.logger.debug(f"Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}")
+        self.logger.debug(f"Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}, fname={fname}")
 
         # append the probabilities to the file
         with h5py.File(fname, 'a') as f:
@@ -166,40 +171,44 @@ class Classifier(threading.Thread):
             self.ncand_post_classifier += 1
 
     def _prepare_data(self):
+        """
+        Verify data shape and downsampled as needed
+
+        :return: success (bool)
+        """
         # verify shapes and downsample if needed
         # frequency axis
         if self.nfreq_data != self.config.nfreq:
             modulo, remainder = divmod(self.nfreq_data, self.config.nfreq)
             if remainder != 0:
                 self.logger.error(f"Data nfreq {self.nfreq_data} must be multiple of model nfreq {self.config.nfreq}")
-                return
-            else:
-                # reshape the frequency axis
-                self.logger.debug(f"Reshaping freq from {self.nfreq_data} to {self.config.nfreq}")
-                self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq, modulo, -1).mean(axis=1)
+                return False
+            # reshape the frequency axis
+            self.logger.debug(f"Reshaping freq from {self.nfreq_data} to {self.config.nfreq}")
+            self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq, modulo, -1).mean(axis=1)
+
         # dm axis
         if self.ndm_data != self.config.ndm:
             modulo, remainder = divmod(self.ndm_data, self.config.ndm)
             if remainder != 0:
                 self.logger.error(f"Data ndm {self.ndm_data} must be multiple of model ndm {self.config.ndm}")
-                return
-            else:
-                # reshape the dm axis
-                self.logger.debug(f"Reshaping dm from {self.ndm_data} to {self.config.ndm}")
-                self.data_dm_time = self.data_dm_time.reshape(self.config.dm, modulo, -1).mean(axis=1)
+                return False
+            # reshape the dm axis
+            self.logger.debug(f"Reshaping dm from {self.ndm_data} to {self.config.ndm}")
+            self.data_dm_time = self.data_dm_time.reshape(self.config.dm, modulo, -1).mean(axis=1)
+
         # time axis
         if self.ntime_data != self.config.ntime:
             modulo, remainder = divmod(self.ntime_data, self.config.ntime)
             if remainder != 0:
                 self.logger.error(f"Data ntime {self.ntime_data} must be multiple of model ntime {self.config.ntime}")
-                return
-            else:
-                # reshape the time axis of both data_freq_time and data_dm_time
-                self.logger.debug(f"Reshaping time from {self.ntime_data} to {self.config.ntime}")
-                self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq,
-                                                                  self.config.ntime, modulo).mean(axis=2)
-                self.data_dm_time = self.data_dm_time.reshape(self.config.ndm,
+                return False
+            # reshape the time axis of both data_freq_time and data_dm_time
+            self.logger.debug(f"Reshaping time from {self.ntime_data} to {self.config.ntime}")
+            self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq,
                                                               self.config.ntime, modulo).mean(axis=2)
+            self.data_dm_time = self.data_dm_time.reshape(self.config.ndm,
+                                                          self.config.ntime, modulo).mean(axis=2)
 
         # scale data
         self.data_freq_time -= np.median(self.data_freq_time, axis=-1, keepdims=True)
@@ -213,3 +222,4 @@ class Classifier(threading.Thread):
         # add required axes for classifier
         self.data_freq_time = self.data_freq_time[None, ..., None]
         self.data_dm_time = self.data_dm_time[None, ..., None]
+        return True
