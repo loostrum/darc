@@ -50,6 +50,9 @@ class DARCMaster(object):
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue, self.offline_queue]
 
+        # store hostname
+        self.hostname = socket.gethostname()
+
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.VOEventGenerator,
                                 'status_website': darc.StatusWebsite,
@@ -57,15 +60,20 @@ class DARCMaster(object):
                                 'amber_clustering': darc.AMBERClustering,
                                 'dada_trigger': darc.DADATrigger,
                                 'lofar_trigger': darc.LOFARTrigger,
-                                'processor': darc.ProcessorManager,
                                 'offline_processing': darc.OfflineProcessing}
+
+        # select which processor to run on this host
+        if self.hostname == MASTER:
+            self.service_mapping['processor'] = darc.ProcessorMasterManager
+        elif self.hostname in WORKERS:
+            self.service_mapping['processor'] = darc.ProcessorManager
+        else:
+            self.logger.warning("Cannot determine host type; setting processor to worker mode")
+            self.service_mapping['processor'] = darc.ProcessorManager
 
         # Load config file
         self.config_file = config_file
         self._load_config()
-
-        # store hostname
-        self.hostname = socket.gethostname()
 
         # setup listening socket
         command_socket = None
@@ -337,7 +345,9 @@ class DARCMaster(object):
         if service == 'amber_listener':
             source_queue = self.amber_listener_queue
             target_queue = self.amber_trigger_queue
-            second_target_queue = self.processor_queue
+            # only output to processor if this is not the master
+            if self.hostname != MASTER:
+                second_target_queue = self.processor_queue
         elif service == 'amber_clustering':
             source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue

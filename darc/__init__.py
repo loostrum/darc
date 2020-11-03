@@ -7,6 +7,7 @@ from .amber_listener import AMBERListener
 from .amber_clustering import AMBERClustering
 from .dada_trigger import DADATrigger
 from .processor import Processor, ProcessorManager
+from .processor_master import ProcessorMaster, ProcessorMasterManager
 from .offline_processing import OfflineProcessing
 from .status_website import StatusWebsite
 from .darc_master import DARCMaster
