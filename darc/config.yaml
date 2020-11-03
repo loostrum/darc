@@ -146,6 +146,8 @@ processor_master:
     log_file: "{home}/darc/log/processor.{hostname}.log"
     check_interval: 60  # How often to check whether workers are done with processing (s)
     max_wait_time: 600  # After how much processing time we should check if a node is still online
+    email_settings:
+        to: "test@localhost"
 
 
 # Trigger processor (worker)

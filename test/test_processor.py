@@ -153,7 +153,7 @@ class TestProcessor(unittest.TestCase):
 
         # add parset
         parset = {'task.duration': self.header['SCANLEN'],
-                  'task.starttime': self.tstart.isot,
+                  'task.startTime': self.tstart.isot,
                   'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
                   'task.directionReferenceFrame': 'J2000'}

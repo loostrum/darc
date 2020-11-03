@@ -8,7 +8,7 @@ from astropy.time import Time
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import CONFIG_FILE
+from darc.definitions import CONFIG_FILE, WORKERS
 
 
 class ProcessorMasterManager(DARCBase):
@@ -143,16 +143,13 @@ class ProcessorMaster(DARCBase):
         super(ProcessorMaster, self).__init__()
 
         self.needs_source_queue = False
-        self.needs_target_queue = False
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()
 
         self.obs_config = None
-
-    # no commands other than start/stop observation
-    def process_command(self, command):
-        pass
+        self.warnings_sent = []
+        self.status = None
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -173,13 +170,18 @@ class ProcessorMaster(DARCBase):
         # wait until the observation finishes
         start_processing_time = Time(obs_config['parset']['task.stopTime'])
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
+        self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
         # wait for all result files to be present
+        self.status = 'Waiting for nodes to finish processing'
         self._wait_for_workers()
 
         # combine results, copy to website and generate email
+        self.status = 'Combining node results'
         email, attachments = self._process_results()
+        self._send_email(email, attachments)
+        self.status = 'Done'
 
     def stop_observation(self, abort=False):
         """
@@ -207,7 +209,6 @@ class ProcessorMaster(DARCBase):
         """
         Wait for all worker nodes to finish processing this observation
         """
-        warnings_sent = []
         twait = 0
         for beam in self.obs_config['beams']:
             result_file = os.path.join(self.central_result_dir, f'CB{beam:02d}.yaml')
@@ -217,12 +218,13 @@ class ProcessorMaster(DARCBase):
                 self.stop_event.wait(self.check_interval)
                 twait += self.check_interval
                 # if we waited a long time, check if a warning should be sent if the node is offline
-                node = f'arts0{beam+1:02d}'
-                if (twait > self.max_wait_time) and (node not in warnings_sent) and (not self._check_node_online(node)):
+                node = WORKERS[beam]
+                if (twait > self.max_wait_time) and (node not in self.warnings_sent) and \
+                        (not self._check_node_online(node)):
                     # node is not in warnings and offline, send a warning
                     self._send_warning(node)
                     # store that we sent a warning
-                    warnings_sent.append(node)
+                    self.warnings_sent.append(node)
 
     def _check_node_online(self, node):
         """
@@ -231,8 +233,14 @@ class ProcessorMaster(DARCBase):
         :param str node: Hostname of node to check
         :return: status (bool): True if node is online, else False
         """
-        self.logger.warning("Node status check not yet implemented, returnin True")
+        self.logger.warning("Node status check not yet implemented, returning True")
         return True
+
+    def _send_warning(self, node):
+        """
+        Send a warning email about a node
+        """
+        self.logger.warning("Warning email not yet implemented")
 
     def _process_results(self):
         """
@@ -240,3 +248,26 @@ class ProcessorMaster(DARCBase):
 
         :return: email (str), attachments (list)
         """
+        self.logger.warning("Result processing not yet implemented, returning dummy email/attachments")
+        email = "TEST EMAIL"
+        attachment = {'path': os.path.join(self.central_result_dir, 'CB00.pdf'),
+                      'name': 'CB00.pdf',
+                      'type': 'pdf'}
+        return email, [attachment]
+
+    def _send_email(self, email, attachments):
+        """
+        Send email with observation results
+
+        :param str email: Email body
+        :param list attachments: Attachments
+        """
+
+        subject = f"ARTS FRB Alert System - {self.obs_config['datetimesource']}"
+
+        # set other email settings
+        frm = "ARTS FRB Alert System <arts@{}.apertif>".format(socket.gethostname())
+        to = self.email_settings['to']
+        body = {'type': 'html', 'content': email}
+
+        util.send_email(frm, to, subject, body, attachments)
