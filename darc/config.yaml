@@ -157,7 +157,7 @@ processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
     interval: 1.0  # how often to process candidates (seconds)
     num_extractor: 2  # how many data extractors to run
-    output_dir: "triggers_realtime"  # output dir for triggers on each node
+    output_subdir: "triggers_realtime"  # output dir for triggers on each node
     result_dir: "{home}/darc/results"  # central output dir for observation results
     # clustering settings
     clustering:

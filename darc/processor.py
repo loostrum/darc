@@ -224,7 +224,7 @@ class Processor(DARCBase):
         self.central_result_dir = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
 
         # create output dir
-        output_dir = os.path.join('{output_dir}'.format(**obs_config), self.output_dir)
+        output_dir = os.path.join('{output_dir}'.format(**obs_config), self.output_subdir)
 
         for path in (output_dir, self.central_result_dir):
             try:

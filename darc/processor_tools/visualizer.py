@@ -186,7 +186,7 @@ class Visualizer:
         self.logger.debug("Running {}".format(cmd))
         os.system(cmd)
         # copy the file to the central output directory
-        self.logger.info(f"Saving {os.path.basename(output_file)} to {self.result_dir}")
+        self.logger.info(f"Saving plots to {self.result_dir}/{os.path.basename(output_file)}")
         copy(output_file, self.result_dir)
 
     def _get_plot_order(self):
