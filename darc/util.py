@@ -293,12 +293,14 @@ def send_email(frm, to, subject, body, attachments=None):
 
     # ensure "to" is a single string
     if isinstance(to, list):
-        to = ', '.join(to)
+        to_str = ', '.join(to)
+    else:
+        to_str = to
 
     # init email
     msg = MIMEMultipart('mixed')
     # set to, from, subject
-    msg['To'] = to
+    msg['To'] = to_str
     msg['From'] = frm
     msg['Subject'] = subject
 

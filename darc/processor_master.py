@@ -1,10 +1,12 @@
 #!usr/bin/env python3
 
 import os
+import string
 import socket
 import threading
-import yaml
+from textwrap import dedent
 import ast
+import yaml
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
@@ -195,6 +197,9 @@ class ProcessorMaster(DARCBase):
         self._send_email(email, attachments)
         self.status = 'Done'
 
+        # stop the processor
+        self.stop_event.set()
+
     def stop_observation(self, abort=False):
         """
         Stop observation
@@ -221,6 +226,7 @@ class ProcessorMaster(DARCBase):
         """
         Wait for all worker nodes to finish processing this observation
         """
+        self.logger.info(f"Waiting for workers to finish processing {self.obs_config['datetimesource']}")
         twait = 0
         for beam in self.obs_config['beams']:
             result_file = os.path.join(self.central_result_dir, f'CB{beam:02d}_summary.yaml')
@@ -262,10 +268,11 @@ class ProcessorMaster(DARCBase):
         :param dict coordinates: Coordinates of every CB in the observation
         :return: email (str), attachments (list)
         """
-        warnings = ""
+        self.logger.info(f"Processing results of {self.obs_config['datetimesource']}")
+        warnings = ""  # TODO: implement warnings field in email
 
         # initialize email fields: trigger statistics, beam info, attachments
-        beaminfo = {}
+        beaminfo = ""
         triggers = []
         attachments = []
         missing_attachments = []
@@ -283,8 +290,9 @@ class ProcessorMaster(DARCBase):
             if info_beam['ncand_post_classifier'] > 0:
                 # load the triggers
                 try:
-                    triggers_beam = np.genfromtxt(os.path.join(self.central_result_dir, f'CB{beam:02d}_triggers.yaml'),
-                                                  names=True, encoding=None)
+                    triggers_beam = np.atleast_1d(np.genfromtxt(os.path.join(self.central_result_dir,
+                                                                             f'CB{beam:02d}_triggers.txt'),
+                                                  names=True, encoding=None))
                     triggers.append(triggers_beam)
                 except FileNotFoundError:
                     self.logger.error(f"Missing trigger file for {self.obs_config['datetimesource']} CB{beam:02d}")
@@ -299,97 +307,131 @@ class ProcessorMaster(DARCBase):
             warnings += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
         # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
-        triggers = np.sort(np.concatenate(triggers), order=('p', 'SNR', 'time'))
+        triggers = np.sort(np.concatenate(triggers), order=('p', 'snr', 'time'))
         # save total number of triggers
         info['total_triggers'] = len(triggers)
         # create string of trigger info
         triggerinfo = ""
         ntrig = 0
         for trigger in triggers:
+            # convert trigger to a dict usable for formatting
+            trigger_dict = {}
+            for key in triggers.dtype.names:
+                trigger_dict[key] = trigger[key]
             # convert downsampling to width
-            width = trigger['downsamp'] * TSAMP
+            trigger_dict['width'] = trigger['downsamp'] * TSAMP
             triggerinfo += "<tr><td>{p:.2f}</td>" \
                            "<td>{snr:.2f}</td>" \
                            "<td>{dm:.2f}</td>" \
                            "<td>{time:.4f}</td>" \
                            "<td>{width:.2f}</td>" \
-                           "<td>{sb:.0f}</td>".format(width=width, **trigger)
+                           "<td>{sb:.0f}</td>".format(**trigger_dict)
             ntrig += 1
             if ntrig >= self.ntrig_email_max:
                 triggerinfo += "<tr><td>truncated</td><td>truncated</td><td>truncated</td>" \
                                "<td>truncated</td><td>truncated</td><td>truncated</td>"
                 break
 
+        # format the coordinate list
+        coordinfo = ""
+        for beam in sorted(coordinates.keys()):
+            # each beam contains list of RA, Dec, Gl, Gb
+            coordinfo += "<tr><td>{:02d}</td><td>{}</td><td>{}</td>" \
+                         "<td>{}</td><td>{}</td>".format(beam, *coordinates[beam])
+
+        # add info strings to overall info
+        info['beaminfo'] = beaminfo
+        info['coordinfo'] = coordinfo
+        info['triggerinfo'] = triggerinfo
+
         # generate the full email html
-        email = """<html>
-    <head><title>FRB Alert System</title></head>
-    <body>
-    <p>
-    <table style="width:20%">
-    <tr>
-        <th style="text-align:left" colspan="2">UTC start</th><td colspan="4">{task.startTime}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Source</th><td colspan="4">{task.source.name}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Observation duration</th><td colspan="4">{task.duration}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Classifier probability threshold (freq-time)</th><td colspan="4">{classifier_threshold_freqtime}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Classifier probability threshold (dm-time)</th><td colspan="4">{classifier_threshold_dmtime}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">YMW16 DM (central beam)</th><td colspan="4">{ymw16}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Used telescopes</th><td colspan="4">{telescopes}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Total number of candidates</th><td colspan="4">{total_triggers}</td>
-    </tr><tr>
-        <th style="text-align:left" colspan="2">Trigger web link</th><td colspan="4">{web_link}</td>
-    </tr>
-    </table>
-    </p>
-    <hr align="left" width="50%" />
-    <p><h2>Compound Beam statistics</h2><br />
-    <table style="width:50%">
-    <tr style="text-align:left">
-        <th>CB</th>
-        <th>AMBER candidates</th>
-        <th>Candidates after grouping</th>
-        <th>Candidates after local S/N threshold</th>
-        <th>Candidates after classifier</th>
-    </tr>
-    {beamstats}
-    </table>
-    </p>
-    <hr align="left" width="50%" />
-    <p><h2>Compound Beam positions</h2><br />
-    <table style="width:50%">
-    <tr style="text-align:left">
-        <th>CB</th>
-        <th>RA (hms)</th>
-        <th>Dec (dms)</th>
-        <th>Gl (deg)</th>
-        <th>Gb (deg)</th>
-    </tr>
-    {coordinfo}
-    </table>
-    </p>
-    <hr align="left" width="50%" />
-    <p><h2>FRB Detections</h2><br />
-    <table style="width:50%">
-    <tr style="text-align:left">
-        <th>Probability</th>
-        <th>S/N</th>
-        <th>DM (pc/cc)</th>
-        <th>Arrival time (s)</th>
-        <th>Width (ms)</th>
-        <th>CB</th>
-        <th>SB</th>
-    </tr>
-    {triggerinfo}
-    </table>
-    </p>
-    </body>
-    </html>"""
+        # using a second level dict here because str.format does not support keys containing a dot
+        email = dedent("""
+            <html>
+            <head><title>FRB Alert System</title></head>
+            <body>
+            <p>
+            <table style="width:40%">
+            <tr>
+                <th style="text-align:left" colspan="2">UTC start</th>
+                    <td colspan="4">{d[task.startTime]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Source</th>
+                    <td colspan="4">{d[task.source.name]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Observation duration</th>
+                    <td colspan="4">{d[task.duration]} s</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Task ID</th>
+                    <td colspan="4">{d[task.taskID]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Classifier probability threshold (freq-time)</th>
+                    <td colspan="4">{d[classifier_threshold_freqtime]:.2f}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Classifier probability threshold (dm-time)</th>
+                    <td colspan="4">{d[classifier_threshold_dmtime]:.2f}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">YMW16 DM (central beam)</th>
+                    <td colspan="4">{d[ymw16]:.2f} pc cm<sup>-3</sup></td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Used telescopes</th>
+                    <td colspan="4">{d[task.telescopes]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Central frequency</th>
+                    <td colspan="4">{d[freq]} MHz</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Total number of candidates</th>
+                    <td colspan="4">{d[total_triggers]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Trigger web link</th>
+                    <td colspan="4">{d[web_link]}</td>
+            </tr>
+            </table>
+            </p>
+            <hr align="left" width="50%" />
+            <p><h2>Number of triggers per Compound Beam</h2><br />
+            <table style="width:50%">
+            <tr style="text-align:left">
+                <th>CB</th>
+                <th>AMBER</th>
+                <th>After grouping</th>
+                <th>After local S/N threshold</th>
+                <th>After classifier</th>
+            </tr>
+            {d[beaminfo]}
+            </table>
+            </p>
+            <hr align="left" width="50%" />
+            <p><h2>Compound Beam positions</h2><br />
+            <table style="width:50%">
+            <tr style="text-align:left">
+                <th>CB</th>
+                <th>RA (hms)</th>
+                <th>Dec (dms)</th>
+                <th>Gl (deg)</th>
+                <th>Gb (deg)</th>
+            </tr>
+            {d[coordinfo]}
+            </table>
+            </p>
+            <hr align="left" width="50%" />
+            <p><h2>FRB candidates</h2><br />
+            <table style="width:50%">
+            <tr style="text-align:left">
+                <th>Probability</th>
+                <th>S/N</th>
+                <th>DM (pc/cc)</th>
+                <th>Arrival time (s)</th>
+                <th>Width (ms)</th>
+                <th>CB</th>
+                <th>SB</th>
+            </tr>
+            {d[triggerinfo]}
+            </table>
+            </p>
+            </body>
+            </html>
+            """).format(d=info)
 
         return email, attachments
 
@@ -397,7 +439,21 @@ class ProcessorMaster(DARCBase):
         """
         Publish email content as local website
         """
-        self.logger.warning("Publishing not yet implemented")
+        # create output folder
+        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(home=os.path.expanduser('~'),
+                                                                                       webdir=self.webdir,
+                                                                                       **self.obs_config)
+        util.makedirs(web_folder)
+        # save the email body, ensuring it is at the top of the list in a browser
+        with open(os.path.join(web_folder, 'A_info.html'), 'w') as f:
+            f.write(body)
+
+        # create symlinks to PDFs. These are outside the public_html folder, but they are readable as long as they
+        # are owned by the same user
+        for src in files:
+            dest = os.path.join(web_folder, os.path.basename(src['path']))
+            os.symlink(src['path'], dest)
+        self.logger.info(f"Published results of {self.obs_config['datetimesource']}")
 
     def _send_email(self, email, attachments):
         """
@@ -408,11 +464,14 @@ class ProcessorMaster(DARCBase):
         """
 
         subject = f"ARTS FRB Alert System - {self.obs_config['datetimesource']}"
-        frm = "ARTS FRB Alert System <arts@{}.apertif>".format(socket.gethostname())
+        # get FQDN in way that actually adds the domain
+        # simply socket.getfqdn does not actually do that on ARTS
+        fqdn = socket.getaddrinfo(socket.gethostname(), None, 0, socket.SOCK_DGRAM, 0, socket.AI_CANONNAME)[0][3]
+        frm = f"ARTS FRB Alert System <{os.getlogin()}@{fqdn}>"
         to = self.email_settings['to']
         body = {'type': 'html', 'content': email}
-
         util.send_email(frm, to, subject, body, attachments)
+        self.logger.info(f"Sent email for {self.obs_config['datetimesource']}")
 
     def _generate_info_file(self):
         """
@@ -420,7 +479,7 @@ class ProcessorMaster(DARCBase):
 
         :return: info (dict), coordinates of each CB (dict)
         """
-        # generate obseration summary file
+        # generate observation summary file
         fname = os.path.join(self.central_result_dir, 'info.yaml')
         # start with the observation parset
         parset = self.obs_config['parset']
@@ -430,7 +489,7 @@ class ProcessorMaster(DARCBase):
         # Add central frequency
         info['freq'] = self.obs_config['freq']
         # Add YMW16 DM limit for CB00
-        info['ymw16'] = "{:.2f}".format(util.get_ymw16(self.obs_config['parset'], 0, self.logger))
+        info['ymw16'] = util.get_ymw16(self.obs_config['parset'], 0, self.logger)
         # Add exact start time (startpacket)
         info['startpacket'] = self.obs_config['startpacket']
         # Add classifier probability thresholds
@@ -439,10 +498,12 @@ class ProcessorMaster(DARCBase):
         info['classifier_threshold_freqtime'] = classifier_config['thresh_freqtime']
         info['classifier_threshold_dmtime'] = classifier_config['thresh_dmtime']
         # add path to website
-        info['web_link'] = 'http://arts041.apertif/~{user}/darc/{webdir}/' \
-                           '{date}/{datetimesource}'.format(user=os.path.expanduser('~'),
-                                                            webdir=self.webdir,
-                                                            **self.obs_config)
+        # get FQDN in way that actually adds the domain
+        # simply socket.getfqdn does not actually do that on ARTS
+        fqdn = socket.getaddrinfo(socket.gethostname(), None, 0, socket.SOCK_DGRAM, 0, socket.AI_CANONNAME)[0][3]
+        info['web_link'] = 'http://{fqdn}/~{user}/darc/{webdir}/' \
+                           '{date}/{datetimesource}'.format(fqdn=fqdn, user=os.getlogin(),
+                                                            webdir=self.webdir, **self.obs_config)
         # save the file
         with open(fname, 'w') as f:
             yaml.dump(info, f, default_flow_style=False)
@@ -453,14 +514,14 @@ class ProcessorMaster(DARCBase):
             try:
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
-                if parset['task.directionFrame'] == 'HADEC':
+                if parset['task.directionReferenceFrame'] == 'HADEC':
                     # get convert HADEC to J2000 RADEC at midpoint of observation
                     midpoint = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
                     pointing = util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint)
                 else:
                     pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
-                self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
+                self.logger.error("Failed to get pointing for CB{:02d}: {}".format(cb, e))
                 coordinates[cb] = ['-1', '-1', '-1', '-1']
             else:
                 # get pretty strings
