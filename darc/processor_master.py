@@ -4,11 +4,15 @@ import os
 import socket
 import threading
 import yaml
+import ast
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
+import numpy as np
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import CONFIG_FILE, WORKERS
+from darc.definitions import CONFIG_FILE, WORKERS, TSAMP
 
 
 class ProcessorMasterManager(DARCBase):
@@ -173,13 +177,21 @@ class ProcessorMaster(DARCBase):
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
+        # generate observation info files
+        self.status = 'Generating observation info files'
+        info, coordinates = self._generate_info_file()
+
         # wait for all result files to be present
         self.status = 'Waiting for nodes to finish processing'
         self._wait_for_workers()
 
         # combine results, copy to website and generate email
         self.status = 'Combining node results'
-        email, attachments = self._process_results()
+        email, attachments = self._process_results(info, coordinates)
+
+        # publish results on web link and send email
+        self.status = 'Sending results'
+        self._publish_results(email, attachments)
         self._send_email(email, attachments)
         self.status = 'Done'
 
@@ -211,7 +223,7 @@ class ProcessorMaster(DARCBase):
         """
         twait = 0
         for beam in self.obs_config['beams']:
-            result_file = os.path.join(self.central_result_dir, f'CB{beam:02d}.yaml')
+            result_file = os.path.join(self.central_result_dir, f'CB{beam:02d}_summary.yaml')
             # wait until the result file is present
             while not os.path.isfile(result_file):
                 # wait until the next check time
@@ -242,18 +254,150 @@ class ProcessorMaster(DARCBase):
         """
         self.logger.warning("Warning email not yet implemented")
 
-    def _process_results(self):
+    def _process_results(self, info, coordinates):
         """
         Load statistics and plots from the nodes. Copy to website directory and return data to be sent as email
 
+        :param dict info: Observation info summary
+        :param dict coordinates: Coordinates of every CB in the observation
         :return: email (str), attachments (list)
         """
-        self.logger.warning("Result processing not yet implemented, returning dummy email/attachments")
-        email = "TEST EMAIL"
-        attachment = {'path': os.path.join(self.central_result_dir, 'CB00.pdf'),
-                      'name': 'CB00.pdf',
-                      'type': 'pdf'}
-        return email, [attachment]
+        warnings = ""
+
+        # initialize email fields: trigger statistics, beam info, attachments
+        beaminfo = {}
+        triggers = []
+        attachments = []
+        missing_attachments = []
+
+        for beam in self.obs_config['beams']:
+            # load the summary file
+            with open(os.path.join(self.central_result_dir, f'CB{beam:02d}_summary.yaml')) as f:
+                info_beam = yaml.load(f, Loader=yaml.SafeLoader)
+            beaminfo += "<tr><td>{beam:02d}</td>" \
+                        "<td>{ncand_raw}</td>" \
+                        "<td>{ncand_post_clustering}</td>" \
+                        "<td>{ncand_post_thresholds}</td>" \
+                        "<td>{ncand_post_classifier}</td></tr>".format(beam=beam, **info_beam)
+
+            if info_beam['ncand_post_classifier'] > 0:
+                # load the triggers
+                try:
+                    triggers_beam = np.genfromtxt(os.path.join(self.central_result_dir, f'CB{beam:02d}_triggers.yaml'),
+                                                  names=True, encoding=None)
+                    triggers.append(triggers_beam)
+                except FileNotFoundError:
+                    self.logger.error(f"Missing trigger file for {self.obs_config['datetimesource']} CB{beam:02d}")
+                # load attachment
+                fname = os.path.join(self.central_result_dir, f'CB{beam:02d}.pdf')
+                if not os.path.isfile(fname):
+                    missing_attachments.append(f'CB{beam:02d}')
+                else:
+                    attachments.append({'path': fname, 'name': f'CB{beam:02d}.pdf', 'type': 'pdf'})
+
+        if missing_attachments:
+            warnings += f"Missing PDF files for {', '.join(missing_attachments)}\n"
+
+        # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
+        triggers = np.sort(np.concatenate(triggers), order=('p', 'SNR', 'time'))
+        # save total number of triggers
+        info['total_triggers'] = len(triggers)
+        # create string of trigger info
+        triggerinfo = ""
+        ntrig = 0
+        for trigger in triggers:
+            # convert downsampling to width
+            width = trigger['downsamp'] * TSAMP
+            triggerinfo += "<tr><td>{p:.2f}</td>" \
+                           "<td>{snr:.2f}</td>" \
+                           "<td>{dm:.2f}</td>" \
+                           "<td>{time:.4f}</td>" \
+                           "<td>{width:.2f}</td>" \
+                           "<td>{sb:.0f}</td>".format(width=width, **trigger)
+            ntrig += 1
+            if ntrig >= self.ntrig_email_max:
+                triggerinfo += "<tr><td>truncated</td><td>truncated</td><td>truncated</td>" \
+                               "<td>truncated</td><td>truncated</td><td>truncated</td>"
+                break
+
+        # generate the full email html
+        email = """<html>
+    <head><title>FRB Alert System</title></head>
+    <body>
+    <p>
+    <table style="width:20%">
+    <tr>
+        <th style="text-align:left" colspan="2">UTC start</th><td colspan="4">{task.startTime}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Source</th><td colspan="4">{task.source.name}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Observation duration</th><td colspan="4">{task.duration}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Classifier probability threshold (freq-time)</th><td colspan="4">{classifier_threshold_freqtime}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Classifier probability threshold (dm-time)</th><td colspan="4">{classifier_threshold_dmtime}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">YMW16 DM (central beam)</th><td colspan="4">{ymw16}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Used telescopes</th><td colspan="4">{telescopes}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Total number of candidates</th><td colspan="4">{total_triggers}</td>
+    </tr><tr>
+        <th style="text-align:left" colspan="2">Trigger web link</th><td colspan="4">{web_link}</td>
+    </tr>
+    </table>
+    </p>
+    <hr align="left" width="50%" />
+    <p><h2>Compound Beam statistics</h2><br />
+    <table style="width:50%">
+    <tr style="text-align:left">
+        <th>CB</th>
+        <th>AMBER candidates</th>
+        <th>Candidates after grouping</th>
+        <th>Candidates after local S/N threshold</th>
+        <th>Candidates after classifier</th>
+    </tr>
+    {beamstats}
+    </table>
+    </p>
+    <hr align="left" width="50%" />
+    <p><h2>Compound Beam positions</h2><br />
+    <table style="width:50%">
+    <tr style="text-align:left">
+        <th>CB</th>
+        <th>RA (hms)</th>
+        <th>Dec (dms)</th>
+        <th>Gl (deg)</th>
+        <th>Gb (deg)</th>
+    </tr>
+    {coordinfo}
+    </table>
+    </p>
+    <hr align="left" width="50%" />
+    <p><h2>FRB Detections</h2><br />
+    <table style="width:50%">
+    <tr style="text-align:left">
+        <th>Probability</th>
+        <th>S/N</th>
+        <th>DM (pc/cc)</th>
+        <th>Arrival time (s)</th>
+        <th>Width (ms)</th>
+        <th>CB</th>
+        <th>SB</th>
+    </tr>
+    {triggerinfo}
+    </table>
+    </p>
+    </body>
+    </html>"""
+
+        return email, attachments
+
+    def _publish_results(self, body, files):
+        """
+        Publish email content as local website
+        """
+        self.logger.warning("Publishing not yet implemented")
 
     def _send_email(self, email, attachments):
         """
@@ -264,10 +408,71 @@ class ProcessorMaster(DARCBase):
         """
 
         subject = f"ARTS FRB Alert System - {self.obs_config['datetimesource']}"
-
-        # set other email settings
         frm = "ARTS FRB Alert System <arts@{}.apertif>".format(socket.gethostname())
         to = self.email_settings['to']
         body = {'type': 'html', 'content': email}
 
         util.send_email(frm, to, subject, body, attachments)
+
+    def _generate_info_file(self):
+        """
+        Generate observation info files
+
+        :return: info (dict), coordinates of each CB (dict)
+        """
+        # generate obseration summary file
+        fname = os.path.join(self.central_result_dir, 'info.yaml')
+        # start with the observation parset
+        parset = self.obs_config['parset']
+        info = parset.copy()
+        # format telescope list
+        info['task.telescopes'] = info['task.telescopes'].replace('[', '').replace(']', '')
+        # Add central frequency
+        info['freq'] = self.obs_config['freq']
+        # Add YMW16 DM limit for CB00
+        info['ymw16'] = "{:.2f}".format(util.get_ymw16(self.obs_config['parset'], 0, self.logger))
+        # Add exact start time (startpacket)
+        info['startpacket'] = self.obs_config['startpacket']
+        # Add classifier probability thresholds
+        with open(CONFIG_FILE, 'r') as f:
+            classifier_config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['classifier']
+        info['classifier_threshold_freqtime'] = classifier_config['thresh_freqtime']
+        info['classifier_threshold_dmtime'] = classifier_config['thresh_dmtime']
+        # add path to website
+        info['web_link'] = 'http://arts041.apertif/~{user}/darc/{webdir}/' \
+                           '{date}/{datetimesource}'.format(user=os.path.expanduser('~'),
+                                                            webdir=self.webdir,
+                                                            **self.obs_config)
+        # save the file
+        with open(fname, 'w') as f:
+            yaml.dump(info, f, default_flow_style=False)
+
+        # generate file with coordinates
+        coordinates = {}
+        for cb in self.obs_config['beams']:
+            try:
+                key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
+                c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+                if parset['task.directionFrame'] == 'HADEC':
+                    # get convert HADEC to J2000 RADEC at midpoint of observation
+                    midpoint = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
+                    pointing = util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint)
+                else:
+                    pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+            except Exception as e:
+                self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
+                coordinates[cb] = ['-1', '-1', '-1', '-1']
+            else:
+                # get pretty strings
+                ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
+                dec = pointing.dec.to_string(unit=u.deg, sep=':', pad=True, precision=1)
+                gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+                coordinates[cb] = [ra, dec, gl, gb]
+
+        # save to result dir
+        with open(os.path.join(self.central_result_dir, 'coordinates.txt'), 'w') as f:
+            f.write("#CB RA Dec Gl Gb\n")
+            for cb, coord in coordinates.items():
+                f.write("{:02d} {} {} {} {}\n".format(cb, *coord))
+
+        return info, coordinates

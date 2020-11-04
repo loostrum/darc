@@ -396,8 +396,10 @@ class Processor(DARCBase):
         trigger_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}_triggers.txt')
         self.logger.debug(f"Storing trigger metadata to {trigger_file}")
         with open(trigger_file, 'w') as f:
-            f.write('#snr dm time downsamp sb')
+            f.write('#cb snr dm time downsamp sb p')
             for fname in self.threads['classifier'].candidates_to_visualize:
                 with h5py.File(fname, 'r') as h5:
-                    line = "{snr:.2f} {dm:.2f} {toa:.4f} {downsamp:.0f} {sb:.0f}\n".format(**h5.attrs)
+                    line = "{beam:02d} {snr:.2f} {dm:.2f} {toa:.4f} " \
+                           "{downsamp:.0f} {sb:.0f} " \
+                           "{prob_freqtime:.2f}\n".format(beam=self.obs_config['beam'], **h5.attrs)
                 f.write(line)
