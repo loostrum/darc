@@ -8,6 +8,7 @@ import multiprocessing as mp
 from time import sleep
 import numpy as np
 import yaml
+import h5py
 
 from darc import DARCBase
 from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
@@ -384,7 +385,19 @@ class Processor(DARCBase):
         """
         Store observation statistics to central result directory
         """
-        output_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}.yaml')
-        self.logger.debug(f"Storing observation statistics to {output_file}")
-        with open(output_file, 'w') as f:
+
+        # overview statistics
+        info_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}_summary.yaml')
+        self.logger.debug(f"Storing observation statistics to {info_file}")
+        with open(info_file, 'w') as f:
             yaml.dump(self.obs_stats, f, default_flow_style=False)
+
+        # list of triggers
+        trigger_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}_triggers.txt')
+        self.logger.debug(f"Storing trigger metadata to {trigger_file}")
+        with open(trigger_file, 'w') as f:
+            f.write('#snr dm time downsamp sb')
+            for fname in self.threads['classifier'].candidates_to_visualize:
+                with h5py.File(fname, 'r') as h5:
+                    line = "{snr:.2f} {dm:.2f} {toa:.4f} {downsamp:.0f} {sb:.0f}\n".format(**h5.attrs)
+                f.write(line)
