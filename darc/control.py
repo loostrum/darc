@@ -99,6 +99,8 @@ def main():
                         "(Default: %(default)ss)")
     parser.add_argument('--host', type=str, default='localhost', help="Host to send command to "
                         "(Default: %(default)s)")
+    parser.add_argument('--port', type=int, help="Port DARC listens to "
+                        "(Default: determine from DARC config file)")
     parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
     parser.add_argument('--config', type=str, default=None, help="Node observation config")
 
@@ -140,5 +142,5 @@ def main():
     else:
         payload = None
 
-    if not send_command(args.timeout, args.service, args.cmd, host=args.host, payload=payload):
+    if not send_command(args.timeout, args.service, args.cmd, host=args.host, port=args.port, payload=payload):
         sys.exit(1)
