@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Kill DARC services
 
 if [[ $(uname -s) == "Darwin" ]]; then
     # Running on Mac

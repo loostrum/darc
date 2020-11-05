@@ -1,6 +1,6 @@
 #!/bin/bash
-# 
-# Start all DARC services
+#
+# Start DARC master service
 
 port=51000
 timeout=30
@@ -38,7 +38,7 @@ else
     else
         nohup darc_service >/dev/null 2>&1 &
     fi
-    # Wait until online 
+    # Wait until online
     echo "Waiting for DARC master to be online"
     timeout $timeout bash -c wait_until_up &
     wait $!
