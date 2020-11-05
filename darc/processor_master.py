@@ -32,6 +32,7 @@ class ProcessorMasterManager(DARCBase):
 
         # create a thread scavenger
         self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
+        self.scavenger.daemon = True
         self.scavenger.start()
 
     def thread_scavenger(self):
