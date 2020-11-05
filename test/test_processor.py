@@ -49,6 +49,8 @@ class TestProcessorManager(unittest.TestCase):
         # the manager needs a queue before it can be started
         manager.set_source_queue(mp.Queue())
         manager.start()
+        # give it some time to start
+        sleep(.2)
         # the thread scavenger should now be running
         self.assertTrue(manager.scavenger.is_alive())
 

@@ -53,7 +53,7 @@ class DARCMaster(object):
         # store hostname
         self.hostname = socket.gethostname()
 
-        # Load config file
+        # Load config file, this also initializes the logger
         self.config_file = config_file
         self._load_config()
 
@@ -162,6 +162,7 @@ class DARCMaster(object):
     def run(self):
         """
         Main loop
+
         Listen for messages on the command socket and process them
         """
         # wait for commands
