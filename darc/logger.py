@@ -8,7 +8,7 @@ from copy import copy
 from darc import util
 
 
-def get_logger(name, log_file, level=logging.DEBUG):
+def get_logger(name, log_file, level=logging.INFO):
     """
     Create logger
 
