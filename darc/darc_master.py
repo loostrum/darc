@@ -53,6 +53,10 @@ class DARCMaster(object):
         # store hostname
         self.hostname = socket.gethostname()
 
+        # Load config file
+        self.config_file = config_file
+        self._load_config()
+
         # service to class mapper
         self.service_mapping = {'voevent_generator': darc.VOEventGenerator,
                                 'status_website': darc.StatusWebsite,
@@ -71,9 +75,8 @@ class DARCMaster(object):
             self.logger.warning("Cannot determine host type; setting processor to worker mode")
             self.service_mapping['processor'] = darc.ProcessorManager
 
-        # Load config file
-        self.config_file = config_file
-        self._load_config()
+        # initialize services
+        self._init_services()
 
         # setup listening socket
         command_socket = None
@@ -138,6 +141,10 @@ class DARCMaster(object):
         else:
             self.services = []
 
+    def _init_services(self):
+        """
+        Initialize services
+        """
         # Initialize services. Log dir must exist at this point
         if not hasattr(self, 'threads'):
             self.threads = {}

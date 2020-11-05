@@ -33,7 +33,17 @@ class ProcessorMasterManager(DARCBase):
         # create a thread scavenger
         self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
         self.scavenger.daemon = True
+        self.scavenger = None
+
+    def run(self):
+        """
+        Main loop. Create thread scavenger, then run parent class run method
+        """
+        # create a thread scavenger
+        self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
+        self.scavenger.daemon = True
         self.scavenger.start()
+        super(ProcessorMasterManager, self).run()
 
     def thread_scavenger(self):
         """
