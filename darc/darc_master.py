@@ -435,7 +435,7 @@ class DARCMaster(object):
         if thread is None or not thread.isAlive():
             # isAlive is false if thread died
             # remove thread if that is the case
-            if not thread.isAlive():
+            if thread is not None not thread.isAlive():
                 self.threads[service] = None
             self.logger.info("Service not running: {}".format(service))
             reply = 'Success'
