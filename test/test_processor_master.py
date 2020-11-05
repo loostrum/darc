@@ -23,7 +23,7 @@ class TestProcessorMaster(unittest.TestCase):
         if socket.gethostname() == 'zeus':
             self.result_dir = '/data/arts/darc/central_dir_processor_master'
         else:
-            self.skipTest("Test not yet implemented on arts041")
+            self.result_dir = '/tank/users/arts/darc_automated_testing/processor_master'
 
         self.processor = ProcessorMaster()
 
