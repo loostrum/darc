@@ -87,7 +87,7 @@ class ProcessorMasterManager(DARCBase):
             return
 
         # initialize a Processor for this observation
-        proc = ProcessorMaster()
+        proc = ProcessorMaster(config_file=self.config_file)
         proc.name = taskid
         proc.start()
         # start the observation and store thread

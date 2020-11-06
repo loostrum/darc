@@ -86,7 +86,7 @@ class ProcessorManager(DARCBase):
             return
 
         # initialize a Processor for this observation
-        proc = Processor()
+        proc = Processor(config_file=self.config_file)
         proc.name = taskid
         # create a source queue
         proc.set_source_queue(mp.Queue())
