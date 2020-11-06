@@ -148,7 +148,7 @@ class DARCBase(threading.Thread):
                             self.start_observation(command['obs_config'])
 
                     except Exception as e:
-                        self.logger.error("Failed to start observation: {}".format(e))
+                        self.logger.error("Failed to start observation: {}: {}".format(type(e), e))
                 elif command['command'] == "stop_observation":
                     self.logger.info("Stopping observation")
                     self.stop_observation()
@@ -159,7 +159,7 @@ class DARCBase(threading.Thread):
         except EOFError:
             pass
         except Exception as e:
-            self.logger.error("Caught exception in main loop: {}".format(e))
+            self.logger.error("Caught exception in main loop: {}: {}".format(type(e), e))
             self.stop()
 
     def start_observation(self, *args, reload=True, **kwargs):
