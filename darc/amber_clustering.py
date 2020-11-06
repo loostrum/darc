@@ -35,12 +35,13 @@ class AMBERClustering(DARCBase):
     4. Put LOFAR triggers on remote LOFAR trigger queue and on VOEvent queue
     """
 
-    def __init__(self, connect_vo=True, connect_lofar=True):
+    def __init__(self, connect_vo=True, connect_lofar=True, config_file=CONFIG_FILE):
         """
         :param bool connect_vo: Whether or not to connect to VOEvent queue on master node
         :param bool connect_lofar: Whether or not to connect to LOFAR trigger queue on master node
+        :param str config_file: Path to config file
         """
-        super(AMBERClustering, self).__init__()
+        super(AMBERClustering, self).__init__(config_file=config_file)
         self.needs_source_queue = True
         self.needs_target_queue = True
 
@@ -198,7 +199,7 @@ class AMBERClustering(DARCBase):
         """
         # Load VO server settings
         VOEventQueueServer.register('get_queue')
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()
@@ -213,7 +214,7 @@ class AMBERClustering(DARCBase):
         """
         # Load LOFAR trigger server settings
         LOFARTriggerQueueServer.register('get_queue')
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()

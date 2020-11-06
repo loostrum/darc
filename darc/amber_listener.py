@@ -9,6 +9,7 @@ import ast
 
 from darc import DARCBase
 from darc import util
+from darc.definitions import CONFIG_FILE
 
 
 class AMBERListenerException(Exception):
@@ -21,10 +22,11 @@ class AMBERListener(DARCBase):
     candidates on output queue.
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
-        super(AMBERListener, self).__init__()
+        super(AMBERListener, self).__init__(config_file=config_file)
         self.needs_target_queue = True
 
         self.observation_threads = []

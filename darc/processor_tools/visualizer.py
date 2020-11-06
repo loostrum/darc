@@ -25,13 +25,14 @@ class Visualizer:
     Visualize candidates
     """
 
-    def __init__(self, output_dir, result_dir, logger, obs_config, files):
+    def __init__(self, output_dir, result_dir, logger, obs_config, files, config_file=CONFIG_FILE):
         """
         :param str output_dir: Output directory for data products
         :param str result_dir: central directory to copy output PDF to
         :param Logger logger: Processor logger object
         :param dict obs_config: Observations settings
         :param list files: HDF5 files to visualize
+        :param str config_file: Path to config file
         """
         self.output_dir = output_dir
         self.result_dir = result_dir
@@ -39,7 +40,10 @@ class Visualizer:
         self.obs_config = obs_config
         self.files = np.array(files)
 
+        # load config
+        self.config_file = config_file
         self.config = self._load_config()
+
         self.logger.info(f"Starting visualization of task ID "
                          f"{self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']}")
         # switch the plot backend to pdf
@@ -49,14 +53,13 @@ class Visualizer:
         # put back the old backend
         plt.switch_backend(old_backend)
 
-    @staticmethod
-    def _load_config():
+    def _load_config(self):
         """
         Load configuration
 
         :return: config (Namespace)
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['visualizer']
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

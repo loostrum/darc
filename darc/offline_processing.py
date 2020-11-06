@@ -46,8 +46,9 @@ class OfflineProcessing(threading.Thread):
     - Automated run of calibration tools for drift scans
     - Automated run of known FRB candidate extractor
     """
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to custom config file
         """
         threading.Thread.__init__(self)
         self.daemon = True
@@ -57,6 +58,7 @@ class OfflineProcessing(threading.Thread):
         self.threads = {}
 
         # load config
+        self.config_file = config_file
         self.load_config()
 
         # setup logger
@@ -65,7 +67,7 @@ class OfflineProcessing(threading.Thread):
 
     def load_config(self):
         # load config file
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
 
         # set config, expanding strings

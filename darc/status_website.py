@@ -25,15 +25,16 @@ class StatusWebsite(threading.Thread):
     across the ARTS cluster at regular intervals
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
         threading.Thread.__init__(self)
         self.stop_event = threading.Event()
         self.daemon = True
 
         # load config, including master for list of services
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config_all = yaml.load(f, Loader=yaml.SafeLoader)
 
         config = config_all['status_website']

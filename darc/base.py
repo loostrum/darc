@@ -20,8 +20,9 @@ class DARCBase(threading.Thread):
     Provides common methods to services
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
         threading.Thread.__init__(self)
         self.daemon = True
@@ -38,6 +39,7 @@ class DARCBase(threading.Thread):
         self.log_name = type(self).__name__
 
         # load config
+        self.config_file = config_file
         self.load_config()
 
         # setup logger
@@ -58,7 +60,7 @@ class DARCBase(threading.Thread):
         """
         Load config file
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)[self.module_name]
 
         # set config, expanding strings

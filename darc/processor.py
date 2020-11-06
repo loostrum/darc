@@ -13,6 +13,7 @@ import h5py
 from darc import DARCBase
 from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
 from darc import util
+from darc.definitions import CONFIG_FILE
 
 
 class ProcessorException(Exception):
@@ -24,10 +25,11 @@ class ProcessorManager(DARCBase):
     Control logic for running several Processor instances, one per observation
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
-        super(ProcessorManager, self).__init__()
+        super(ProcessorManager, self).__init__(config_file=config_file)
 
         self.observations = {}
         self.current_observation = None
@@ -169,10 +171,11 @@ class Processor(DARCBase):
     After observation finishes, results are gathered in a central location to be picked up by the master node
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
-        super(Processor, self).__init__()
+        super(Processor, self).__init__(config_file=config_file)
         self.observation_running = False
         self.threads = {}
         self.amber_triggers = []
@@ -251,7 +254,8 @@ class Processor(DARCBase):
         self.threads['processing'] = thread
 
         # start clustering
-        thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue)
+        thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue,
+                            self.config_file)
         thread.name = 'clustering'
         thread.daemon = True
         thread.start()
@@ -259,14 +263,15 @@ class Processor(DARCBase):
 
         # start extractor(s)
         for i in range(self.num_extractor):
-            thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue)
+            thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue,
+                               self.config_file)
             thread.name = f'extractor_{i}'
             thread.daemon = True
             thread.start()
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue)
+        thread = Classifier(self.logger, self.classifier_queue, self.config_file)
         thread.name = 'classifier'
         thread.daemon = True
         thread.start()
@@ -322,7 +327,7 @@ class Processor(DARCBase):
         # Store the statistics and start the visualization
         if not abort:
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
-                       self.threads['classifier'].candidates_to_visualize)
+                       self.threads['classifier'].candidates_to_visualize, self.config_file)
             # Store statistics after visualization, as master will start combining results once all stats are present
             self._store_obs_stats()
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "

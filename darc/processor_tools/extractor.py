@@ -23,13 +23,14 @@ class Extractor(threading.Thread):
     Extract data from filterbank files
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for clusters
         :param Queue output_queue: Output queue for classifier
+        :param str config_file: Path to config file
         """
         super(Extractor, self).__init__()
         self.logger = logger
@@ -39,6 +40,7 @@ class Extractor(threading.Thread):
         self.output_queue = output_queue
 
         # load config
+        self.config_file = config_file
         self.config = self._load_config()
 
         # create directory for output data
@@ -99,12 +101,11 @@ class Extractor(threading.Thread):
         # then stop
         self.stop_event.set()
 
-    @staticmethod
-    def _load_config():
+    def _load_config(self):
         """
         Load configuration
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['extractor']
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

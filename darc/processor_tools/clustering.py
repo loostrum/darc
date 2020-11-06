@@ -20,13 +20,14 @@ class Clustering(threading.Thread):
     Clustering and thresholding of AMBER triggers
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
         :param Queue output_queue: Output queue for clusters
+        :param str config_file: Path to config file
         """
         super(Clustering, self).__init__()
         self.logger = logger
@@ -42,6 +43,7 @@ class Clustering(threading.Thread):
         self.sys_params = {'dt': dt, 'delta_nu_MHz': chan_width, 'nu_GHz': cent_freq}
 
         # load config
+        self.config_file = config_file
         self.config = self._load_config()
 
         # create stop event
@@ -87,12 +89,11 @@ class Clustering(threading.Thread):
         # then stop
         self.stop_event.set()
 
-    @staticmethod
-    def _load_config():
+    def _load_config(self):
         """
         Load configuration
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['clustering']
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

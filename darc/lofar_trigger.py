@@ -38,8 +38,9 @@ class LOFARTrigger(threading.Thread):
     """
     Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering
     """
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
         threading.Thread.__init__(self)
         self.stop_event = threading.Event()
@@ -47,7 +48,7 @@ class LOFARTrigger(threading.Thread):
 
         self.trigger_server = None
 
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
 
         # set config, expanding strings

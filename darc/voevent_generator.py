@@ -42,8 +42,9 @@ class VOEventGenerator(threading.Thread):
     Convert incoming triggers to VOEvent and send to
     the VOEvent broker
     """
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to custom config file
         """
         threading.Thread.__init__(self)
         self.stop_event = threading.Event()
@@ -51,7 +52,7 @@ class VOEventGenerator(threading.Thread):
 
         self.voevent_server = None
 
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
 
         # set config, expanding strings

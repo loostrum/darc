@@ -19,12 +19,13 @@ class SBGenerator:
     Synthesized beam generator
     """
 
-    def __init__(self, fname=None, science_case=None):
+    def __init__(self, fname=None, science_case=None, config_file=CONFIG_FILE):
         """
         __init__ should be called by cls.from_science_case or cls.from_table
 
         :param fname: path to synthesized beam table
         :param science_case: ARTS science case (3 or 4)
+        :param str config_file: Path to config file
         """
         self.sb_table = None
         self.nsub = None
@@ -34,7 +35,7 @@ class SBGenerator:
         self.__reversed = None
 
         # Load config
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['sb_generator']
 
         # set config, expanding strings
@@ -85,26 +86,28 @@ class SBGenerator:
             self.__reversed = state
 
     @classmethod
-    def from_table(cls, fname):
+    def from_table(cls, fname, config_file=CONFIG_FILE):
         """
         Initalize with provided SB table
 
         :param str fname: Path to SB table
+        :param str config_file: Path to config file
         :return: SBGenerator object
         """
-        return cls(fname=fname)
+        return cls(fname=fname, config_file=config_file)
 
     @classmethod
-    def from_science_case(cls, science_case):
+    def from_science_case(cls, science_case, config_file=CONFIG_FILE):
         """
         Initalize default table for given science case
 
         :param int science_case: science case (3 or 4)
+        :param str config_file: Path to config file
         :return: SBGenerator object
         """
         if science_case not in (3, 4):
             raise SBGeneratorException('Invalid science case: {}'.format(science_case))
-        return cls(science_case=science_case)
+        return cls(science_case=science_case, config_file=config_file)
 
     def _load_table(self):
         """

@@ -154,7 +154,7 @@ class DARCMaster(object):
                 _ = self.threads[service]
             except KeyError:
                 _service_class = self.service_mapping[service]
-                self.threads[service] = _service_class()
+                self.threads[service] = _service_class(config_file=self.config_file)
 
         # print config file path
         self.logger.info("Loaded config from {}".format(self.config_file))
@@ -494,7 +494,7 @@ class DARCMaster(object):
         """
         if service in self.service_mapping.keys():
             # Instantiate a new instance of the class
-            self.threads[service] = self.service_mapping[service]()
+            self.threads[service] = self.service_mapping[service](config_file=self.config_file)
         else:
             self.logger.error("Cannot create thread for {}".format(service))
 

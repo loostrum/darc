@@ -5,7 +5,7 @@ from sigpyproc import FilReader
 
 from darc import SBGenerator
 from darc.processor_tools.spectra import Spectra
-from darc.definitions import NTAB
+from darc.definitions import NTAB, CONFIG_FILE
 
 # set blimpy to only log errors
 logging.getLogger("blimpy").setLevel(logging.ERROR)
@@ -16,16 +16,17 @@ class ARTSFilterbankReaderError(Exception):
 
 
 class ARTSFilterbankReader:
-    def __init__(self, fname, cb, ntab=NTAB):
+    def __init__(self, fname, cb, ntab=NTAB, config_file=CONFIG_FILE):
         """
         Filterbank reader for ARTS data, one file per TAB
 
         :param str fname: path to filterbank files, with {cb:02d} and {tab:02d} for CB and TAB indices
         :param int cb: CB index
         :param int ntab: Number of TABs (Default: NTAB from constants)
+        :param str config_file: Path to config file, passed to SBGenerator
         """
         # initialize the SB Generator for SC4
-        self.sb_generator = SBGenerator.from_science_case(4)
+        self.sb_generator = SBGenerator.from_science_case(4, config_file=config_file)
 
         self.header = None
 

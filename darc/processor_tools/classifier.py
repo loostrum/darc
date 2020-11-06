@@ -26,16 +26,18 @@ class Classifier(threading.Thread):
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, logger, input_queue):
+    def __init__(self, logger, input_queue, config_file=CONFIG_FILE):
         """
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
+        :param str config_file: Path to config file
         """
         super(Classifier, self).__init__()
         self.logger = logger
         self.input_queue = input_queue
 
         # load config
+        self.config_file = config_file
         self.config = self._load_config()
 
         # set GPU visible to classifier
@@ -99,12 +101,11 @@ class Classifier(threading.Thread):
         # then stop
         self.stop_event.set()
 
-    @staticmethod
-    def _load_config():
+    def _load_config(self):
         """
         Load configuration
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['classifier']
         # set config, expanding strings
         kwargs = {'home': os.path.expanduser('~'), 'hostname': socket.gethostname()}

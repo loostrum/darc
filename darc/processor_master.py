@@ -22,10 +22,11 @@ class ProcessorMasterManager(DARCBase):
     Control logic for running several ProcessorMaster instances, one per observation
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
-        super(ProcessorMasterManager, self).__init__()
+        super(ProcessorMasterManager, self).__init__(config_file=config_file)
 
         self.observations = {}
         self.current_observation = None
@@ -156,8 +157,11 @@ class ProcessorMaster(DARCBase):
     """
     Combine results from worker node processors
     """
-    def __init__(self):
-        super(ProcessorMaster, self).__init__()
+    def __init__(self, config_file=CONFIG_FILE):
+        """
+        :param str config_file: Path to config file
+        """
+        super(ProcessorMaster, self).__init__(config_file=config_file)
 
         self.needs_source_queue = False
 
@@ -221,12 +225,11 @@ class ProcessorMaster(DARCBase):
         if not abort:
             return
 
-    @staticmethod
-    def _get_result_dir():
+    def _get_result_dir(self):
         """
         Get result directory from worker processor config
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['processor']
 
         # set config, expanding strings
@@ -504,7 +507,7 @@ class ProcessorMaster(DARCBase):
         # Add exact start time (startpacket)
         info['startpacket'] = self.obs_config['startpacket']
         # Add classifier probability thresholds
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             classifier_config = yaml.load(f, Loader=yaml.SafeLoader)['processor']['classifier']
         info['classifier_threshold_freqtime'] = classifier_config['thresh_freqtime']
         info['classifier_threshold_dmtime'] = classifier_config['thresh_dmtime']

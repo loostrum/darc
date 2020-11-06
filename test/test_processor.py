@@ -359,8 +359,8 @@ class TestClassifier(unittest.TestCase):
 
     def setUp(self):
         # path to test file
-        fname_in = '/data/arts/darc/output/triggers_realtime/data/TOA4.3581_DM159.50_DS88_SNR92.hdf5'
-        self.fname = '/data/arts/darc/output/triggers_realtime/data/TOA4.3581_DM159.50_DS88_SNR92_test.hdf5'
+        fname_in = glob.glob('/data/arts/darc/output/triggers_realtime/data/*.hdf5')[0]
+        self.fname = fname_in.replace('.hdf5', '_test.hdf5')
         # copy over for testing as not to overwrite the original
         copyfile(fname_in, self.fname)
 

@@ -11,7 +11,7 @@ from astropy.time import Time, TimeDelta
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import TIME_UNIT
+from darc.definitions import TIME_UNIT, CONFIG_FILE
 
 
 class DADATriggerException(Exception):
@@ -23,10 +23,11 @@ class DADATrigger(DARCBase):
     Generate and send dada_dbevent triggers
     """
 
-    def __init__(self):
+    def __init__(self, config_file=CONFIG_FILE):
         """
+        :param str config_file: Path to config file
         """
-        super(DADATrigger, self).__init__()
+        super(DADATrigger, self).__init__(config_file=config_file)
         self.thread_trigger = None
         self.thread_polcal = None
         self.triggers_enabled = True
