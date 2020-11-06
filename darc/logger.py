@@ -14,7 +14,7 @@ def get_logger(name, log_file, level=logging.INFO):
 
     :param str name: name to use in log prints
     :param str log_file: Path to log file
-    :param int level: log level (default: logging.DEBUG)
+    :param int level: log level (default: logging.INFO)
     :return: logger
     """
     # create log dir

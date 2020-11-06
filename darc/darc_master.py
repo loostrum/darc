@@ -571,9 +571,10 @@ class DARCMaster(object):
         utc_end = utc_start + TimeDelta(config['duration'], format='sec')
         # if end time is in the past, only start offline processing
         if utc_end < Time.now():
-            self.logger.warning("End time in past! Only starting offline processing")
+            self.logger.warning("End time in past! Only starting offline processing and processor")
             self.offline_queue.put(command)
-            return "Warning", "Only offline processing started"
+            self.processor_queue.put(command)
+            return "Warning", "Only offline processing and processor started"
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
         self.logger.info("Starting observation at {}".format(t_setup.isot))
         util.sleepuntil_utc(t_setup)
