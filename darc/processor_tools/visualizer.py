@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import logging
 import glob
 from shutil import copy
 import socket
@@ -13,6 +14,10 @@ import astropy.units as u
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH
 from darc import util
+
+
+# disable debug log messages from matplotlib
+logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 
 # redefine here because import from darc.processor would result in a circular import
