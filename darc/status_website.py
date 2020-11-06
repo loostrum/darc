@@ -4,7 +4,8 @@
 
 import os
 import yaml
-import threading
+import multiprocessing as mp
+from queue import Empty
 import socket
 from textwrap import dedent
 from astropy.time import Time
@@ -19,7 +20,7 @@ class StatusWebsiteException(Exception):
     pass
 
 
-class StatusWebsite(threading.Thread):
+class StatusWebsite(mp.Process):
     """
     Generate a HTML page with the status of each service
     across the ARTS cluster at regular intervals
@@ -29,9 +30,9 @@ class StatusWebsite(threading.Thread):
         """
         :param str config_file: Path to config file
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(StatusWebsite, self).__init__()
+        self.stop_event = mp.Event()
+        self.source_queue = None
 
         # load config, including master for list of services
         with open(config_file, 'r') as f:
@@ -73,6 +74,18 @@ class StatusWebsite(threading.Thread):
             self.logger.error("Failed to create website directory: {}".format(e))
             raise StatusWebsiteException("Failed to create website directory: {}".format(e))
 
+    def set_source_queue(self, queue):
+        """
+        Set input queue
+
+        :param queues.Queue queue: Input queue
+        """
+        if not isinstance(queue, mp.queues.Queue):
+            self.logger.error("Given source queue is not an instance of Queue")
+            self.stop()
+        else:
+            self.source_queue = queue
+
     def run(self):
         """
         Main loop:
@@ -82,6 +95,8 @@ class StatusWebsite(threading.Thread):
         #. Generate offline page upon exit
         """
         while not self.stop_event.is_set():
+            # check if a stop command was received
+            self.check_stop()
             self.logger.info("Getting status of all services")
             # get status all nodes
             statuses = {}
@@ -105,6 +120,19 @@ class StatusWebsite(threading.Thread):
             self.stop_event.wait(self.interval)
         # Create website for non-running status website
         self.make_offline_page()
+
+    def check_stop(self):
+        """
+        Check if this service should be stopped
+        """
+        try:
+            command = self.source_queue.get(timeout=.1)
+        except Empty:
+            return
+        if command == 'stop':
+            self.stop()
+        else:
+            self.logger.warning(f"Ignoring unknown command: {command['command']}")
 
     def stop(self):
         """

@@ -3,6 +3,7 @@
 import os
 import glob
 import logging
+import ctypes
 import unittest
 import ast
 from time import sleep
@@ -47,12 +48,8 @@ class TestProcessorManager(unittest.TestCase):
         # set the scavenger interval
         manager.scavenger_interval = 0.1
         # the manager needs a queue before it can be started
-        manager.set_source_queue(mp.Queue())
-        manager.start()
-        # give it some time to start
-        sleep(.2)
-        # the thread scavenger should now be running
-        self.assertTrue(manager.scavenger.is_alive())
+        queue = mp.Queue()
+        manager.set_source_queue(queue)
 
         # create a thread that idles forever
         thread = Idling()
@@ -61,29 +58,21 @@ class TestProcessorManager(unittest.TestCase):
         # add the thread to the manager observation list
         manager.observations['0'] = thread
 
-        # the scavenger should not remove either thread
+        manager.start()
+        # give it some time to start
+        sleep(.2)
+
+        # the scavenger should not remove the thread
         sleep(manager.scavenger_interval)
         self.assertTrue(thread.is_alive())
 
-        # now stop one thread
+        # now stop thread
         thread.event.set()
-        # the scavenger should remove this thread
-        sleep(manager.scavenger_interval)
-        self.assertTrue(not thread.is_alive())
-        # it should also be removed from the observation list
-        self.assertTrue('0' not in manager.observations.keys())
+        # manager should remove thread, but how to check in Process setup?
 
-        # start a new thread
-        thread = Idling()
-        thread.name = 'obs'
-        thread.start()
-        # add the thread to the manager observation list
-        manager.observations['0'] = thread
-
-        # stop the manager, which should also stop the thread
-        manager.stop()
+        # stop the manager
+        queue.put('stop')
         manager.join()
-        self.assertTrue(not thread.is_alive())
 
 
 # skip if not running on arts041 or zeus
@@ -302,13 +291,13 @@ class TestProcessor(unittest.TestCase):
             proc.join()
 
         # stop observation
-        self.amber_listener.stop_observation()
-        self.processor.stop_observation()
+        self.amber_listener.source_queue.put({'command': 'stop_observation', 'obs_config': self.header})
+        self.processor.source_queue.put({'command': 'stop_observation'})
 
         # stop services
-        self.amber_listener.stop()
+        self.amber_listener.source_queue.put('stop')
         self.amber_listener.join()
-        self.processor.stop()
+        self.processor.source_queue.put('stop')
         self.processor.join()
 
 
@@ -316,7 +305,7 @@ class TestProcessor(unittest.TestCase):
 class TestExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.output_dir = '/data/arts/darc/output/'
+        self.output_dir = '/data/arts/darc/output'
 
         startpacket = Time.now().unix // TIME_UNIT
         obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
@@ -327,7 +316,9 @@ class TestExtractor(unittest.TestCase):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
-        self.extractor = Extractor(obs_config, self.output_dir, logger, mp.Queue(), mp.Queue())
+        self.ncand = mp.Value('i', 0)
+        self.extractor = Extractor(obs_config, self.output_dir + '/triggers_realtime', logger, mp.Queue(), mp.Queue(),
+                                   self.ncand)
         # set filterbank reader (normally done in run method)
         self.extractor.filterbank_reader = self.extractor.init_filterbank_reader()
         # ensure we start clean
@@ -352,8 +343,10 @@ class TestExtractor(unittest.TestCase):
         self.assertTrue(fname is not None)
         # check that the output file exists
         self.assertTrue(os.path.isfile(fname))
+        self.assertTrue(self.ncand.value == 1)
 
 
+@unittest.skip('Need to fix usage of mp.Array')
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
 class TestClassifier(unittest.TestCase):
 
@@ -371,7 +364,9 @@ class TestClassifier(unittest.TestCase):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
-        self.classifier = Classifier(logger, mp.Queue())
+        self.candarray = mp.Array(ctypes.c_wchar_p, 1000)
+        self.ncand = mp.Value('i', 0)
+        self.classifier = Classifier(logger, mp.Queue(), self.candarray, self.ncand)
 
     def test_classify(self):
         # start the classifier
@@ -379,11 +374,15 @@ class TestClassifier(unittest.TestCase):
         # feed the file path
         self.classifier.input_queue.put(self.fname)
         # stop the classifier
-        self.classifier.stop()
+        self.classifier.input_queue.put('stop')
         self.classifier.join()
         # read the output
-        fnames = self.classifier.candidates_to_visualize
-        self.assertEqual(len(fnames), 1)
+        self.assertEqual(self.ncand.value, 1)
+        fnames = []
+        for i in range(self.ncand.value):
+            fnames.append(self.candarray[i])
+
+        self.assertTrue(fnames[0].endswith('.hdf5'))
         # read the probabilities
         with h5py.File(fnames[0], 'r') as f:
             self.assertTrue('prob_freqtime' in f.attrs.keys())

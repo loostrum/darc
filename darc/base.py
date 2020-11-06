@@ -4,8 +4,7 @@
 
 import os
 import socket
-import threading
-from multiprocessing import queues
+import multiprocessing as mp
 import yaml
 from queue import Empty
 
@@ -13,7 +12,7 @@ from darc.logger import get_logger
 from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 
 
-class DARCBase(threading.Thread):
+class DARCBase(mp.Process):
     """
     DARC Base class
 
@@ -24,9 +23,8 @@ class DARCBase(threading.Thread):
         """
         :param str config_file: Path to config file
         """
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = threading.Event()
+        super(DARCBase, self).__init__()
+        self.stop_event = mp.Event()
 
         self.needs_source_queue = True
         self.needs_target_queue = False
@@ -84,7 +82,7 @@ class DARCBase(threading.Thread):
 
         :param queues.Queue queue: Input queue
         """
-        if not isinstance(queue, queues.Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error("Given source queue is not an instance of Queue")
             self.stop()
         else:
@@ -96,7 +94,7 @@ class DARCBase(threading.Thread):
 
         :param queues.Queue queue: Output queue
         """
-        if not isinstance(queue, queues.Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error("Given target queue is not an instance of Queue")
             self.stop()
         else:
@@ -108,7 +106,7 @@ class DARCBase(threading.Thread):
 
         :param queues.Queue queue: Output queue
         """
-        if not isinstance(queue, queues.Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error("Given target queue is not an instance of Queue")
             self.stop()
         else:
@@ -139,7 +137,9 @@ class DARCBase(threading.Thread):
                 except Empty:
                     continue
                 # command received, process it
-                if command['command'] == "start_observation":
+                if command == 'stop':
+                    self.stop()
+                elif command['command'] == "start_observation":
                     self.logger.info("Starting observation")
                     try:
                         if 'reload_conf' in command.keys():

@@ -58,7 +58,6 @@ class DADATrigger(DARCBase):
             self.triggers_enabled = False
             # do the automated polcal dumps
             self.thread_polcal = threading.Thread(target=self.polcal_dumps, args=[obs_config])
-            self.thread_polcal.daemon = True
             self.thread_polcal.start()
         else:
             self.logger.info("No polarisation calibrator in this beam, enabling regular triggering")
@@ -78,7 +77,6 @@ class DADATrigger(DARCBase):
                 return
             # process trigger
             self.thread_trigger = threading.Thread(target=self.send_event, args=[command['trigger']])
-            self.thread_trigger.daemon = True
             self.thread_trigger.start()
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))

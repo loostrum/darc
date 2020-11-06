@@ -69,7 +69,6 @@ class AMBERListener(DARCBase):
             event = threading.Event()
             self.observation_events.append(event)
             thread = threading.Thread(target=self._follow_file, args=[trigger_file, event], name="step{}".format(step))
-            thread.daemon = True
             thread.start()
             self.observation_threads.append(thread)
 
@@ -96,7 +95,7 @@ class AMBERListener(DARCBase):
         Tail a file an put lines on queue
 
         :param str fname: file to follow
-        :param threading.Event event: stop event
+        :param Event event: stop event
         """
         # wait until the file exists, with a timeout
         start = time()

@@ -9,7 +9,6 @@ import subprocess
 from queue import Empty
 from time import sleep
 import numpy as np
-import threading
 import socket
 from multiprocessing.managers import BaseManager
 from astropy.coordinates import SkyCoord
@@ -37,7 +36,7 @@ class VOEventGeneratorException(Exception):
     pass
 
 
-class VOEventGenerator(threading.Thread):
+class VOEventGenerator(mp.Process):
     """
     Convert incoming triggers to VOEvent and send to
     the VOEvent broker
@@ -46,9 +45,8 @@ class VOEventGenerator(threading.Thread):
         """
         :param str config_file: Path to custom config file
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(VOEventGenerator, self).__init__()
+        self.stop_event = mp.Event()
 
         self.voevent_server = None
 
@@ -107,6 +105,8 @@ class VOEventGenerator(threading.Thread):
             except Empty:
                 continue
             else:
+                if trigger == 'stop':
+                    self.stop()
                 # a trigger was received, wait and read queue again in case there are multiple triggers
                 sleep(self.interval)
                 additional_triggers = []

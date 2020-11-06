@@ -82,10 +82,12 @@ class TestProcessorMaster(unittest.TestCase):
     def test_processor_master(self):
         # init processor master
         self.processor.set_source_queue(mp.Queue())
-        self.processor.start()
 
         # override result dir
         self.processor.result_dir = self.result_dir
+
+        # start processor
+        self.processor.start()
 
         # start observation
         self.processor.start_observation(self.obs_config, reload=False)

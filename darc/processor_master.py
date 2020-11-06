@@ -1,12 +1,12 @@
 #!usr/bin/env python3
 
 import os
-import string
 import socket
 import threading
 from textwrap import dedent
 import ast
 import yaml
+import multiprocessing as mp
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
@@ -31,9 +31,6 @@ class ProcessorMasterManager(DARCBase):
         self.observations = {}
         self.current_observation = None
 
-        # create a thread scavenger
-        self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
-        self.scavenger.daemon = True
         self.scavenger = None
 
     def run(self):
@@ -42,7 +39,6 @@ class ProcessorMasterManager(DARCBase):
         """
         # create a thread scavenger
         self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
-        self.scavenger.daemon = True
         self.scavenger.start()
         super(ProcessorMasterManager, self).run()
 
@@ -89,9 +85,10 @@ class ProcessorMasterManager(DARCBase):
         # initialize a Processor for this observation
         proc = ProcessorMaster(config_file=self.config_file)
         proc.name = taskid
+        proc.set_source_queue(mp.Queue())
         proc.start()
         # start the observation and store thread
-        proc.start_observation(obs_config, reload)
+        proc.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.current_observation = proc
         return
@@ -112,7 +109,7 @@ class ProcessorMasterManager(DARCBase):
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method
-        self.observations[taskid].stop()
+        self.observations[taskid].input_queue.put('stop')
 
     # only start and stop observation commands exist
     def process_command(self, command):
@@ -162,8 +159,6 @@ class ProcessorMaster(DARCBase):
         :param str config_file: Path to config file
         """
         super(ProcessorMaster, self).__init__(config_file=config_file)
-
-        self.needs_source_queue = False
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()

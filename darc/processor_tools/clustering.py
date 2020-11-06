@@ -3,7 +3,6 @@
 import os
 import socket
 from argparse import Namespace
-import threading
 import multiprocessing as mp
 from queue import Empty
 from time import sleep
@@ -15,18 +14,19 @@ from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
 from darc.external import tools
 
 
-class Clustering(threading.Thread):
+class Clustering(mp.Process):
     """
     Clustering and thresholding of AMBER triggers
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, config_file=CONFIG_FILE):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, ncluster, config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
         :param Queue output_queue: Output queue for clusters
+        :param mp.Value ncluster: 0
         :param str config_file: Path to config file
         """
         super(Clustering, self).__init__()
@@ -51,7 +51,7 @@ class Clustering(threading.Thread):
 
         self.input_empty = False
         self.output_file_handle = None
-        self.ncluster = 0
+        self.ncluster = ncluster
 
     def run(self):
         """
@@ -62,17 +62,24 @@ class Clustering(threading.Thread):
         self.output_file_handle = open(os.path.join(self.output_dir, self.config.output_file), 'w', buffering=1)
         # write header
         self.output_file_handle.write("#snr dm time downsamp sb\n")
+
+        do_stop = False
         while not self.stop_event.is_set():
             # read triggers from input queue
             try:
                 triggers = self.input_queue.get(timeout=.1)
             except Empty:
                 self.input_empty = True
+                if do_stop:
+                    self.stop()
                 continue
             else:
                 self.input_empty = False
-                # do clustering
-                self._cluster(triggers)
+                if triggers == 'stop':
+                    do_stop = True
+                else:
+                    # do clustering
+                    self._cluster(triggers)
         # close the output file
         self.output_file_handle.close()
         self.logger.info("Stopping clustering thread")
@@ -85,8 +92,10 @@ class Clustering(threading.Thread):
         if not self.input_empty:
             self.logger.debug("Clustering waiting to finish processing")
         while not self.input_empty:
+            print("NOT YET EMPTY")
             sleep(1)
         # then stop
+        self.logger.debug("Clustering DONE")
         self.stop_event.set()
 
     def _load_config(self):
@@ -135,7 +144,7 @@ class Clustering(threading.Thread):
         ncluster = len(cluster_snr)
 
         self.logger.info(f"Clustered {len(triggers)} triggers into {ncluster} clusters")
-        self.ncluster += ncluster
+        self.ncluster.value += ncluster
 
         # put the clusters on the output queue for further analysis
         # note the for-loop is effectively skipped if ncluster is zero

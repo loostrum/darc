@@ -108,9 +108,9 @@ class TestFullRun(unittest.TestCase):
         # remove buffers
         print("Removing buffers")
         os.system('dada_db -d -k {key_i}'.format(**self.settings))
-        self.listener.stop()
-        self.clustering.stop()
-        self.dadatrigger.stop()
+        self.listener.source_queue.put('stop')
+        self.clustering.source_queue.put('stop')
+        self.dadatrigger.source_queue.put('stop')
 
     def writer(self):
         """

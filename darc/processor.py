@@ -3,6 +3,7 @@
 # real-time data processor
 
 import os
+import ctypes
 import threading
 import multiprocessing as mp
 from time import sleep
@@ -41,7 +42,6 @@ class ProcessorManager(DARCBase):
         """
         # create a thread scavenger
         self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
-        self.scavenger.daemon = True
         self.scavenger.start()
         super(ProcessorManager, self).run()
 
@@ -92,7 +92,7 @@ class ProcessorManager(DARCBase):
         proc.set_source_queue(mp.Queue())
         proc.start()
         # start the observation and store thread
-        proc.start_observation(obs_config, reload)
+        proc.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.current_observation = proc
         return
@@ -113,13 +113,15 @@ class ProcessorManager(DARCBase):
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method
-        self.observations[taskid].stop()
+        self.observations[taskid].source_queue.put({'command': 'stop'})
 
     def process_command(self, command):
         """
         Forward any data from the input queue to the running observation
         """
-        if self.current_observation is not None:
+        if command['command'] == 'stop':
+            self.stop()
+        elif self.current_observation is not None:
             self.current_observation.source_queue.put(command)
         else:
             self.logger.error("Data received but no observation is running - ignoring")
@@ -199,15 +201,23 @@ class Processor(DARCBase):
                           'ncand_post_thresholds': 0,
                           'ncand_post_classifier': 0}
 
+        self.ncluster = mp.Value('i', 0)
+        self.ncand_above_threshold = mp.Value('i', 0)
+        self.ncand_post_classifier = mp.Value('i', 0)
+        self.candidates_to_visualize = mp.Array(ctypes.c_wchar_p, int(1e6))
+
     def process_command(self, command):
         """
         Process command received from queue
 
         :param dict command: Command to process
         """
-        if command['command'] == 'trigger':
+        if command['command'] == 'stop':
+            self.stop()
+        elif command['command'] == 'trigger':
             if not self.observation_running:
-                self.logger.error("Trigger(s) received but no observation is running - ignoring")
+                pass
+                # self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
                 with self.amber_lock:
                     self.amber_triggers.append(command['trigger'])
@@ -249,31 +259,28 @@ class Processor(DARCBase):
 
         # start processing
         thread = threading.Thread(target=self._read_and_process_data, name='processing')
-        thread.daemon = True
         thread.start()
         self.threads['processing'] = thread
 
         # start clustering
         thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue,
-                            self.config_file)
+                            self.ncluster, self.config_file)
         thread.name = 'clustering'
-        thread.daemon = True
         thread.start()
         self.threads['clustering'] = thread
 
         # start extractor(s)
         for i in range(self.num_extractor):
             thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue,
-                               self.config_file)
+                               self.ncand_above_threshold, self.config_file)
             thread.name = f'extractor_{i}'
-            thread.daemon = True
             thread.start()
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue, self.config_file)
+        thread = Classifier(self.logger, self.classifier_queue, self.candidates_to_visualize,
+                            self.ncand_post_classifier, self.config_file)
         thread.name = 'classifier'
-        thread.daemon = True
         thread.start()
         self.threads['classifier'] = thread
 
@@ -298,14 +305,14 @@ class Processor(DARCBase):
         # clear processing thread
         self.threads['processing'].join()
         # signal clustering to stop
-        self.threads['clustering'].stop()
+        self.threads['clustering'].input_queue.put('stop')
         self.threads['clustering'].join()
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
-            self.threads[f'extractor_{i}'].stop()
+            self.threads[f'extractor_{i}'].input_queue.put('stop')
             self.threads[f'extractor_{i}'].join()
         # signal classifier to stop
-        self.threads['classifier'].stop()
+        self.threads['classifier'].input_queue.put('stop')
         self.threads['classifier'].join()
 
         # store obs statistics
@@ -317,17 +324,23 @@ class Processor(DARCBase):
         else:
             # already have number of raw candidates
             # store number of post-clustering candidates
-            self.obs_stats['ncand_post_clustering'] = self.threads['clustering'].ncluster
+            self.obs_stats['ncand_post_clustering'] = self.ncluster.value
             # store number of candidates above local S/N threshold
             for i in range(self.num_extractor):
-                self.obs_stats['ncand_post_thresholds'] += self.threads[f'extractor_{i}'].ncand_above_threshold
+                self.obs_stats['ncand_post_thresholds'] += self.ncand_above_threshold.value
             # store number of candidates post-classifier
-            self.obs_stats['ncand_post_classifier'] = self.threads['classifier'].ncand_post_classifier
+            self.obs_stats['ncand_post_classifier'] = self.ncand_post_classifier.value
 
         # Store the statistics and start the visualization
         if not abort:
+            # convert classifier candidate list to normal list
+            cands_to_visualize = []
+            for fname in self.candidates_to_visualize:
+                if not fname:
+                    break
+                cands_to_visualize.append(fname)
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
-                       self.threads['classifier'].candidates_to_visualize, self.config_file)
+                       cands_to_visualize, self.config_file)
             # Store statistics after visualization, as master will start combining results once all stats are present
             self._store_obs_stats()
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "

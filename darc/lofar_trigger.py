@@ -8,7 +8,6 @@ import multiprocessing as mp
 from queue import Empty
 from time import sleep
 import numpy as np
-import threading
 import socket
 import struct
 from textwrap import dedent
@@ -34,7 +33,7 @@ class LOFARTriggerException(Exception):
     pass
 
 
-class LOFARTrigger(threading.Thread):
+class LOFARTrigger(mp.Process):
     """
     Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering
     """
@@ -42,9 +41,8 @@ class LOFARTrigger(threading.Thread):
         """
         :param str config_file: Path to config file
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(LOFARTrigger, self).__init__()
+        self.stop_event = mp.Event()
 
         self.trigger_server = None
 
@@ -95,6 +93,8 @@ class LOFARTrigger(threading.Thread):
             except Empty:
                 continue
             else:
+                if trigger == 'stop':
+                    self.stop()
                 # a trigger was received, wait and read queue again in case there are multiple triggers
                 sleep(self.interval)
                 additional_triggers = []

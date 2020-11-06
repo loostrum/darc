@@ -61,7 +61,7 @@ class TestAMBERListener(unittest.TestCase):
         sleep(1)
 
         # stop the listener
-        listener.stop()
+        listener.source_queue.put('stop')
 
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
@@ -195,7 +195,7 @@ class TestAMBERListener(unittest.TestCase):
         sleep(5)
 
         # stop the listener
-        listener.stop()
+        listener.source_queue.put('stop')
 
         # delete temp output files
         for step in range(1, nstep + 1):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
+import ctypes
 import socket
 from argparse import Namespace
-import threading
 from time import sleep
 from queue import Empty
 import multiprocessing as mp
@@ -21,15 +21,17 @@ if int(tf.__version__[0]) >= 2:
     tf.get_logger().setLevel('ERROR')
 
 
-class Classifier(threading.Thread):
+class Classifier(mp.Process):
     """
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, logger, input_queue, config_file=CONFIG_FILE):
+    def __init__(self, logger, input_queue, candidates_to_visualize, ncand_post_classifier, config_file=CONFIG_FILE):
         """
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
+        :param mp.Array candidates_to_visualize: empty array
+        :param mp.Value ncand_post_classifier: 0
         :param str config_file: Path to config file
         """
         super(Classifier, self).__init__()
@@ -65,8 +67,8 @@ class Classifier(threading.Thread):
         self.nfreq_data = None
         self.ndm_data = None
         self.ntime_data = None
-        self.candidates_to_visualize = []
-        self.ncand_post_classifier = 0
+        self.candidates_to_visualize = candidates_to_visualize
+        self.ncand_post_classifier = ncand_post_classifier
 
     def run(self):
         """
@@ -76,17 +78,23 @@ class Classifier(threading.Thread):
 
         self._init_models()
 
+        do_stop = False
         while not self.stop_event.is_set():
             # read file paths from input queue
             try:
                 fname = self.input_queue.get(timeout=.1)
             except Empty:
                 self.input_empty = True
+                if do_stop:
+                    self.stop()
                 continue
             else:
                 self.input_empty = False
-                # do classification
-                self._classify(fname)
+                if fname == 'stop':
+                    do_stop = True
+                else:
+                    # do classification
+                    self._classify(fname)
         self.logger.info("Stopping classifier thread")
 
     def stop(self):
@@ -167,8 +175,8 @@ class Classifier(threading.Thread):
 
         # if the probabilities are above threshold, store the file path
         if (prob_freqtime > self.config.thresh_freqtime) and (prob_dmtime > self.config.thresh_dmtime):
-            self.candidates_to_visualize.append(fname)
-            self.ncand_post_classifier += 1
+            self.candidates_to_visualize[self.ncand_post_classifier.value] = fname
+            self.ncand_post_classifier.value += 1
 
     def _prepare_data(self):
         """

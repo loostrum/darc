@@ -8,7 +8,6 @@ import os
 import ast
 import yaml
 import multiprocessing as mp
-import threading
 import socket
 from time import sleep, time
 from shutil import copy2
@@ -35,7 +34,7 @@ class DARCMaster(object):
         :param str config_file: path to DARC configuration file
         """
         # setup stop event for master
-        self.stop_event = threading.Event()
+        self.stop_event = mp.Event()
 
         # save host name
         self.hostname = socket.gethostname()
@@ -46,9 +45,10 @@ class DARCMaster(object):
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
         self.processor_queue = mp.Queue()  # for semi-realtime processing
         self.offline_queue = mp.Queue()  # for offline processing
+        self.status_website_queue = mp.Queue()  # for stopping the StatusWebsite service
 
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
-                           self.processor_queue, self.offline_queue]
+                           self.processor_queue, self.offline_queue, self.status_website_queue]
 
         # store hostname
         self.hostname = socket.gethostname()
@@ -92,7 +92,7 @@ class DARCMaster(object):
                 sleep(1)
 
         if not command_socket:
-            self.logger.error("Failed to ceate socket")
+            self.logger.error("Failed to create socket")
             raise DARCMasterException("Failed to setup command socket")
 
         self.command_socket = command_socket
@@ -331,7 +331,7 @@ class DARCMaster(object):
             # no thread means the service is not running
             # self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
-        elif thread.isAlive():
+        elif thread.is_alive():
             # self.logger.info("{} is running".format(service))
             reply = 'running'
         else:
@@ -360,10 +360,10 @@ class DARCMaster(object):
             source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue
         elif service == 'voevent_generator':
-            source_queue = None
+            source_queue = mp.Queue()  # dummy input queue
             target_queue = None
         elif service == 'status_website':
-            source_queue = None
+            source_queue = self.status_website_queue
             target_queue = None
         elif service == 'offline_processing':
             source_queue = self.offline_queue
@@ -372,7 +372,7 @@ class DARCMaster(object):
             source_queue = self.dadatrigger_queue
             target_queue = None
         elif service == 'lofar_trigger':
-            source_queue = None
+            source_queue = mp.Queue()  # dummy input queue
             target_queue = None
         elif service == 'processor':
             source_queue = self.processor_queue
@@ -387,7 +387,7 @@ class DARCMaster(object):
         thread = self.threads[service]
 
         # check if a new thread has to be generated
-        if thread is None or not thread.isAlive():
+        if thread is None or not thread.is_alive():
             self.logger.info("Creating new thread for service {}".format(service))
             self.create_thread(service)
             thread = self.threads[service]
@@ -395,7 +395,7 @@ class DARCMaster(object):
         # start the specified service
         self.logger.info("Starting service: {}".format(service))
         # check if already running
-        if thread.isAlive():
+        if thread.is_alive():
             status = 'Success'
             reply = 'already running'
             self.logger.warning("Service already running: {}".format(service))
@@ -410,7 +410,7 @@ class DARCMaster(object):
             # start
             thread.start()
             # check status
-            if not thread.isAlive():
+            if not thread.is_alive():
                 status = 'Error'
                 reply = "failed"
                 self.logger.error("Failed to start service: {}".format(service))
@@ -440,10 +440,10 @@ class DARCMaster(object):
         thread = self.threads[service]
 
         # check is it was running at all
-        if thread is None or not thread.isAlive():
-            # isAlive is false if thread died
+        if thread is None or not thread.is_alive():
+            # is_alive is false if thread died
             # remove thread if that is the case
-            if thread is not None and not thread.isAlive():
+            if thread is not None and not thread.is_alive():
                 self.threads[service] = None
             self.logger.info("Service not running: {}".format(service))
             reply = 'Success'
@@ -452,11 +452,11 @@ class DARCMaster(object):
 
         # stop the specified service
         self.logger.info("Stopping service: {}".format(service))
-        thread.stop()
+        thread.source_queue.put('stop')
         tstart = time()
-        while thread.isAlive() and time() - tstart < self.stop_timeout:
+        while thread.is_alive() and time() - tstart < self.stop_timeout:
             sleep(.1)
-        if thread.isAlive():
+        if thread.is_alive():
             status = 'error'
             reply = "Failed to stop service before timeout"
             self.logger.error("Failed to stop service before timeout: {}".format(service))

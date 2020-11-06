@@ -18,18 +18,20 @@ from darc.processor_tools import ARTSFilterbankReader
 from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT
 
 
-class Extractor(threading.Thread):
+class Extractor(mp.Process):
     """
     Extract data from filterbank files
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, config_file=CONFIG_FILE):
+    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, ncand_above_threshold,
+                 config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for clusters
         :param Queue output_queue: Output queue for classifier
+        :param mp.Value ncand_above_threshold: 0
         :param str config_file: Path to config file
         """
         super(Extractor, self).__init__()
@@ -55,7 +57,7 @@ class Extractor(threading.Thread):
 
         self.data = None
         self.data_dm_time = None
-        self.ncand_above_threshold = 0
+        self.ncand_above_threshold = ncand_above_threshold
 
     def run(self):
         """
@@ -76,17 +78,23 @@ class Extractor(threading.Thread):
             self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
             self.rfi_mask = np.array([], dtype=int)
 
+        do_stop = False
         while not self.stop_event.is_set():
             # read parameters of a trigger from input queue
             try:
                 params = self.input_queue.get(timeout=1)
             except Empty:
                 self.input_empty = True
+                if do_stop:
+                    self.stop()
                 continue
             else:
                 self.input_empty = False
-                # do extraction
-                self._extract(*params)
+                if params == 'stop':
+                    do_stop = True
+                else:
+                    # do extraction
+                    self._extract(*params)
         self.logger.info("Stopping extractor thread")
 
     def stop(self):
@@ -321,7 +329,7 @@ class Extractor(threading.Thread):
         # put path to file on output queue to be picked up by classifier
         self.output_queue.put(output_file)
 
-        self.ncand_above_threshold += 1
+        self.ncand_above_threshold.value += 1
 
         # log time taken
         timer_end = Time.now()

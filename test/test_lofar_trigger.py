@@ -82,7 +82,7 @@ class TestLOFARTrigger(unittest.TestCase):
         lofar_event = struct.unpack(fmt, msg)
 
         # stop lofar trigger module
-        lofar_trigger.stop()
+        queue.put('stop')
 
         self.assertTupleEqual(lofar_event, expected_event)
 
@@ -110,7 +110,6 @@ class TestLOFARTrigger(unittest.TestCase):
         clustering.set_source_queue(mp.Queue())
         clustering.set_target_queue(mp.Queue())
         clustering.sb_filter = False
-        clustering.start()
 
         # get the LOFAR trigger queue to connect to AMBERClustering
         LOFARTriggerQueueServer.register('get_queue')
@@ -126,6 +125,8 @@ class TestLOFARTrigger(unittest.TestCase):
 
         # overwrite source list location
         clustering.source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source_list.yaml')
+
+        clustering.start()
 
         # open a listening socket for LOFAR events
         timeout = 5
@@ -186,6 +187,11 @@ class TestLOFARTrigger(unittest.TestCase):
             # input DM is source DM for known sources
             if trigger != new:
                 # read the source DM as read by AMBERClustering
+                # needs access to parset in obs config, which it not available because Process
+                # created a copy of memory space, leaving obs config and source list undefined in this script
+                clustering.source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source_list.yaml')
+                clustering.source_list = clustering._load_source_list()
+                clustering.obs_config = {'parset': parset_dict}
                 input_dm, src_type, src_name = clustering._get_source()
             else:
                 # the input DM is the trigger DM
@@ -201,6 +207,10 @@ class TestLOFARTrigger(unittest.TestCase):
 
         # close the socket
         sock.close()
+        clustering.source_queue.put('stop')
+        clustering.join()
+        queue.put('stop')
+        lofar_trigger.join()
 
 
 if __name__ == '__main__':

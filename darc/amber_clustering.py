@@ -6,7 +6,6 @@ import os
 from time import sleep
 import yaml
 import ast
-import subprocess
 import threading
 import multiprocessing as mp
 import numpy as np
@@ -55,7 +54,7 @@ class AMBERClustering(DARCBase):
         self.observation_running = False
         self.amber_triggers = []
         self.source_list = None
-        self.lock = threading.Lock()
+        self.lock = mp.Lock()
 
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
@@ -109,7 +108,7 @@ class AMBERClustering(DARCBase):
         """
         Process command received from queue
 
-        :param str command: Command to process
+        :param dict command: Command to process
         """
         if command['command'] == 'trigger':
             if not self.observation_running:
@@ -169,7 +168,6 @@ class AMBERClustering(DARCBase):
 
         # process triggers in thread
         self.threads['processing'] = threading.Thread(target=self._process_triggers)
-        self.threads['processing'].daemon = True
         self.threads['processing'].start()
 
         self.logger.info("Observation started")
@@ -192,8 +190,7 @@ class AMBERClustering(DARCBase):
                 thread.join()
                 self.threads[key] = None
 
-    @staticmethod
-    def voevent_connector():
+    def voevent_connector(self):
         """
         Connect to the VOEvent generator on the master node
         """
@@ -207,8 +204,7 @@ class AMBERClustering(DARCBase):
         server.connect()
         return server.get_queue()
 
-    @staticmethod
-    def lofar_connector():
+    def lofar_connector(self):
         """
         Connect to the LOFAR triggering system on the master node
         """
@@ -567,14 +563,12 @@ class AMBERClustering(DARCBase):
                                                                             args=(triggers_for_clustering, sys_params,
                                                                                   utc_start, datetimesource),
                                                                             kwargs=thresh_src)
-                    self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
                 self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
                                                                       args=(triggers_for_clustering, sys_params,
                                                                             utc_start, datetimesource),
                                                                       kwargs=thresh_new)
-                self.threads['trigger_new_source'].daemon = True
                 self.threads['trigger_new_source'].start()
 
             sleep(self.interval)

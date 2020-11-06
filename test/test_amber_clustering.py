@@ -34,11 +34,11 @@ class TestAMBERClustering(unittest.TestCase):
         clustering.sb_filter = False
         clustering.interval = 0.5
 
-        # start the clustering
-        clustering.start()
-
         # overwrite source list location
         clustering.source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'source_list.yaml')
+
+        # start the clustering
+        clustering.start()
 
         # load triggers to put on queue
         nline_to_check = 100
@@ -83,7 +83,7 @@ class TestAMBERClustering(unittest.TestCase):
 
         # stop clustering
         in_queue.put({'command': 'stop_observation'})
-        clustering.stop()
+        clustering.source_queue.put('stop')
 
         expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},

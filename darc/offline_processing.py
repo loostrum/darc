@@ -7,7 +7,7 @@ import os
 import ast
 import glob
 import yaml
-from multiprocessing import queues
+import multiprocessing as mp
 from queue import Empty
 import threading
 import socket
@@ -31,7 +31,7 @@ class OfflineProcessingException(Exception):
     pass
 
 
-class OfflineProcessing(threading.Thread):
+class OfflineProcessing(mp.Process):
     """
     Full offline processing pipeline:
 
@@ -50,9 +50,8 @@ class OfflineProcessing(threading.Thread):
         """
         :param str config_file: Path to custom config file
         """
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = threading.Event()
+        super(OfflineProcessing, self).__init__()
+        self.stop_event = mp.Event()
 
         self.observation_queue = None
         self.threads = {}
@@ -91,7 +90,7 @@ class OfflineProcessing(threading.Thread):
 
         :param queues.Queue queue: Source of start_observation commands
         """
-        if not isinstance(queue, queues.Queue):
+        if not isinstance(queue, mp.queues.Queue):
             self.logger.error('Given source queue is not an instance of Queue')
             raise OfflineProcessingException('Given source queue is not an instance of Queue')
         self.observation_queue = queue
@@ -117,6 +116,8 @@ class OfflineProcessing(threading.Thread):
                 data = self.observation_queue.get(timeout=1)
             except Empty:
                 continue
+            if data == 'stop':
+                self.stop()
 
             # load observation config
             host_type = data['host_type']
