@@ -174,7 +174,7 @@ class AMBERClustering(DARCBase):
 
         self.logger.info("Observation started")
 
-    def stop_observation(self):
+    def stop_observation(self, *args):
         """
         Stop observation
         """

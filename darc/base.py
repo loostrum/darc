@@ -151,7 +151,10 @@ class DARCBase(threading.Thread):
                         self.logger.error("Failed to start observation: {}: {}".format(type(e), e))
                 elif command['command'] == "stop_observation":
                     self.logger.info("Stopping observation")
-                    self.stop_observation()
+                    if 'obs_config' in command.keys():
+                        self.stop_observation(obs_config=command['obs_config'])
+                    else:
+                        self.stop_observation()
                 else:
                     self.process_command(command)
         # EOFError can occur due to usage of queues
