@@ -106,7 +106,7 @@ class ProcessorMasterManager(DARCBase):
         taskid = parset['task.taskID']
         # check if an observation with this task ID exists
         if taskid not in self.observations.keys():
-            self.logger.error("Failed to stop observation: no such task ID {taskid}")
+            self.logger.error(f"Failed to stop observation: no such task ID {taskid}")
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method
@@ -186,23 +186,27 @@ class ProcessorMaster(DARCBase):
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
-        # generate observation info files
-        self.status = 'Generating observation info files'
-        info, coordinates = self._generate_info_file()
+        try:
+            # generate observation info files
+            self.status = 'Generating observation info files'
+            info, coordinates = self._generate_info_file()
 
-        # wait for all result files to be present
-        self.status = 'Waiting for nodes to finish processing'
-        self._wait_for_workers()
+            # wait for all result files to be present
+            self.status = 'Waiting for nodes to finish processing'
+            self._wait_for_workers()
 
-        # combine results, copy to website and generate email
-        self.status = 'Combining node results'
-        email, attachments = self._process_results(info, coordinates)
+            # combine results, copy to website and generate email
+            self.status = 'Combining node results'
+            email, attachments = self._process_results(info, coordinates)
 
-        # publish results on web link and send email
-        self.status = 'Sending results'
-        self._publish_results(email, attachments)
-        self._send_email(email, attachments)
-        self.status = 'Done'
+            # publish results on web link and send email
+            self.status = 'Sending results to website'
+            self._publish_results(email, attachments)
+            self.status = 'Sending results to email'
+            self._send_email(email, attachments)
+            self.status = 'Done'
+        except Exception as e:
+            self.logger.error(f"Failed to process observation. Status = {self.status}: {type(e)}: {e}")
 
         # stop the processor
         self.stop_event.set()
@@ -313,7 +317,8 @@ class ProcessorMaster(DARCBase):
             warnings += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
         # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
-        triggers = np.sort(np.concatenate(triggers), order=('p', 'snr', 'time'))
+        if len(triggers) > 0:
+            triggers = np.sort(np.concatenate(triggers), order=('p', 'snr', 'time'))
         # save total number of triggers
         info['total_triggers'] = len(triggers)
         # create string of trigger info
@@ -446,8 +451,7 @@ class ProcessorMaster(DARCBase):
         Publish email content as local website
         """
         # create output folder
-        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(home=os.path.expanduser('~'),
-                                                                                       webdir=self.webdir,
+        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(webdir=self.webdir,
                                                                                        **self.obs_config)
         util.makedirs(web_folder)
         # save the email body, ensuring it is at the top of the list in a browser
@@ -516,9 +520,9 @@ class ProcessorMaster(DARCBase):
 
         # generate file with coordinates
         coordinates = {}
-        for cb in self.obs_config['beams']:
+        for beam in self.obs_config['beams']:
             try:
-                key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
+                key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
                 if parset['task.directionReferenceFrame'] == 'HADEC':
                     # get convert HADEC to J2000 RADEC at midpoint of observation
@@ -527,19 +531,19 @@ class ProcessorMaster(DARCBase):
                 else:
                     pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
-                self.logger.error("Failed to get pointing for CB{:02d}: {}".format(cb, e))
-                coordinates[cb] = ['-1', '-1', '-1', '-1']
+                self.logger.error("Failed to get pointing for CB{:02d}: {}".format(beam, e))
+                coordinates[beam] = ['-1', '-1', '-1', '-1']
             else:
                 # get pretty strings
                 ra = pointing.ra.to_string(unit=u.hourangle, sep=':', pad=True, precision=1)
                 dec = pointing.dec.to_string(unit=u.deg, sep=':', pad=True, precision=1)
                 gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-                coordinates[cb] = [ra, dec, gl, gb]
+                coordinates[beam] = [ra, dec, gl, gb]
 
         # save to result dir
         with open(os.path.join(self.central_result_dir, 'coordinates.txt'), 'w') as f:
             f.write("#CB RA Dec Gl Gb\n")
-            for cb, coord in coordinates.items():
-                f.write("{:02d} {} {} {} {}\n".format(cb, *coord))
+            for beam, coord in coordinates.items():
+                f.write("{:02d} {} {} {} {}\n".format(beam, *coord))
 
         return info, coordinates

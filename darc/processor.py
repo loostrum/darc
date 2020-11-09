@@ -202,7 +202,6 @@ class Processor(DARCBase):
 
         self.ncluster = mp.Value('i', 0)
         self.ncand_above_threshold = mp.Value('i', 0)
-        self.ncand_post_classifier = mp.Value('i', 0)
 
         self.candidates_to_visualize = []
         self.classifier_parent_conn, self.classifier_child_conn = mp.Pipe()
@@ -330,7 +329,7 @@ class Processor(DARCBase):
             for i in range(self.num_extractor):
                 self.obs_stats['ncand_post_thresholds'] += self.ncand_above_threshold.value
             # store number of candidates post-classifier
-            self.obs_stats['ncand_post_classifier'] = self.ncand_post_classifier.value
+            self.obs_stats['ncand_post_classifier'] = len(self.candidates_to_visualize)
 
         # Store the statistics and start the visualization
         if not abort:

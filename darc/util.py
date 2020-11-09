@@ -127,6 +127,10 @@ def parse_parset(parset_str):
     for key in ['proctrigger', 'enable_iquv']:
         if key in parset_dict.keys():
             parset_dict[key] = json.loads(parset_dict[key].lower())
+    # lists
+    for key in ['beams']:
+        if key in parset_dict.keys():
+            parset_dict[key] = json.loads(parset_dict[key])
     return parset_dict
 
 
