@@ -41,7 +41,7 @@ class VOEventGenerator(mp.Process):
     Convert incoming triggers to VOEvent and send to
     the VOEvent broker
     """
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, config_file=CONFIG_FILE, **kwargs):
         """
         :param str config_file: Path to custom config file
         """

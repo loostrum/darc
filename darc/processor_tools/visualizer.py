@@ -54,7 +54,11 @@ class Visualizer:
         # switch the plot backend to pdf
         old_backend = plt.get_backend()
         plt.switch_backend('PDF')
-        self._visualize()
+        try:
+            self._visualize()
+        except Exception as e:
+            self.logger.error(f"Visualization of task ID {self.obs_config['parset']['task.taskID']} failed: "
+                              f"{type(e)}: {e}")
         # put back the old backend
         plt.switch_backend(old_backend)
 
@@ -95,7 +99,12 @@ class Visualizer:
         nplot_per_page = self.config.nplot_per_side ** 2
         npage = int(np.ceil(len(order) / nplot_per_page))
         # order files, then split per page
-        files = self.files[order]
+        try:
+            files = self.files[order]
+        except IndexError:
+            self.logger.error("Failed to get plot order")
+            return
+
         num_full_page, nplot_last_incomplete_page = divmod(len(files), nplot_per_page)
         files_split = []
         for page in range(num_full_page):

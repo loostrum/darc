@@ -19,18 +19,19 @@ class DARCBase(mp.Process):
     Provides common methods to services
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, source_queue, target_queue=None, second_target_queue=None, config_file=CONFIG_FILE):
         """
+        :param Queue source_queue: Input queue
+        :param Queue target_queue: Output queue
+        :param Queue second_target_queue: second output queue
         :param str config_file: Path to config file
         """
         super(DARCBase, self).__init__()
         self.stop_event = mp.Event()
 
-        self.needs_source_queue = True
-        self.needs_target_queue = False
-        self.source_queue = None
-        self.target_queue = None
-        self.second_target_queue = None
+        self.source_queue = source_queue
+        self.target_queue = target_queue
+        self.second_target_queue = second_target_queue
 
         # set names for config and logger
         self.module_name = type(self).__module__.split('.')[-1]
@@ -76,42 +77,6 @@ class DARCBase(mp.Process):
         self.cleanup()
         self.stop_event.set()
 
-    def set_source_queue(self, queue):
-        """
-        Set input queue
-
-        :param queues.Queue queue: Input queue
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error("Given source queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.source_queue = queue
-
-    def set_target_queue(self, queue):
-        """
-        Set output queue
-
-        :param queues.Queue queue: Output queue
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error("Given target queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.target_queue = queue
-
-    def set_second_target_queue(self, queue):
-        """
-        Set second output queue
-
-        :param queues.Queue queue: Output queue
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error("Given target queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.second_target_queue = queue
-
     def run(self):
         """
         Main loop
@@ -121,14 +86,6 @@ class DARCBase(mp.Process):
         """
         # check queues
         try:
-            if self.needs_source_queue and not self.source_queue:
-                self.logger.error("Source queue not set")
-                self.stop()
-
-            if self.needs_target_queue and not self.target_queue:
-                self.logger.error("Target queue not set")
-                self.stop()
-
             self.logger.info("Starting {}".format(self.log_name))
             while not self.stop_event.is_set():
                 # read from queue
@@ -137,7 +94,7 @@ class DARCBase(mp.Process):
                 except Empty:
                     continue
                 # command received, process it
-                if command == 'stop':
+                if isinstance(command, str) and command == 'stop':
                     self.stop()
                 elif command['command'] == "start_observation":
                     self.logger.info("Starting observation")
@@ -194,9 +151,10 @@ class DARCBase(mp.Process):
 
     def process_command(self, *args, **kwargs):
         """
-        Process command from queue, other than start_observation and stop_observation
+        Process command from queue, other than start_observation and stop_observation.
+        By default does nothing.
 
         :param list args: process command arguments
         :param dict kwargs: process command keyword arguments
         """
-        raise NotImplementedError("process_command should be defined by subclass")
+        pass

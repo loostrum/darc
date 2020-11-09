@@ -36,6 +36,10 @@ class DARCMaster(object):
         # setup stop event for master
         self.stop_event = mp.Event()
 
+        # dict to hold thread for each service
+        self.threads = {}
+        self.services = []
+
         # save host name
         self.hostname = socket.gethostname()
 
@@ -75,9 +79,6 @@ class DARCMaster(object):
             self.logger.warning("Cannot determine host type; setting processor to worker mode")
             self.service_mapping['processor'] = darc.ProcessorManager
 
-        # initialize services
-        self._init_services()
-
         # setup listening socket
         command_socket = None
         start = time()
@@ -103,6 +104,7 @@ class DARCMaster(object):
         """
         Load configuration file
         """
+
         with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
@@ -123,6 +125,8 @@ class DARCMaster(object):
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
 
+
+
         # store services
         if self.hostname == MASTER:
             if self.mode == 'real-time':
@@ -141,20 +145,15 @@ class DARCMaster(object):
         else:
             self.services = []
 
-    def _init_services(self):
-        """
-        Initialize services
-        """
-        # Initialize services. Log dir must exist at this point
-        if not hasattr(self, 'threads'):
-            self.threads = {}
+        # terminate any existing threads in case this is a reload
+        for service, thread in self.threads.items():
+            if thread is not None:
+                self.logger.warning(f"Config reload, terminating existing {service}")
+                thread.terminate()
+
+        # start with empty thread for each service
         for service in self.services:
-            # only create thread if it did not exist yet (required to allow reloading of config)
-            try:
-                _ = self.threads[service]
-            except KeyError:
-                _service_class = self.service_mapping[service]
-                self.threads[service] = _service_class(config_file=self.config_file)
+            self.threads[service] = None
 
         # print config file path
         self.logger.info("Loaded config from {}".format(self.config_file))
@@ -276,7 +275,7 @@ class DARCMaster(object):
         # master config reload
         elif command == 'reload':
             self._load_config()
-            return 'Success', ''
+            return 'Success', 'Config reloaded'
         # lofar / voevent trigger commands
         elif command.startswith('lofar') or command.startswith('voevent'):
             status, reply = self._switch_cmd(command)
@@ -340,6 +339,33 @@ class DARCMaster(object):
 
         return status, reply
 
+    def get_queue(self, service):
+        """
+        Get control queue corresponding to a service
+
+        :param str service: Service to get queue for
+        :return: queue (Queue)
+        """
+        if service == 'amber_listener':
+            queue = self.amber_listener_queue
+        elif service == 'amber_clustering':
+            queue = self.amber_trigger_queue
+        elif service == 'voevent_generator':
+            queue = mp.Queue()  # dummy input queue
+        elif service == 'status_website':
+            queue = self.status_website_queue
+        elif service == 'offline_processing':
+            queue = self.offline_queue
+        elif service == 'dada_trigger':
+            queue = self.dadatrigger_queue
+        elif service == 'lofar_trigger':
+            queue = mp.Queue()  # dummy input queue
+        elif service == 'processor':
+            queue = self.processor_queue
+        else:
+            queue = None
+        return queue
+
     def start_service(self, service):
         """
         Start a service
@@ -348,36 +374,7 @@ class DARCMaster(object):
         :return: status, reply
         """
 
-        # settings for specific services
-        second_target_queue = None
-        if service == 'amber_listener':
-            source_queue = self.amber_listener_queue
-            target_queue = self.amber_trigger_queue
-            # only output to processor if this is not the master
-            if self.hostname != MASTER:
-                second_target_queue = self.processor_queue
-        elif service == 'amber_clustering':
-            source_queue = self.amber_trigger_queue
-            target_queue = self.dadatrigger_queue
-        elif service == 'voevent_generator':
-            source_queue = mp.Queue()  # dummy input queue
-            target_queue = None
-        elif service == 'status_website':
-            source_queue = self.status_website_queue
-            target_queue = None
-        elif service == 'offline_processing':
-            source_queue = self.offline_queue
-            target_queue = None
-        elif service == 'dada_trigger':
-            source_queue = self.dadatrigger_queue
-            target_queue = None
-        elif service == 'lofar_trigger':
-            source_queue = mp.Queue()  # dummy input queue
-            target_queue = None
-        elif service == 'processor':
-            source_queue = self.processor_queue
-            target_queue = None
-        else:
+        if service not in self.service_mapping.keys():
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
             reply = "Unknown service"
@@ -400,13 +397,6 @@ class DARCMaster(object):
             reply = 'already running'
             self.logger.warning("Service already running: {}".format(service))
         else:
-            # set queues
-            if source_queue:
-                thread.set_source_queue(source_queue)
-            if target_queue:
-                thread.set_target_queue(target_queue)
-            if second_target_queue:
-                thread.set_second_target_queue(second_target_queue)
             # start
             thread.start()
             # check status
@@ -452,7 +442,13 @@ class DARCMaster(object):
 
         # stop the specified service
         self.logger.info("Stopping service: {}".format(service))
-        thread.source_queue.put('stop')
+        queue = self.get_queue(service)
+        if not queue:
+            status = 'Error'
+            reply = f"No queue to stop {service}"
+            return status, reply
+
+        queue.put('stop')
         tstart = time()
         while thread.is_alive() and time() - tstart < self.stop_timeout:
             sleep(.1)
@@ -492,11 +488,44 @@ class DARCMaster(object):
 
         :param str service: service to create a new thread for
         """
-        if service in self.service_mapping.keys():
-            # Instantiate a new instance of the class
-            self.threads[service] = self.service_mapping[service](config_file=self.config_file)
+        # settings for specific services
+        second_target_queue = None
+        if service == 'amber_listener':
+            source_queue = self.amber_listener_queue
+            target_queue = self.amber_trigger_queue
+            # only output to processor if this is not the master
+            if self.hostname != MASTER:
+                second_target_queue = self.processor_queue
+        elif service == 'amber_clustering':
+            source_queue = self.amber_trigger_queue
+            target_queue = self.dadatrigger_queue
+        elif service == 'voevent_generator':
+            source_queue = mp.Queue()  # dummy input queue
+            target_queue = None
+        elif service == 'status_website':
+            source_queue = self.status_website_queue
+            target_queue = None
+        elif service == 'offline_processing':
+            source_queue = self.offline_queue
+            target_queue = None
+        elif service == 'dada_trigger':
+            source_queue = self.dadatrigger_queue
+            target_queue = None
+        elif service == 'lofar_trigger':
+            source_queue = mp.Queue()  # dummy input queue
+            target_queue = None
+        elif service == 'processor':
+            source_queue = self.processor_queue
+            target_queue = None
         else:
             self.logger.error("Cannot create thread for {}".format(service))
+            return
+
+        # Instantiate a new instance of the class
+        self.threads[service] = self.service_mapping[service](source_queue=source_queue,
+                                                              target_queue=target_queue,
+                                                              second_target_queue=second_target_queue,
+                                                              config_file=self.config_file)
 
     def stop(self):
         """
@@ -664,6 +693,7 @@ class DARCMaster(object):
         :param str command: command to run
         :return: status, reply
         """
+        # TODO: Fix this in Process setup
         if command.startswith('lofar'):
             service = self.threads['lofar_trigger']
             name = 'LOFAR triggering'

@@ -23,11 +23,10 @@ class DADATrigger(DARCBase):
     Generate and send dada_dbevent triggers
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
-        :param str config_file: Path to config file
         """
-        super(DADATrigger, self).__init__(config_file=config_file)
+        super(DADATrigger, self).__init__(*args, **kwargs)
         self.thread_trigger = None
         self.thread_polcal = None
         self.triggers_enabled = True

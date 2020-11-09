@@ -34,16 +34,12 @@ class AMBERClustering(DARCBase):
     4. Put LOFAR triggers on remote LOFAR trigger queue and on VOEvent queue
     """
 
-    def __init__(self, connect_vo=True, connect_lofar=True, config_file=CONFIG_FILE):
+    def __init__(self, connect_vo=True, connect_lofar=True, *args, **kwargs):
         """
         :param bool connect_vo: Whether or not to connect to VOEvent queue on master node
         :param bool connect_lofar: Whether or not to connect to LOFAR trigger queue on master node
-        :param str config_file: Path to config file
         """
-        super(AMBERClustering, self).__init__(config_file=config_file)
-        self.needs_source_queue = True
-        self.needs_target_queue = True
-
+        super(AMBERClustering, self).__init__(*args, **kwargs)
         self.connect_vo = connect_vo
         self.connect_lofar = connect_lofar
         self.dummy_queue = mp.Queue()

@@ -26,13 +26,14 @@ class StatusWebsite(mp.Process):
     across the ARTS cluster at regular intervals
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
         """
+        :param Queue source_queue: Input queue
         :param str config_file: Path to config file
         """
         super(StatusWebsite, self).__init__()
         self.stop_event = mp.Event()
-        self.source_queue = None
+        self.source_queue = source_queue
 
         # load config, including master for list of services
         with open(config_file, 'r') as f:
@@ -73,18 +74,6 @@ class StatusWebsite(mp.Process):
         except Exception as e:
             self.logger.error("Failed to create website directory: {}".format(e))
             raise StatusWebsiteException("Failed to create website directory: {}".format(e))
-
-    def set_source_queue(self, queue):
-        """
-        Set input queue
-
-        :param queues.Queue queue: Input queue
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error("Given source queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.source_queue = queue
 
     def run(self):
         """

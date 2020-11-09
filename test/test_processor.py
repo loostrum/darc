@@ -43,19 +43,18 @@ class Idling(threading.Thread):
 class TestProcessorManager(unittest.TestCase):
 
     def test_scavenger(self):
+        queue = mp.Queue()
         # initialize the processor manager
-        manager = ProcessorManager()
+        manager = ProcessorManager(queue)
         # set the scavenger interval
         manager.scavenger_interval = 0.1
-        # the manager needs a queue before it can be started
-        queue = mp.Queue()
-        manager.set_source_queue(queue)
 
         # create a thread that idles forever
         thread = Idling()
         thread.name = 'obs'
         thread.start()
         # add the thread to the manager observation list
+        # ToDo: fix this in Process setup
         manager.observations['0'] = thread
 
         manager.start()
@@ -169,15 +168,13 @@ class TestProcessor(unittest.TestCase):
         self.amber_proc.start()
 
         # initialize AMBERListener, used for feeding triggers to Processor
-        self.amber_listener = AMBERListener()
-        self.amber_listener.set_source_queue(mp.Queue())
-        self.amber_listener.set_target_queue(mp.Queue())
+        self.amber_queue = mp.Queue()
+        self.processor_queue = mp.Queue()
+        self.amber_listener = AMBERListener(self.amber_queue, target_queue=self.processor_queue)
         self.amber_listener.start()
 
         # initialize Processor, connect input queue to output of AMBERListener
-        self.processor = Processor()
-        self.processor.logger.setLevel('DEBUG')
-        self.processor.set_source_queue(self.amber_listener.target_queue)
+        self.processor = Processor(self.processor_queue)
 
     def tearDown(self):
         # remove ringbuffers
@@ -279,8 +276,9 @@ class TestProcessor(unittest.TestCase):
         self.processor.start()
 
         # start amber listener and processor
-        self.amber_listener.start_observation(obs_config=self.header, reload=False)
-        self.processor.start_observation(obs_config=self.header, reload=False)
+        cmd = {'command': 'start_observation', 'obs_config': self.header, 'reload': False}
+        self.amber_queue.put(cmd)
+        self.processor_queue.put(cmd)
 
         # at start time, read data into buffer, other processes are already set up and waiting for data
         util.sleepuntil_utc(self.tstart)
@@ -291,7 +289,7 @@ class TestProcessor(unittest.TestCase):
             proc.join()
 
         # stop observation
-        self.amber_listener.source_queue.put({'command': 'stop_observation', 'obs_config': self.header})
+        self.amber_queue.put({'command': 'stop_observation'})
         self.processor.source_queue.put({'command': 'stop_observation'})
 
         # stop services

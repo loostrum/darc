@@ -22,14 +22,14 @@ class ProcessorMasterManager(DARCBase):
     Control logic for running several ProcessorMaster instances, one per observation
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
-        :param str config_file: Path to config file
         """
-        super(ProcessorMasterManager, self).__init__(config_file=config_file)
+        super(ProcessorMasterManager, self).__init__(*args, **kwargs)
 
         self.observations = {}
-        self.current_observation = None
+        self.observation_queues = {}
+        self.current_observation_queue = None
 
         self.scavenger = None
 
@@ -83,14 +83,15 @@ class ProcessorMasterManager(DARCBase):
             return
 
         # initialize a Processor for this observation
-        proc = ProcessorMaster(config_file=self.config_file)
+        queue = mp.Queue()
+        proc = ProcessorMaster(source_queue=queue, config_file=self.config_file)
         proc.name = taskid
-        proc.set_source_queue(mp.Queue())
         proc.start()
         # start the observation and store thread
-        proc.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
+        queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
-        self.current_observation = proc
+        self.observation_queues[taskid] = queue
+        self.current_observation_queue = queue
         return
 
     def stop_observation(self, obs_config):
@@ -109,11 +110,7 @@ class ProcessorMasterManager(DARCBase):
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method
-        self.observations[taskid].input_queue.put('stop')
-
-    # only start and stop observation commands exist
-    def process_command(self, command):
-        pass
+        self.observation_queues[taskid].put({'command': 'stop'})
 
     def _load_parset(self, obs_config):
         """
@@ -154,11 +151,11 @@ class ProcessorMaster(DARCBase):
     """
     Combine results from worker node processors
     """
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
         :param str config_file: Path to config file
         """
-        super(ProcessorMaster, self).__init__(config_file=config_file)
+        super(ProcessorMaster, self).__init__(*args, **kwargs)
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()

@@ -26,14 +26,14 @@ class ProcessorManager(DARCBase):
     Control logic for running several Processor instances, one per observation
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
-        :param str config_file: Path to config file
         """
-        super(ProcessorManager, self).__init__(config_file=config_file)
+        super(ProcessorManager, self).__init__(*args, **kwargs)
 
         self.observations = {}
-        self.current_observation = None
+        self.observation_queues = {}
+        self.current_observation_queue = None
         self.scavenger = None
 
     def run(self):
@@ -86,15 +86,15 @@ class ProcessorManager(DARCBase):
             return
 
         # initialize a Processor for this observation
-        proc = Processor(config_file=self.config_file)
+        queue = mp.Queue()
+        proc = Processor(source_queue=queue, config_file=self.config_file)
         proc.name = taskid
-        # create a source queue
-        proc.set_source_queue(mp.Queue())
         proc.start()
         # start the observation and store thread
-        proc.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
+        queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
-        self.current_observation = proc
+        self.observation_queues[taskid] = queue
+        self.current_observation_queue = queue
         return
 
     def stop_observation(self, obs_config):
@@ -113,7 +113,7 @@ class ProcessorManager(DARCBase):
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method
-        self.observations[taskid].source_queue.put({'command': 'stop'})
+        self.observation_queues[taskid].put({'command': 'stop'})
 
     def process_command(self, command):
         """
@@ -121,8 +121,8 @@ class ProcessorManager(DARCBase):
         """
         if command['command'] == 'stop':
             self.stop()
-        elif self.current_observation is not None:
-            self.current_observation.source_queue.put(command)
+        elif self.current_observation_queue is not None:
+            self.current_observation_queue.put(command)
         else:
             self.logger.error("Data received but no observation is running - ignoring")
         return
@@ -173,11 +173,10 @@ class Processor(DARCBase):
     After observation finishes, results are gathered in a central location to be picked up by the master node
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
-        :param str config_file: Path to config file
         """
-        super(Processor, self).__init__(config_file=config_file)
+        super(Processor, self).__init__(*args, **kwargs)
         self.observation_running = False
         self.threads = {}
         self.amber_triggers = []
@@ -205,6 +204,7 @@ class Processor(DARCBase):
         self.ncand_above_threshold = mp.Value('i', 0)
         self.ncand_post_classifier = mp.Value('i', 0)
 
+        self.candidates_to_visualize = []
         self.classifier_parent_conn, self.classifier_child_conn = mp.Pipe()
 
     def process_command(self, command):
@@ -217,8 +217,7 @@ class Processor(DARCBase):
             self.stop()
         elif command['command'] == 'trigger':
             if not self.observation_running:
-                pass
-                # self.logger.error("Trigger(s) received but no observation is running - ignoring")
+                self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
                 with self.amber_lock:
                     self.amber_triggers.append(command['trigger'])
@@ -305,16 +304,16 @@ class Processor(DARCBase):
         # clear processing thread
         self.threads['processing'].join()
         # signal clustering to stop
-        self.threads['clustering'].input_queue.put('stop')
+        self.clustering_queue.put('stop')
         self.threads['clustering'].join()
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
-            self.threads[f'extractor_{i}'].input_queue.put('stop')
+            self.extractor_queue.put(f'stop_extractor_{i}')
             self.threads[f'extractor_{i}'].join()
         # signal classifier to stop
-        self.threads['classifier'].input_queue.put('stop')
+        self.classifier_queue.put('stop')
         # read the output of the classifier
-        candidates_to_visualize = self.threads['classifier'].recv()
+        self.candidates_to_visualize = self.classifier_parent_conn.recv()
         self.threads['classifier'].join()
 
         # store obs statistics
@@ -335,8 +334,12 @@ class Processor(DARCBase):
 
         # Store the statistics and start the visualization
         if not abort:
-            Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
-                       candidates_to_visualize, self.config_file)
+            if len(self.candidates_to_visualize) > 0:
+                Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
+                           self.candidates_to_visualize, self.config_file)
+            else:
+                self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
+                                 f"{self.obs_config['parset']['task.taskID']}")
             # Store statistics after visualization, as master will start combining results once all stats are present
             self._store_obs_stats()
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
@@ -399,7 +402,7 @@ class Processor(DARCBase):
                                                        self.hdr_mapping['beam_id'])]
 
                 # put triggers on clustering queue
-                self.threads['clustering'].input_queue.put(triggers_for_clustering)
+                self.clustering_queue.put(triggers_for_clustering)
             sleep(self.interval)
 
     def _store_obs_stats(self):
@@ -418,7 +421,7 @@ class Processor(DARCBase):
         self.logger.debug(f"Storing trigger metadata to {trigger_file}")
         with open(trigger_file, 'w') as f:
             f.write('#cb snr dm time downsamp sb p\n')
-            for fname in self.threads['classifier'].candidates_to_visualize:
+            for fname in self.candidates_to_visualize:
                 with h5py.File(fname, 'r') as h5:
                     line = "{beam:02d} {snr:.2f} {dm:.2f} {toa:.4f} " \
                            "{downsamp:.0f} {sb:.0f} " \

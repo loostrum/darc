@@ -37,7 +37,7 @@ class LOFARTrigger(mp.Process):
     """
     Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering
     """
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, config_file=CONFIG_FILE, **kwargs):
         """
         :param str config_file: Path to config file
         """

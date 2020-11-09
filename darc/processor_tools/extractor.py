@@ -90,8 +90,13 @@ class Extractor(mp.Process):
                 continue
             else:
                 self.input_empty = False
-                if params == 'stop':
-                    do_stop = True
+                if isinstance(params, str):
+                    if params == f'stop_{self.name}':
+                        # this extractor should stop
+                        do_stop = True
+                    elif params.startswith('stop'):
+                        # another extractor should stop, put the message back on the queue
+                        self.input_queue.put(params)
                 else:
                     # do extraction
                     self._extract(*params)
@@ -234,7 +239,7 @@ class Extractor(mp.Process):
             self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}")
             # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
+            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} "
                              f"in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
@@ -269,7 +274,7 @@ class Extractor(mp.Process):
                                 f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
                              f"{(timer_end - timer_start).to(u.s):.0f}")
             return
 
@@ -333,7 +338,7 @@ class Extractor(mp.Process):
 
         # log time taken
         timer_end = Time.now()
-        self.logger.info(f"Successfully processed ToA={toa:.4f}, DM={dm.value:.2f} in "
+        self.logger.info(f"Successfully extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
                          f"{(timer_end - timer_start).to(u.s):.0f}")
 
     def _rficlean(self):

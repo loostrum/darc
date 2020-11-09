@@ -22,13 +22,10 @@ class AMBERListener(DARCBase):
     candidates on output queue.
     """
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, *args, **kwargs):
         """
-        :param str config_file: Path to config file
         """
-        super(AMBERListener, self).__init__(config_file=config_file)
-        self.needs_target_queue = True
-
+        super(AMBERListener, self).__init__(*args, **kwargs)
         self.observation_threads = []
         self.observation_events = []
 

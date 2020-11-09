@@ -75,7 +75,7 @@ class Clustering(mp.Process):
                 continue
             else:
                 self.input_empty = False
-                if triggers == 'stop':
+                if isinstance(triggers, str) and triggers == 'stop':
                     do_stop = True
                 else:
                     # do clustering

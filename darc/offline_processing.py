@@ -46,14 +46,15 @@ class OfflineProcessing(mp.Process):
     - Automated run of calibration tools for drift scans
     - Automated run of known FRB candidate extractor
     """
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
         """
-        :param str config_file: Path to custom config file
+        :param Queue source_queue: Input queue
+        :param str config_file: Path to config file
         """
         super(OfflineProcessing, self).__init__()
+        self.observation_queue = source_queue
         self.stop_event = mp.Event()
 
-        self.observation_queue = None
         self.threads = {}
 
         # load config
@@ -84,17 +85,6 @@ class OfflineProcessing(mp.Process):
             config['keys_data'].append('tab')
         self.config = config
 
-    def set_source_queue(self, queue):
-        """
-        Set input queue
-
-        :param queues.Queue queue: Source of start_observation commands
-        """
-        if not isinstance(queue, mp.queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise OfflineProcessingException('Given source queue is not an instance of Queue')
-        self.observation_queue = queue
-
     def stop(self):
         """
         Stop this service
@@ -116,8 +106,9 @@ class OfflineProcessing(mp.Process):
                 data = self.observation_queue.get(timeout=1)
             except Empty:
                 continue
-            if data == 'stop':
+            if isinstance(data, str) and data == 'stop':
                 self.stop()
+                continue
 
             # load observation config
             host_type = data['host_type']
