@@ -125,8 +125,6 @@ class DARCMaster(object):
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
 
-
-
         # store services
         if self.hostname == MASTER:
             if self.mode == 'real-time':

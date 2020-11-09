@@ -64,9 +64,7 @@ class TestDADATrigger(unittest.TestCase):
         # create input queue
         queue = mp.Queue()
         # init DADA Trigger
-        dadatrigger = DADATrigger()
-        # set the queue
-        dadatrigger.set_source_queue(queue)
+        dadatrigger = DADATrigger(queue)
         # start dadatrigger
         dadatrigger.start()
 
@@ -139,6 +137,7 @@ class TestDADATrigger(unittest.TestCase):
                         raise
         else:
             out_event = client.recv(1024).decode()
+        client.close()
         # close the socket
         sock.close()
 
@@ -147,7 +146,7 @@ class TestDADATrigger(unittest.TestCase):
         self.assertListEqual(in_event_split, out_event_split)
 
         # stop dadatrigger
-        dadatrigger.source_queue.put('stop')
+        queue.put('stop')
 
     def test_polcal(self):
         """
@@ -156,9 +155,7 @@ class TestDADATrigger(unittest.TestCase):
         # create input queue
         queue = mp.Queue()
         # init DADA Trigger
-        dadatrigger = DADATrigger()
-        # set the queue
-        dadatrigger.set_source_queue(queue)
+        dadatrigger = DADATrigger(queue)
         # set IQUV dump size, interval, max number of dumps
         dadatrigger.polcal_dump_size = 1
         dadatrigger.polcal_interval = 2
@@ -221,12 +218,13 @@ class TestDADATrigger(unittest.TestCase):
                             raise
             else:
                 event = client.recv(1024).decode()
+            client.close()
             received_events.append(event)
 
         # close the socket
         sock.close()
         # stop dada trigger
-        dadatrigger.source_queue.put('stop')
+        queue.put('stop')
 
         self.assertTrue(ndump == len(received_events))
 

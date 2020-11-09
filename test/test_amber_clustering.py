@@ -23,11 +23,10 @@ class TestAMBERClustering(unittest.TestCase):
         in_queue = mp.Queue()
         out_queue = mp.Queue()
         # init AMBER Clustering
-        clustering = AMBERClustering(connect_vo=False, connect_lofar=False)
-        # set the queues
-        clustering.set_source_queue(in_queue)
-        clustering.set_target_queue(out_queue)
+        clustering = AMBERClustering(connect_vo=False, connect_lofar=False,
+                                     source_queue=in_queue, target_queue=out_queue)
         # ensure clustering settings are the same as when the below expected output was calculated
+        # ToDo: verify this works in Process setup
         clustering.clustering_window = 1.0
         clustering.dm_range = 10
         clustering.snr_min_global = 10
@@ -83,7 +82,7 @@ class TestAMBERClustering(unittest.TestCase):
 
         # stop clustering
         in_queue.put({'command': 'stop_observation'})
-        clustering.source_queue.put('stop')
+        in_queue.put('stop')
 
         expected_output = [{'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 18.4666, 'time': 0.0244941},
                            {'stokes': 'IQUV', 'dm': 56.8, 'beam': 0, 'width': 1, 'snr': 29.6098, 'time': 3.46857},

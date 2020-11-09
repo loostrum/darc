@@ -24,11 +24,7 @@ class TestAMBERListener(unittest.TestCase):
         amber_queue = mp.Queue()
         amber_queue2 = mp.Queue()
         # init AMBER Listener
-        listener = AMBERListener()
-        # set the queues
-        listener.set_source_queue(obs_queue)
-        listener.set_target_queue(amber_queue)
-        listener.set_second_target_queue(amber_queue2)
+        listener = AMBERListener(obs_queue, amber_queue, amber_queue2)
         # start the listener
         listener.start()
         # start observation
@@ -61,7 +57,7 @@ class TestAMBERListener(unittest.TestCase):
         sleep(1)
 
         # stop the listener
-        listener.source_queue.put('stop')
+        obs_queue.put('stop')
 
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
@@ -159,10 +155,7 @@ class TestAMBERListener(unittest.TestCase):
         # create output queue
         amber_queue = mp.Queue()
         # init AMBER Listener
-        listener = AMBERListener()
-        # set the queues
-        listener.set_source_queue(obs_queue)
-        listener.set_target_queue(amber_queue)
+        listener = AMBERListener(obs_queue, amber_queue)
         # start the listener
         listener.start()
         # start observation
@@ -192,10 +185,8 @@ class TestAMBERListener(unittest.TestCase):
 
         # stop the observation
         obs_queue.put({'command': 'stop_observation'})
-        sleep(5)
-
         # stop the listener
-        listener.source_queue.put('stop')
+        obs_queue.put('stop')
 
         # delete temp output files
         for step in range(1, nstep + 1):

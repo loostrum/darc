@@ -25,7 +25,8 @@ class TestProcessorMaster(unittest.TestCase):
         else:
             self.result_dir = '/tank/users/arts/darc_automated_testing/processor_master'
 
-        self.processor = ProcessorMaster()
+        self.processor_queue = mp.Queue()
+        self.processor = ProcessorMaster(self.processor_queue)
 
         tstart = Time.now()
         duration = TimeDelta(5, format='sec')
@@ -80,9 +81,6 @@ class TestProcessorMaster(unittest.TestCase):
             f.write('00 10.00 20.00 30.0000 50 35 1.00\n')
 
     def test_processor_master(self):
-        # init processor master
-        self.processor.set_source_queue(mp.Queue())
-
         # override result dir
         self.processor.result_dir = self.result_dir
 
@@ -90,7 +88,7 @@ class TestProcessorMaster(unittest.TestCase):
         self.processor.start()
 
         # start observation
-        self.processor.start_observation(self.obs_config, reload=False)
+        self.processor_queue.put({'command': 'start_observation', 'obs_config': self.obs_config, 'reload': False})
 
         # wait until processor is done
         self.processor.join()
