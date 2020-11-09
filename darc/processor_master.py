@@ -336,6 +336,7 @@ class ProcessorMaster(DARCBase):
                            "<td>{dm:.2f}</td>" \
                            "<td>{time:.4f}</td>" \
                            "<td>{width:.2f}</td>" \
+                           "<td>{cb:.2f}</td>" \
                            "<td>{sb:.0f}</td>".format(**trigger_dict)
             ntrig += 1
             if ntrig >= self.ntrig_email_max:
