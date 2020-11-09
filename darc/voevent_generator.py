@@ -197,8 +197,8 @@ class VOEventGenerator(mp.Process):
         t = Time(trigger['utc'])
         # IERS server is down, avoid using it
         t.delta_ut1_utc = 0
-        hadec = util.ra_to_ha(coord.ra, coord.dec, t)
-        trigger['posang'] = util.ha_to_proj(hadec.ra, hadec.dec).to(u.deg).value
+        hadec = util.radec_to_hadec(coord.ra, coord.dec, t)
+        trigger['posang'] = util.hadec_to_rot(hadec.ra, hadec.dec).to(u.deg).value
 
         self.logger.info("Creating VOEvent")
         self._NewVOEvent(**trigger)

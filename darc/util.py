@@ -19,10 +19,10 @@ import numpy as np
 from astropy.time import Time
 import astropy.units as u
 import astropy.constants as const
-from astropy.coordinates import SkyCoord, FK5
+from astropy.coordinates import SkyCoord, SphericalRepresentation
 from queue import Empty
 
-from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT, NDISH
+from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LOC, WSRT_LON, WSRT_LAT, NDISH
 
 
 def sleepuntil_utc(end_time, event=None):
@@ -189,40 +189,33 @@ def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
     return flux.to(u.mJy)
 
 
-def ra_to_ha(ra, dec, t):
+def radec_to_hadec(ra, dec, t):
     """
-    Convert J2000 RA, Dec to WSRT HA, Dec
-
-    :param astropy.units.quantity.Quantity ra: right ascension with unit
-    :param astropy.units.quantity.Quantity dec: declination with unit
-    :param str/astropy.time.Time t: UTC time
-    :return: SkyCoord object of apparent HA, Dec coordinates
+    Convert RA, Dec to apparent WSRT HA, Dec
+    :param Quantity ra: Right ascension
+    :param Quantity dec: Declination
+    :param Time/str t: Observing time
+    :return: HA (Quantity), Dec (Quantity)
     """
 
     # Convert time to Time object if given as string
     if isinstance(t, str):
         t = Time(t)
 
-    # Apparent LST at WSRT at this time
-    lst = t.sidereal_time('apparent', WSRT_LON)
-    # Equinox of date (because hour angle uses apparent coordinates)
-    coord_system = FK5(equinox='J{}'.format(t.decimalyear))
-    # convert coordinates to apparent
-    coord_apparent = SkyCoord(ra, dec, frame='icrs').transform_to(coord_system)
-    # HA = LST - apparent RA
-    ha = lst - coord_apparent.ra
-    dec = coord_apparent.dec
-    # return SkyCoord of (Ha, Dec)
-    return SkyCoord(ha, dec, frame=coord_system)
+    coord = SkyCoord(ra, dec, frame='icrs', obstime=t)
+    ha = WSRT_LOC.lon - coord.itrs.spherical.lon
+    ha.wrap_at(12 * u.hourangle, inplace=True)
+    dec = coord.itrs.spherical.lat
+
+    return ha, dec
 
 
-def ha_to_ra(ha, dec, t):
+def hadec_to_radec(ha, dec, t):
     """
-    Convert WSRT HA, Dec to J2000 RA, Dec
-
-    :param astropy.units.quantity.Quantity ha: hour angle with unit
-    :param astropy.units.quantity.Quantity dec: declination with unit
-    :param str/astropy.time.Time t: UTC time
+    Convert apparent HA, Dec to J2000 RA, Dec
+    :param ha: hour angle with unit
+    :param dec: declination with unit
+    :param Time/str t: Observing time
     :return: SkyCoord object of J2000 coordinates
     """
 
@@ -230,27 +223,24 @@ def ha_to_ra(ha, dec, t):
     if isinstance(t, str):
         t = Time(t)
 
-    # Apparent LST at WSRT at this time
-    lst = t.sidereal_time('apparent', WSRT_LON)
-    # Equinox of date (because hour angle uses apparent coordinates)
-    coord_system = FK5(equinox='J{}'.format(t.decimalyear))
-    # apparent RA = LST - HA
-    ra_apparent = lst - ha
-    coord_apparent = SkyCoord(ra_apparent, dec, frame=coord_system)
-    return coord_apparent.transform_to('icrs')
+    # create spherical representation of ITRS coordinates of given ha, dec
+    itrs_spherical = SphericalRepresentation(WSRT_LOC.lon - ha, dec, 1.)
+    # create ITRS object, which requires cartesian input
+    coord = SkyCoord(itrs_spherical.to_cartesian(), frame='itrs', obstime=t)
+    # convert to J2000
+    return coord.icrs.ra, coord.icrs.dec
 
 
-def ha_to_proj(ha, dec):
+def hadec_to_rot(ha, dec):
     """
-    Convert WSRT HA, Dec to parallactic angle
+    Convert WSRT HA, Dec to TAB rotation angle
 
     :param astropy.units.quantity.Quantity ha: hour angle with unit
     :param astropy.units.quantity.Quantity dec: declination with unit
     """
-    theta_proj = np.arctan(np.cos(WSRT_LAT) * np.sin(ha)
-                           / (np.sin(WSRT_LAT) * np.cos(dec)
-                           - np.cos(WSRT_LAT) * np.sin(dec) * np.cos(ha))).to(u.deg)
-    return theta_proj.to(u.deg)
+    theta_rot = np.arctan2(np.sin(dec) * np.sin(ha), np.cos(ha))
+
+    return theta_rot.to(u.deg)
 
 
 def dm_to_delay(dm, flo, fhi):
