@@ -4,6 +4,7 @@ import os
 import socket
 from argparse import Namespace
 import multiprocessing as mp
+import threading
 from queue import Empty
 from time import sleep
 import yaml
@@ -71,7 +72,12 @@ class Clustering(mp.Process):
             except Empty:
                 self.input_empty = True
                 if do_stop:
-                    self.stop()
+                    # run stop in a thread, so processing can continue
+                    thread = threading.Thread(target=self.stop)
+                    thread.daemon = True
+                    thread.start()
+                    # then set do_stop to false, so it is not run a second time
+                    do_stop = False
                 continue
             else:
                 self.input_empty = False
@@ -95,7 +101,6 @@ class Clustering(mp.Process):
             print("NOT YET EMPTY")
             sleep(1)
         # then stop
-        self.logger.debug("Clustering DONE")
         self.stop_event.set()
 
     def _load_config(self):

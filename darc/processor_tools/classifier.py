@@ -6,6 +6,7 @@ from argparse import Namespace
 from time import sleep
 from queue import Empty
 import multiprocessing as mp
+import threading
 import yaml
 import numpy as np
 import h5py
@@ -14,11 +15,6 @@ from darc.definitions import CONFIG_FILE
 
 # silence the tensorflow logger
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import tensorflow as tf
-
-# silence the tensorflow logger even more
-if int(tf.__version__[0]) >= 2:
-    tf.get_logger().setLevel('ERROR')
 
 
 class Classifier(mp.Process):
@@ -42,20 +38,6 @@ class Classifier(mp.Process):
         self.config_file = config_file
         self.config = self._load_config()
 
-        # set GPU visible to classifier
-        os.environ['CUDA_VISIBLE_DEVICES'] = str(self.config.gpu)
-        # set memory growth parameter to avoid allocating all GPU memory
-        # only one GPU is visible, so always selecting first GPU is fine
-        # this is only available on tensorflow >= 2.0
-        if int(tf.__version__[0]) >= 2:
-            gpu = tf.config.experimental.list_physical_devices('GPU')[0]
-            tf.config.experimental.set_memory_growth(gpu, True)
-        else:
-            # for TF 1.X, create a session with the required growth parameter
-            tf_config = tf.ConfigProto()
-            tf_config.gpu_options.allow_growth = True
-            tf.Session(config=tf_config)
-
         # create stop event
         self.stop_event = mp.Event()
 
@@ -68,6 +50,33 @@ class Classifier(mp.Process):
         self.ndm_data = None
         self.ntime_data = None
         self.candidates_to_visualize = []
+        self.tf = None
+
+    def _load_tensorflow(self):
+        """
+        Load tensorflow into local namespace
+        """
+        # import tensorflow here as apparently it isn't fork-safe, and results
+        # in a "Could not retrieve CUDA device count" error when
+        # this Process is forked from another Process
+        import tensorflow
+        self.tf = tensorflow
+        # set GPU visible to classifier
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(self.config.gpu)
+
+        # set memory growth parameter to avoid allocating all GPU memory
+        # only one GPU is visible, so always selecting first GPU is fine
+        # this is only available on tensorflow >= 2.0
+        if int(self.tf.__version__[0]) >= 2:
+            gpu = self.tf.config.experimental.list_physical_devices('GPU')[0]
+            self.tf.config.experimental.set_memory_growth(gpu, True)
+            # also silence the logger even more
+            self.tf.get_logger().setLevel('ERROR')
+        else:
+            # for TF 1.X, create a session with the required growth parameter
+            tf_config = self.tf.ConfigProto()
+            tf_config.gpu_options.allow_growth = True
+            self.tf.Session(config=tf_config)
 
     def run(self):
         """
@@ -75,6 +84,8 @@ class Classifier(mp.Process):
         """
         self.logger.info("Starting classifier thread")
 
+        # initalize tensorflow and models
+        self._load_tensorflow()
         self._init_models()
 
         do_stop = False
@@ -85,7 +96,13 @@ class Classifier(mp.Process):
             except Empty:
                 self.input_empty = True
                 if do_stop:
-                    self.stop()
+                    # run stop in a thread, so processing can continue
+                    self.logger.debug("Running stop")
+                    thread = threading.Thread(target=self.stop)
+                    thread.daemon = True
+                    thread.start()
+                    # then set do_stop to false, so it is not run a second time
+                    do_stop = False
                 continue
             else:
                 self.input_empty = False
@@ -134,10 +151,10 @@ class Classifier(mp.Process):
         Load the keras models
         """
         # intialise analysis tools
-        self.model_freqtime = tf.keras.models.load_model(os.path.join(self.config.model_dir,
-                                                                      self.config.model_freqtime))
-        self.model_dmtime = tf.keras.models.load_model(os.path.join(self.config.model_dir,
-                                                                    self.config.model_dmtime))
+        self.model_freqtime = self.tf.keras.models.load_model(os.path.join(self.config.model_dir,
+                                                                           self.config.model_freqtime))
+        self.model_dmtime = self.tf.keras.models.load_model(os.path.join(self.config.model_dir,
+                                                                         self.config.model_dmtime))
 
         # The model's first prediction takes longer
         # pre-empt this by classifying an array of zeros before looking at real data

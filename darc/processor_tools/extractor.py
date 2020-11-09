@@ -86,7 +86,12 @@ class Extractor(mp.Process):
             except Empty:
                 self.input_empty = True
                 if do_stop:
-                    self.stop()
+                    # run stop in a thread, so processing can continue
+                    thread = threading.Thread(target=self.stop)
+                    thread.daemon = True
+                    thread.start()
+                    # then set do_stop to false, so it is not run a second time
+                    do_stop = False
                 continue
             else:
                 self.input_empty = False
@@ -97,6 +102,8 @@ class Extractor(mp.Process):
                     elif params.startswith('stop'):
                         # another extractor should stop, put the message back on the queue
                         self.input_queue.put(params)
+                        # sleep for a bit to avoid this extractor picking up the same command again
+                        sleep(.1)
                 else:
                     # do extraction
                     self._extract(*params)
