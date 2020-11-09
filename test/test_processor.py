@@ -346,7 +346,6 @@ class TestExtractor(unittest.TestCase):
         self.assertTrue(self.ncand.value == 1)
 
 
-@unittest.skip('Need to fix usage of mp.Array')
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
 class TestClassifier(unittest.TestCase):
 
@@ -364,9 +363,8 @@ class TestClassifier(unittest.TestCase):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
-        self.candarray = mp.Array(ctypes.c_wchar_p, 1000)
-        self.ncand = mp.Value('i', 0)
-        self.classifier = Classifier(logger, mp.Queue(), self.candarray, self.ncand)
+        self.conn, child_conn = mp.Pipe()
+        self.classifier = Classifier(logger, mp.Queue(), child_conn)
 
     def test_classify(self):
         # start the classifier
@@ -375,16 +373,14 @@ class TestClassifier(unittest.TestCase):
         self.classifier.input_queue.put(self.fname)
         # stop the classifier
         self.classifier.input_queue.put('stop')
-        self.classifier.join()
         # read the output
-        self.assertEqual(self.ncand.value, 1)
-        fnames = []
-        for i in range(self.ncand.value):
-            fnames.append(self.candarray[i])
+        candidates = self.conn.recv()
+        self.classifier.join()
 
-        self.assertTrue(fnames[0].endswith('.hdf5'))
+        self.assertEqual(len(candidates), 1)
+        self.assertTrue(candidates[0].endswith('.hdf5'))
         # read the probabilities
-        with h5py.File(fnames[0], 'r') as f:
+        with h5py.File(candidates[0], 'r') as f:
             self.assertTrue('prob_freqtime' in f.attrs.keys())
             self.assertTrue('prob_dmtime' in f.attrs.keys())
 

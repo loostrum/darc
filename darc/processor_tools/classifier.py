@@ -26,17 +26,17 @@ class Classifier(mp.Process):
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, logger, input_queue, candidates_to_visualize, ncand_post_classifier, config_file=CONFIG_FILE):
+    def __init__(self, logger, input_queue, conn, config_file=CONFIG_FILE):
         """
         :param Logger logger: Processor logger object
         :param Queue input_queue: Input queue for triggers
-        :param mp.Array candidates_to_visualize: empty array
-        :param mp.Value ncand_post_classifier: 0
+        :param Connection conn: Pipe connection to send output to
         :param str config_file: Path to config file
         """
         super(Classifier, self).__init__()
         self.logger = logger
         self.input_queue = input_queue
+        self.conn = conn
 
         # load config
         self.config_file = config_file
@@ -67,8 +67,7 @@ class Classifier(mp.Process):
         self.nfreq_data = None
         self.ndm_data = None
         self.ntime_data = None
-        self.candidates_to_visualize = candidates_to_visualize
-        self.ncand_post_classifier = ncand_post_classifier
+        self.candidates_to_visualize = []
 
     def run(self):
         """
@@ -96,6 +95,9 @@ class Classifier(mp.Process):
                     # do classification
                     self._classify(fname)
         self.logger.info("Stopping classifier thread")
+        # send list of candidates to visualize to parent process
+        self.conn.send(self.candidates_to_visualize)
+        self.conn.close()
 
     def stop(self):
         """
@@ -175,8 +177,7 @@ class Classifier(mp.Process):
 
         # if the probabilities are above threshold, store the file path
         if (prob_freqtime > self.config.thresh_freqtime) and (prob_dmtime > self.config.thresh_dmtime):
-            self.candidates_to_visualize[self.ncand_post_classifier.value] = fname
-            self.ncand_post_classifier.value += 1
+            self.candidates_to_visualize.append(fname)
 
     def _prepare_data(self):
         """

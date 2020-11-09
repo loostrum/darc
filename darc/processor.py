@@ -204,7 +204,8 @@ class Processor(DARCBase):
         self.ncluster = mp.Value('i', 0)
         self.ncand_above_threshold = mp.Value('i', 0)
         self.ncand_post_classifier = mp.Value('i', 0)
-        self.candidates_to_visualize = mp.Array(ctypes.c_wchar_p, int(1e6))
+
+        self.classifier_parent_conn, self.classifier_child_conn = mp.Pipe()
 
     def process_command(self, command):
         """
@@ -278,8 +279,7 @@ class Processor(DARCBase):
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue, self.candidates_to_visualize,
-                            self.ncand_post_classifier, self.config_file)
+        thread = Classifier(self.logger, self.classifier_queue, self.classifier_child_conn, self.config_file)
         thread.name = 'classifier'
         thread.start()
         self.threads['classifier'] = thread
@@ -313,6 +313,8 @@ class Processor(DARCBase):
             self.threads[f'extractor_{i}'].join()
         # signal classifier to stop
         self.threads['classifier'].input_queue.put('stop')
+        # read the output of the classifier
+        candidates_to_visualize = self.threads['classifier'].recv()
         self.threads['classifier'].join()
 
         # store obs statistics
@@ -333,14 +335,8 @@ class Processor(DARCBase):
 
         # Store the statistics and start the visualization
         if not abort:
-            # convert classifier candidate list to normal list
-            cands_to_visualize = []
-            for fname in self.candidates_to_visualize:
-                if not fname:
-                    break
-                cands_to_visualize.append(fname)
             Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
-                       cands_to_visualize, self.config_file)
+                       candidates_to_visualize, self.config_file)
             # Store statistics after visualization, as master will start combining results once all stats are present
             self._store_obs_stats()
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
