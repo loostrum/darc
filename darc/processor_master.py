@@ -52,6 +52,7 @@ class ProcessorMasterManager(DARCBase):
                     # if the thread is dead, remove it from the list
                     self.observations.pop(taskid)
                     self.logger.info(f"Scavenging thread of taskid {taskid}")
+            self.stop_event.wait(self.scavenger_interval)
 
     def cleanup(self):
         """
@@ -177,6 +178,7 @@ class ProcessorMaster(DARCBase):
 
         # add observation-specific path to result_dir
         self.central_result_dir = os.path.join(self.result_dir, obs_config['date'], obs_config['datetimesource'])
+        util.makedirs(self.central_result_dir)
 
         self.obs_config = obs_config
 

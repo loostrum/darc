@@ -55,6 +55,7 @@ class ProcessorManager(DARCBase):
                     # if the thread is dead, remove it from the list
                     self.observations.pop(taskid)
                     self.logger.info(f"Scavenging thread of taskid {taskid}")
+            self.stop_event.wait(self.scavenger_interval)
 
     def cleanup(self):
         """
@@ -190,7 +191,7 @@ class Processor(DARCBase):
         self.classifier_queue = mp.Queue()
         self.all_queues = (self.clustering_queue, self.extractor_queue, self.classifier_queue)
 
-        # lock for accessing AMBER trigger list and
+        # lock for accessing AMBER trigger list and obs stats
         self.amber_lock = threading.Lock()
         self.obs_stats_lock = threading.Lock()
 
@@ -326,8 +327,7 @@ class Processor(DARCBase):
             # store number of post-clustering candidates
             self.obs_stats['ncand_post_clustering'] = self.ncluster.value
             # store number of candidates above local S/N threshold
-            for i in range(self.num_extractor):
-                self.obs_stats['ncand_post_thresholds'] += self.ncand_above_threshold.value
+            self.obs_stats['ncand_post_thresholds'] = self.ncand_above_threshold.value
             # store number of candidates post-classifier
             self.obs_stats['ncand_post_classifier'] = len(self.candidates_to_visualize)
 
