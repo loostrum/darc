@@ -15,7 +15,7 @@ from astropy.coordinates import SkyCoord
 
 
 from darc import DARCBase, VOEventQueueServer, LOFARTriggerQueueServer
-from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER, TIME_UNIT
+from darc.definitions import TSAMP, NCHAN, BANDWIDTH, MASTER, TIME_UNIT
 from darc.external import tools
 from darc import util
 
@@ -592,19 +592,18 @@ class AMBERClustering(DARCBase):
         try:
             key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
             c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+            c1 = c1 * u.deg
+            c2 = c2 * u.deg
         except Exception as e:
             self.logger.error("Could not parse pointing for CB{:02d} ({})".format(beam, e))
             return None
         # convert HA to RA if HADEC is used
         if parset['task.directionReferenceFrame'].upper() == 'HADEC':
-            # RA = LST - HA. Get RA at the start of the observation
-            start_time = Time(parset['task.startTime'])
-            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-            start_time.delta_ut1_utc = 0
-            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-            c1 = lst_start.to(u.deg).value - c1
+            # Get RA at the mid point of the observation
+            timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+            c1, c2 = util.radec_to_hadec(c1, c2, timestamp)
         # create SkyCoord object
-        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+        pointing = SkyCoord(c1, c2)
         return pointing
 
     def _load_parset(self, obs_config):

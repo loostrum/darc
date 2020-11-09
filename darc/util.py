@@ -22,7 +22,7 @@ import astropy.constants as const
 from astropy.coordinates import SkyCoord, SphericalRepresentation
 from queue import Empty
 
-from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LOC, WSRT_LON, WSRT_LAT, NDISH
+from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LOC, NDISH
 
 
 def sleepuntil_utc(end_time, event=None):
@@ -401,20 +401,19 @@ def get_ymw16(parset, beam=0, logger=None):
     try:
         key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
         c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+        c1 = c1 * u.deg
+        c2 = c2 * u.deg
     except Exception as e:
         if logger is not None:
             logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
         return 0
     # convert HA to RA if HADEC is used
     if parset['task.directionReferenceFrame'].upper() == 'HADEC':
-        # RA = LST - HA. Get RA at the mid point of the observation
+        # Get RA at the mid point of the observation
         timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
-        # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-        timestamp.delta_ut1_utc = 0
-        lst_start = timestamp.sidereal_time('mean', WSRT_LON).to(u.deg)
-        c1 = lst_start.to(u.deg).value - c1
+        c1, c2 = radec_to_hadec(c1, c2, timestamp)
 
-    pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+    pointing = SkyCoord(c1, c2)
 
     # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
     gl, gb = pointing.galactic.to_string(precision=8).split(' ')

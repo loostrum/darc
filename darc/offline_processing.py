@@ -22,7 +22,7 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from darc.definitions import CONFIG_FILE, WSRT_LON, NUMCB
+from darc.definitions import CONFIG_FILE, NUMCB
 from darc.logger import get_logger
 from darc import util
 
@@ -756,14 +756,13 @@ class OfflineProcessing(mp.Process):
             try:
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+                c1 = c1 * u.deg
+                c2 = c2 * u.deg
                 if mode == 'HA':
-                    # RA = LST - HA. Get RA at the start of the observation
-                    start_time = Time(parset['task.startTime'])
-                    # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-                    start_time.delta_ut1_utc = 0
-                    lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-                    c1 = lst_start.to(u.deg).value - c1
-                pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+                    # Get RA at the mid point of the observation
+                    timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+                    c1, c2 = util.radec_to_hadec(c1, c2, timestamp)
+                pointing = SkyCoord(c1, c2)
             except Exception as e:
                 self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
                 coordinates[cb] = [0, 0, 0, 0]
