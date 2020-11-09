@@ -9,7 +9,7 @@ As of February 2020, DARC has discovered 11 FRBs.
 ### Installation
 
 ## Requirements:
-* Tensorflow with GPU support (`pip install tensorflow-gpu` for tensorflow < 2.0, `pip install tensorflow` for tensorflow >= 2.0)
+* Tensorflow (preferably with GPU support: `pip install tensorflow-gpu` for tensorflow < 2.0, `pip install tensorflow` for tensorflow >= 2.0)
 * sigpyproc3 (https://github.com/FRBs/sigpyproc3)
 
 The following packages are automatically installed when installing DARC through pip:
@@ -39,6 +39,7 @@ DARC comprises several parts that communicate through either queues or sockets. 
 * VOEventGenerator: Converts incoming triggers to a VOEvent and sends them to a VOEvent broker.
 * StatusWebsite: Queries status of all services and generates status webpage.
 * OfflineProcesing: Handles offline processing, runs after every observation.
+* Processor: Semi-real-time extraction and analysis of AMBER triggers. Replacement for OfflineProcessing
 
 ### Executables
 `darc`: Used to interact with the all services through the DARC Master service.\
