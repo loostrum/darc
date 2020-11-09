@@ -49,7 +49,9 @@ class DARCMaster(object):
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
         self.processor_queue = mp.Queue()  # for semi-realtime processing
         self.offline_queue = mp.Queue()  # for offline processing
-        self.status_website_queue = mp.Queue()  # for stopping the StatusWebsite service
+        self.status_website_queue = mp.Queue()  # for controlling the StatusWebsite service
+        self.lofar_trigger_queue = mp.Queue()  # for controlling the LOFARTrigger service
+        self.voevent_generator_queue = mp.Queue()  # for controlling the VOEventGenerator service
 
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue, self.offline_queue, self.status_website_queue]
@@ -349,7 +351,7 @@ class DARCMaster(object):
         elif service == 'amber_clustering':
             queue = self.amber_trigger_queue
         elif service == 'voevent_generator':
-            queue = mp.Queue()  # dummy input queue
+            queue = self.voevent_generator_queue
         elif service == 'status_website':
             queue = self.status_website_queue
         elif service == 'offline_processing':
@@ -357,7 +359,7 @@ class DARCMaster(object):
         elif service == 'dada_trigger':
             queue = self.dadatrigger_queue
         elif service == 'lofar_trigger':
-            queue = mp.Queue()  # dummy input queue
+            queue = self.lofar_trigger_queue
         elif service == 'processor':
             queue = self.processor_queue
         else:
@@ -487,33 +489,26 @@ class DARCMaster(object):
         :param str service: service to create a new thread for
         """
         # settings for specific services
+        source_queue = self.get_queue(service)
         second_target_queue = None
         if service == 'amber_listener':
-            source_queue = self.amber_listener_queue
             target_queue = self.amber_trigger_queue
             # only output to processor if this is not the master
             if self.hostname != MASTER:
                 second_target_queue = self.processor_queue
         elif service == 'amber_clustering':
-            source_queue = self.amber_trigger_queue
             target_queue = self.dadatrigger_queue
         elif service == 'voevent_generator':
-            source_queue = mp.Queue()  # dummy input queue
             target_queue = None
         elif service == 'status_website':
-            source_queue = self.status_website_queue
             target_queue = None
         elif service == 'offline_processing':
-            source_queue = self.offline_queue
             target_queue = None
         elif service == 'dada_trigger':
-            source_queue = self.dadatrigger_queue
             target_queue = None
         elif service == 'lofar_trigger':
-            source_queue = mp.Queue()  # dummy input queue
             target_queue = None
         elif service == 'processor':
-            source_queue = self.processor_queue
             target_queue = None
         else:
             self.logger.error("Cannot create thread for {}".format(service))

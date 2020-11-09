@@ -37,12 +37,14 @@ class LOFARTrigger(mp.Process):
     """
     Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering
     """
-    def __init__(self, *args, config_file=CONFIG_FILE, **kwargs):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
         """
+        :param Queue source_queue: Input queue for controlling this service
         :param str config_file: Path to config file
         """
         super(LOFARTrigger, self).__init__()
         self.stop_event = mp.Event()
+        self.control_queue = source_queue
 
         self.trigger_server = None
 
@@ -88,6 +90,18 @@ class LOFARTrigger(mp.Process):
 
         # wait for events until stop is set
         while not self.stop_event.is_set():
+            # check if a stop command was received
+            try:
+                command = self.control_queue.get(timeout=.1)
+            except Empty:
+                pass
+            else:
+                if isinstance(command, str) and command == 'stop':
+                    self.stop()
+                else:
+                    self.logger.error(f"Unknown command received: {command}")
+
+            # check if a trigger was received
             try:
                 trigger = self.trigger_queue.get(timeout=.1)
             except Empty:
