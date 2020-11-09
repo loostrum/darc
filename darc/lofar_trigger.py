@@ -107,8 +107,6 @@ class LOFARTrigger(mp.Process):
             except Empty:
                 continue
             else:
-                if trigger == 'stop':
-                    self.stop()
                 # a trigger was received, wait and read queue again in case there are multiple triggers
                 sleep(self.interval)
                 additional_triggers = []

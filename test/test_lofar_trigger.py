@@ -24,7 +24,8 @@ class TestLOFARTrigger(unittest.TestCase):
         and sends it
         """
         # init LOFAR trigger
-        lofar_trigger = LOFARTrigger()
+        control_queue = mp.Queue()
+        lofar_trigger = LOFARTrigger(control_queue)
         # overwrite server location and port
         lofar_trigger.server_host = 'localhost'
         lofar_trigger.server_port = 9999
@@ -82,7 +83,7 @@ class TestLOFARTrigger(unittest.TestCase):
         lofar_event = struct.unpack(fmt, msg)
 
         # stop lofar trigger module
-        queue.put('stop')
+        control_queue.put('stop')
 
         self.assertTupleEqual(lofar_event, expected_event)
 
@@ -92,7 +93,8 @@ class TestLOFARTrigger(unittest.TestCase):
         """
 
         # init LOFAR trigger
-        lofar_trigger = LOFARTrigger()
+        control_queue = mp.Queue()
+        lofar_trigger = LOFARTrigger(control_queue)
         # overwrite server location and port
         lofar_trigger.server_host = 'localhost'
         lofar_trigger.server_port = 9990
@@ -106,9 +108,9 @@ class TestLOFARTrigger(unittest.TestCase):
 
         # init amber clustering
         # do not connect to VOEvent server nor LOFAR trigger system upon init
-        clustering = AMBERClustering(connect_vo=False, connect_lofar=False)
-        clustering.set_source_queue(mp.Queue())
-        clustering.set_target_queue(mp.Queue())
+        clustering_queue = mp.Queue()
+        clustering_target_queue = mp.Queue()
+        clustering = AMBERClustering(clustering_queue, clustering_target_queue, connect_vo=False, connect_lofar=False)
         clustering.sb_filter = False
 
         # get the LOFAR trigger queue to connect to AMBERClustering
@@ -160,14 +162,15 @@ class TestLOFARTrigger(unittest.TestCase):
             obs_config = {'startpacket': int(utc_start.unix * TIME_UNIT), 'min_freq': 1219.70092773,
                           'beam': beam, 'parset': parset_enc, 'datetimesource': '2020-01-01T00:00:00.FAKE'}
             # start observation
-            clustering.source_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
+            clustering_queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload_conf': False})
             sleep(.1)
 
             # put header and trigger on the input queue
-            amber_trigger = ['# beam_id batch_id sample_id integration_step compacted_integration_steps time DM_id DM compacted_DMs SNR',
+            amber_trigger = ['# beam_id batch_id sample_id integration_step compacted_integration_steps '
+                             'time DM_id DM compacted_DMs SNR',
                              '35 0 0 {downsamp} 1 {time} 1 {dm} 1 {snr}'.format(**trigger)]
             for t in amber_trigger:
-                clustering.source_queue.put({'command': 'trigger', 'trigger': t})
+                clustering_queue.put({'command': 'trigger', 'trigger': t})
 
             # receive the LOFAR event
             try:
@@ -201,15 +204,16 @@ class TestLOFARTrigger(unittest.TestCase):
             self.assertEqual(input_dm, dm_int)
 
             # stop observation
-            clustering.source_queue.put({'command': 'stop_observation'})
+            clustering_queue.put({'command': 'stop_observation'})
 
             sleep(.5)
 
         # close the socket
         sock.close()
-        clustering.source_queue.put('stop')
+        # stop the services
+        clustering_queue.put('stop')
         clustering.join()
-        queue.put('stop')
+        control_queue.put('stop')
         lofar_trigger.join()
 
 
