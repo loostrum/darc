@@ -75,7 +75,7 @@ class AMBERListener(DARCBase):
         self.logger.info("Observation started")
         # ToDo: Automatic stop? Careful not to overwrite a new observation
 
-    def stop_observation(self, *args):
+    def stop_observation(self, *args, **kwargs):
         """
         Stop observation
         """
