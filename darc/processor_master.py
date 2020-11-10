@@ -62,7 +62,7 @@ class ProcessorMasterManager(DARCBase):
         for taskid, obs in self.observations.copy().items():
             if obs.is_alive():
                 self.logger.info(f"Aborting observation with taskid {taskid}")
-                self.observation_queues[taskid].put('stop')
+                self.observation_queues[taskid].put('abort')
             obs.join()
 
     def start_observation(self, obs_config, reload=True):

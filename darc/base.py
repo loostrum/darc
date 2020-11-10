@@ -69,12 +69,18 @@ class DARCBase(mp.Process):
                 value = value.format(**kwargs)
             setattr(self, key, value)
 
-    def stop(self):
+    def stop(self, abort=False):
         """
         Stop this service
+
+        :param bool abort: Whether to abort running observation
         """
         self.logger.info("Stopping {}".format(self.log_name))
-        self.cleanup()
+        # run cleanup, avoid issue if abort keyword does not exist
+        try:
+            self.cleanup(abort=abort)
+        except TypeError:
+            self.cleanup()
         self.stop_event.set()
 
     def run(self):
@@ -96,6 +102,8 @@ class DARCBase(mp.Process):
                 # command received, process it
                 if isinstance(command, str) and command == 'stop':
                     self.stop()
+                elif isinstance(command, str) and command == 'abort':
+                    self.stop(abort=True)
                 elif command['command'] == "start_observation":
                     self.logger.info("Starting observation")
                     try:
@@ -143,11 +151,17 @@ class DARCBase(mp.Process):
         """
         pass
 
-    def cleanup(self):
+    def cleanup(self, abort=False):
         """
         Stub for commands to run upon service stop, defaults to self.stop_observation
+
+        :param bool abort: Whether to abort running observation
         """
-        self.stop_observation()
+        # run stop observation, avoid issue if abort keyword does not exist
+        try:
+            self.stop_observation(abort=abort)
+        except TypeError:
+            self.stop_observation()
 
     def process_command(self, *args, **kwargs):
         """
