@@ -293,13 +293,27 @@ class Processor(DARCBase):
         if not self.observation_running:
             # nothing to do
             return
-        self.logger.info("Finishing observation")
+
+        if abort:
+            self.logger.info("Aborting observation")
+        else:
+            self.logger.info("Finishing observation")
         # set running to false
         self.observation_running = False
-        # if abort, clear all queues
+        # if abort, clear all queues and terminate processing
         if abort:
             for queue in self.all_queues:
                 util.clear_queue(queue)
+            # processing is a thread, cannot terminate but it should stop very quickly when running is set to False
+            self.threads['processing'].join()
+            self.threads['clustering'].terminate()
+            for i in range(self.num_extractor):
+                self.threads[f'extractor_{i}'].terminate()
+            self.threads['classifier'].terminate()
+            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+            return
+
         # clear processing thread
         self.threads['processing'].join()
         # signal clustering to stop
@@ -331,21 +345,17 @@ class Processor(DARCBase):
             self.obs_stats['ncand_post_classifier'] = len(self.candidates_to_visualize)
 
         # Store the statistics and start the visualization
-        if not abort:
-            if len(self.candidates_to_visualize) > 0:
-                Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
-                           self.candidates_to_visualize, self.config_file)
-            else:
-                self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
-                                 f"{self.obs_config['parset']['task.taskID']}")
-            # Store statistics after visualization, as master will start combining results once all stats are present
-            self._store_obs_stats()
-
-            self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
-                             f"{self.obs_config['datetimesource']}")
+        if len(self.candidates_to_visualize) > 0:
+            Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
+                       self.candidates_to_visualize, self.config_file)
         else:
-            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
-                             f"{self.obs_config['datetimesource']}")
+            self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
+                             f"{self.obs_config['parset']['task.taskID']}")
+        # Store statistics after visualization, as master will start combining results once all stats are present
+        self._store_obs_stats()
+
+        self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
+                         f"{self.obs_config['datetimesource']}")
 
     def _read_and_process_data(self):
         """
