@@ -59,10 +59,11 @@ class ProcessorMasterManager(DARCBase):
         Upon stop of the manager, abort any remaining observations
         """
         # loop over dictionary items. Use copy to avoid changing dict in loop
-        for taskid, queue in self.observation_queues.copy().items():
-            self.logger.info(f"Aborting observation with taskid {taskid}")
-            queue.put('stop')
-            self.observations[taskid].join()
+        for taskid, obs in self.observations.copy().items():
+            if obs.is_alive():
+                self.logger.info(f"Aborting observation with taskid {taskid}")
+                self.observation_queues[taskid].put('stop')
+            obs.join()
 
     def start_observation(self, obs_config, reload=True):
         """

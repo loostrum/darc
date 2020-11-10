@@ -3,7 +3,6 @@
 # real-time data processor
 
 import os
-import ctypes
 import threading
 import multiprocessing as mp
 from time import sleep
@@ -14,7 +13,6 @@ import h5py
 from darc import DARCBase
 from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
 from darc import util
-from darc.definitions import CONFIG_FILE
 
 
 class ProcessorException(Exception):
@@ -63,8 +61,9 @@ class ProcessorManager(DARCBase):
         """
         # loop over dictionary items. Use copy to avoid changing dict in loop
         for taskid, obs in self.observations.copy().items():
-            self.logger.info(f"Aborting observation with taskid {taskid}")
-            obs.stop_observation(abort=True)
+            if obs.is_alive():
+                self.logger.info(f"Aborting observation with taskid {taskid}")
+                self.observation_queues[taskid].put('stop')
             obs.join()
 
     def start_observation(self, obs_config, reload=True):
@@ -341,8 +340,12 @@ class Processor(DARCBase):
                                  f"{self.obs_config['parset']['task.taskID']}")
             # Store statistics after visualization, as master will start combining results once all stats are present
             self._store_obs_stats()
-        self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
-                         f"{self.obs_config['datetimesource']}")
+
+            self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+        else:
+            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
 
     def _read_and_process_data(self):
         """
