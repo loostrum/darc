@@ -799,7 +799,8 @@ class OfflineProcessing(mp.Process):
         info['utc_start'] = parset['task.startTime']
         info['tobs'] = parset['task.duration']
         info['source'] = parset['task.source.name']
-        info['ymw16'] = "{:.2f}".format(util.get_ymw16(parset, obs_config['beam'], self.logger))
+        # get YMW16 DM for central beam
+        info['ymw16'] = "{:.2f}".format(util.get_ymw16(parset, beam=0, self.logger))
         info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
         info['taskid'] = parset['task.taskID']
         with open(info_file, 'w') as f:
