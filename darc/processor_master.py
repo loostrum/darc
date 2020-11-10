@@ -164,6 +164,7 @@ class ProcessorMaster(DARCBase):
         self.obs_config = None
         self.warnings_sent = []
         self.status = None
+        self.process = None
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -182,8 +183,17 @@ class ProcessorMaster(DARCBase):
 
         self.obs_config = obs_config
 
+        # process the observation in a separate Process
+        self.process = mp.Process(target=self._process_observation)
+        self.process.start()
+
+    def _process_observation(self):
+        """
+        Process observation
+        """
+
         # wait until the observation finishes
-        start_processing_time = Time(obs_config['parset']['task.stopTime'])
+        start_processing_time = Time(self.obs_config['parset']['task.stopTime'])
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
@@ -220,7 +230,11 @@ class ProcessorMaster(DARCBase):
         :param bool abort: Whether or not to abort the observation
         """
         # nothing to stop unless we are aborting
-        if not abort:
+        if abort:
+            # terminate the processing
+            if self.process is not None:
+                self.process.terminate()
+        else:
             self.logger.info("Abort is false, nothing to stop")
             return
 
