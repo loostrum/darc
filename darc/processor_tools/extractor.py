@@ -400,7 +400,7 @@ class Extractor(mp.Process):
         nfreq, ntime = self.data.data.shape
         ndm = self.data_dm_time.shape[0]
         with h5py.File(fname, 'w') as f:
-            f.create_dataset('data_freq_time', data=self.data.data)
+            f.create_dataset('data_freq_time', data=self.data.data[::-1])  # store as lowest-freq first
             f.create_dataset('data_dm_time', data=self.data_dm_time)
 
             f.attrs.create('nfreq', data=nfreq)
