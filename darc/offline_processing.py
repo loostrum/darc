@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
-# DARC master process
-# Controls all services
+# Offline processing
 
 import os
 import ast
@@ -179,8 +178,8 @@ class OfflineProcessing(mp.Process):
         # create coordinates file
         coord_cb00 = self._get_coordinates(obs_config)
 
-        # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
+        # wait until end time + delay
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -230,8 +229,8 @@ class OfflineProcessing(mp.Process):
             obs_config['mode'] = 'TAB'
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
-        # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
+        # wait until end time + delay
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -598,11 +597,12 @@ class OfflineProcessing(mp.Process):
         if self.model_1dtime:
             model_option += ' --fn_model_time {model_dir}/{model_1dtime}'.format(**obs_config)
 
-        cmd = "export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
+        cmd = "export CUDA_VISIBLE_DEVICES={ml_gpus}; /home/{user}/python36/bin/python3 {classifier} " \
               " {model_option} {sb_option} " \
               " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
               " --pthresh_dm {pthresh_dmtime} --DMgal {dmgal} " \
-              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option,
+              " {model_dir}/20190416freq_time.hdf5".format(user=os.getlogin(),
+                                                           output_prefix=output_prefix, sb_option=sb_option,
                                                            model_option=model_option, dmgal=dmgal,
                                                            input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
