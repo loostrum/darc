@@ -355,8 +355,8 @@ class ProcessorMaster(DARCBase):
             trigger_dict = {}
             for key in triggers.dtype.names:
                 trigger_dict[key] = trigger[key]
-            # convert downsampling to width
-            trigger_dict['width'] = trigger['downsamp'] * TSAMP
+            # convert downsampling to width in ms
+            trigger_dict['width'] = trigger['downsamp'] * TSAMP.to(u.ms).value
             triggerinfo += "<tr><td>{p:.2f}</td>" \
                            "<td>{snr:.2f}</td>" \
                            "<td>{dm:.2f}</td>" \
