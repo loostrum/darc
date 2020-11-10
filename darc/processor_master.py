@@ -361,7 +361,7 @@ class ProcessorMaster(DARCBase):
                            "<td>{snr:.2f}</td>" \
                            "<td>{dm:.2f}</td>" \
                            "<td>{time:.4f}</td>" \
-                           "<td>{width:.2f}</td>" \
+                           "<td>{width:.4f}</td>" \
                            "<td>{cb:.0f}</td>" \
                            "<td>{sb:.0f}</td>".format(**trigger_dict)
             ntrig += 1
