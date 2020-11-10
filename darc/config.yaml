@@ -7,11 +7,11 @@ darc_master:
     setup_time: 5  # start_observation is sent this long before the actual start time
     stop_timeout: 5  # for stopping services
     mode:  'mixed'  # real-time, offline, or mixed
-    services_master_rt: ["status_website", "voevent_generator", "lofar_trigger", "processor_master"]
+    services_master_rt: ["status_website", "voevent_generator", "lofar_trigger", "processor"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website"]
     services_worker_off: ["offline_processing"]
-    services_master_mix: ["offline_processing", "status_website", "voevent_generator", "lofar_trigger", "processor_master"]
+    services_master_mix: ["offline_processing", "status_website", "voevent_generator", "lofar_trigger", "processor"]
     services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger", "processor"]
     master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload",
                       "lofar_status", "lofar_enable", "lofar_disable", "voevent_status", "voevent_enable",
@@ -140,6 +140,7 @@ processor_master_manager:
 processor_manager:
     log_file: "{home}/darc/log/processor.{hostname}.log"
     scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+    stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
 
 # Trigger processor (master):
 processor_master:

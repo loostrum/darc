@@ -298,6 +298,8 @@ class Processor(DARCBase):
             self.logger.info("Aborting observation")
         else:
             self.logger.info("Finishing observation")
+            # wait for a short time in case some last AMBER triggers are still coming in
+            sleep(self.stop_delay)
         # set running to false
         self.observation_running = False
         # if abort, clear all queues and terminate processing
