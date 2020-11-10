@@ -131,20 +131,10 @@ sb_generator:
         sc3: 114
         sc4: 71
 
-# Trigger processor manager (master)
-processor_master_manager:
-    log_file: "{home}/darc/log/processor.{hostname}.log"
-    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
-
-# Trigger processor manager (worker)
-processor_manager:
-    log_file: "{home}/darc/log/processor.{hostname}.log"
-    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
-    stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
-
 # Trigger processor (master):
 processor_master:
     log_file: "{home}/darc/log/processor.{hostname}.log"
+    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
     check_interval: 60  # How often to check whether workers are done with processing (s)
     max_wait_time: 600  # After how much processing time we should check if a node is still online
     ntrig_email_max: 100  # Maximum number of triggers to show in email
@@ -156,10 +146,12 @@ processor_master:
 # Trigger processor (worker)
 processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
-    interval: 1.0  # how often to process candidates (seconds)
+    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+    interval: 1.1  # how often to process candidates (seconds)
     num_extractor: 2  # how many data extractors to run
     output_subdir: "triggers_realtime"  # output dir for triggers on each node
     result_dir: "{home}/darc/results"  # central output dir for observation results
+    stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
     # clustering settings
     clustering:
         output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers

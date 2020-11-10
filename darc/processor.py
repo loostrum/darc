@@ -109,7 +109,7 @@ class ProcessorManager(DARCBase):
         taskid = parset['task.taskID']
         # check if an observation with this task ID exists
         if taskid not in self.observations.keys():
-            self.logger.error("Failed to stop observation: no such task ID {taskid}")
+            self.logger.error(f"Failed to stop observation: no such task ID {taskid}")
 
         # signal the processor of this observation to stop
         # this also calls its stop_observation method

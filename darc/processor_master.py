@@ -235,6 +235,8 @@ class ProcessorMaster(DARCBase):
             # terminate the processing
             if self.process is not None:
                 self.process.terminate()
+                self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+                                 f"{self.obs_config['datetimesource']}")
         else:
             self.logger.info("Abort is false, nothing to stop")
             return
