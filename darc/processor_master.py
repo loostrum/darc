@@ -362,8 +362,8 @@ class ProcessorMaster(DARCBase):
                            "<td>{dm:.2f}</td>" \
                            "<td>{time:.4f}</td>" \
                            "<td>{width:.4f}</td>" \
-                           "<td>{cb:.0f}</td>" \
-                           "<td>{sb:.0f}</td>".format(**trigger_dict)
+                           "<td>{cb:02d}</td>" \
+                           "<td>{sb:02d}</td>".format(**trigger_dict)
             ntrig += 1
             if ntrig >= self.ntrig_email_max:
                 triggerinfo += "<tr><td>truncated</td><td>truncated</td><td>truncated</td>" \
