@@ -59,10 +59,10 @@ class ProcessorMasterManager(DARCBase):
         Upon stop of the manager, abort any remaining observations
         """
         # loop over dictionary items. Use copy to avoid changing dict in loop
-        for taskid, obs in self.observations.copy().items():
+        for taskid, queue in self.observation_queues.copy().items():
             self.logger.info(f"Aborting observation with taskid {taskid}")
-            obs.stop_observation(abort=True)
-            obs.join()
+            queue.put('stop')
+            self.observations[taskid].join()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -221,7 +221,14 @@ class ProcessorMaster(DARCBase):
         """
         # nothing to stop unless we are aborting
         if not abort:
+            self.logger.info("Abort is false, nothing to stop")
             return
+
+    def cleanup(self):
+        """
+        Abort observation when stopping service
+        """
+        self.stop_observation(abort=True)
 
     def _get_result_dir(self):
         """
