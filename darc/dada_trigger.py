@@ -77,6 +77,8 @@ class DADATrigger(DARCBase):
             # process trigger
             self.thread_trigger = threading.Thread(target=self.send_event, args=[command['trigger']])
             self.thread_trigger.start()
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 

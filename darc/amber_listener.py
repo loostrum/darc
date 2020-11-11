@@ -83,10 +83,6 @@ class AMBERListener(DARCBase):
             thread.join()
         self.observation_threads = []
 
-    # only start and stop observation commands exist for amber listener
-    def process_command(self):
-        pass
-
     def _follow_file(self, fname, event):
         """
         Tail a file an put lines on queue

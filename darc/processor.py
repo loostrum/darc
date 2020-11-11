@@ -121,6 +121,8 @@ class ProcessorManager(DARCBase):
         """
         if command['command'] == 'stop':
             self.stop()
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         elif self.current_observation_queue is not None:
             self.current_observation_queue.put(command)
         else:
@@ -214,6 +216,8 @@ class Processor(DARCBase):
         """
         if command['command'] == 'stop':
             self.stop()
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         elif command['command'] == 'trigger':
             if not self.observation_running:
                 self.logger.error("Trigger(s) received but no observation is running - ignoring")

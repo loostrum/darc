@@ -16,8 +16,8 @@ darc_master:
     services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger", "processor"]
     master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload",
                       "lofar_status", "lofar_enable", "lofar_disable", "voevent_status", "voevent_enable",
-                      "voevent_disable"]
-    service_commands: ["status", "start", "stop", "restart"]
+                      "voevent_disable", "get_attr"]
+    service_commands: ["status", "start", "stop", "restart", "get_attr"]
     editor: "vim"
 
 # Status website

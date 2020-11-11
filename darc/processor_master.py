@@ -14,7 +14,7 @@ import numpy as np
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import CONFIG_FILE, WORKERS, TSAMP
+from darc.definitions import WORKERS, TSAMP
 
 
 class ProcessorMasterManager(DARCBase):

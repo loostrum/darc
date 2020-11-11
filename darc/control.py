@@ -46,7 +46,6 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
         return None
     # send message
     master_socket.sendall(message.encode())
-    logging.info("Command sent successfully")
     reply = None
     # receive reply unless stop_all was sent
     if not command == 'stop_all':
@@ -89,7 +88,7 @@ def main():
         services = config['services_master_off'] + config['services_worker_off']
     master_commands = config['master_commands']
     service_commands = config['service_commands']
-    commands = master_commands + service_commands
+    commands = list(set(master_commands + service_commands))
 
     # Parse arguments
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -101,25 +100,42 @@ def main():
                         "(Default: %(default)s)")
     parser.add_argument('--port', type=int, help="Port DARC listens to "
                         "(Default: determine from DARC config file)")
-    parser.add_argument('--parset', type=str, default=None, help="Observation parset (takes precedence over --config)")
-    parser.add_argument('--config', type=str, default=None, help="Node observation config")
+    parser.add_argument('--parset', type=str, help="Observation parset (takes precedence over --config)")
+    parser.add_argument('--config', type=str, help="Node observation config")
 
-    parser.add_argument('cmd', type=str, default=None, help="Command to execute, available commands: {}".format(', '.join(commands)))
+    parser.add_argument('cmd', type=str, nargs='+', help="Command to execute. When using get_attr, add space "
+                                                         "followed by attribute. Available commands: "
+                                                         "{}".format(', '.join(commands)))
     args = parser.parse_args()
 
     # Check arguments
     if not args.cmd:
         logging.error("Add command to execute e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
-    elif args.cmd not in commands:
-        logging.error("Unknown command: {}. Run darc -h to see available commands".format(args.cmd))
+    cmd = args.cmd[0]
+
+    try:
+        attr = args.cmd[1]
+    except IndexError:
+        attr = None
+
+    if cmd not in commands:
+        logging.error("Unknown command: {}. Run darc -h to see available commands".format(cmd))
         sys.exit(1)
-    elif not args.service and args.cmd not in master_commands:
+    elif not args.service and cmd not in master_commands:
         logging.error("Argument --service is required for given command")
         sys.exit(1)
 
+    # add attribute to command if get_attr is called
+    if attr is not None:
+        if cmd == 'get_attr':
+            cmd += f" {attr}"
+        else:
+            logging.error("Attribute can only be provided when using get_attr command")
+            sys.exit(1)
+
     # If command is edit, open config in an editor
-    if args.cmd == 'edit':
+    if cmd == 'edit':
         with open(CONFIG_FILE, 'r') as f:
             master_config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
         default_editor = master_config['editor']
@@ -142,5 +158,5 @@ def main():
     else:
         payload = None
 
-    if not send_command(args.timeout, args.service, args.cmd, host=args.host, port=args.port, payload=payload):
+    if not send_command(args.timeout, args.service, cmd, host=args.host, port=args.port, payload=payload):
         sys.exit(1)

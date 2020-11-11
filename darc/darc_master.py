@@ -285,6 +285,10 @@ class DARCMaster:
         elif command.startswith('lofar') or command.startswith('voevent'):
             status, reply = self._switch_cmd(command)
             return status, reply
+        # get attribute command for master
+        elif command.startswith('get_attr') and service == 'None':
+            status, reply = self._get_attribute('master', command)
+            return status, reply
 
         # Service interaction
         if service == 'all':
@@ -308,6 +312,8 @@ class DARCMaster:
                 _status, _reply = self.restart_service(service)
             elif command.lower() == 'status':
                 _status, _reply = self.check_status(service)
+            elif command.startswith('get_attr'):
+                _status, _reply = self._get_attribute(service, command)
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
                 status = 'Error'
@@ -316,6 +322,52 @@ class DARCMaster:
             if _status != 'Success':
                 status = 'Error'
             reply[service] = _reply
+
+        return status, reply
+
+    def _get_attribute(self, service, command):
+        """
+        Get attribute of a service instance
+
+        :param str service: Which service to get an attribute of
+        :param str command: Full service command ("get_attr {attribute}")
+        """
+        # split command in actual command and attribute
+        cmd, attr = command.split(' ')
+
+        # check if we need to get attribute of self
+        if service == 'master':
+            try:
+                value = getattr(self, attr)
+            except KeyError:
+                self.logger.error("Missing 'attribute' key from command")
+                status = 'Error'
+                reply = 'missing attribute key from command'
+            except AttributeError:
+                status = 'Error'
+                reply = f"No such attribute: {attr}"
+            else:
+                status = 'Success'
+                reply = f"DARCMaster.{attr} = {value}"
+            print(reply)
+            return status, reply
+
+        # get the service instance. process_message already checks for invalid service, no need to
+        # to that here
+        thread = self.threads[service]
+        if (thread is None) or (not thread.is_alive()):
+            status = 'Error'
+            reply = "Service not running: {service}"
+            return status, reply
+
+        # send attribute get request to service queue
+        queue = self.get_queue(service)
+        queue.put({'command': cmd, 'attribute': attr})
+        # retrieve reply
+        try:
+            status, reply = self.control_queue.get(timeout=self.control_timeout)
+        except Empty:
+            return 'Error', f"Command sent to service, but no reply received within {self.control_timeout} seconds"
 
         return status, reply
 

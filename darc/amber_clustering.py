@@ -112,6 +112,8 @@ class AMBERClustering(DARCBase):
             else:
                 with self.lock:
                     self.amber_triggers.append(command['trigger'])
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 

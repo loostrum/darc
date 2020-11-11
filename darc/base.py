@@ -166,12 +166,40 @@ class DARCBase(mp.Process):
         except TypeError:
             self.stop_observation()
 
-    def process_command(self, *args, **kwargs):
+    def get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{self.log_name}.{command['attribute']} = {value}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def process_command(self, command, *args, **kwargs):
         """
         Process command from queue, other than start_observation and stop_observation.
-        By default does nothing.
+        By default only provides get_attribute command
 
+        :param dict command: Input command
         :param list args: process command arguments
         :param dict kwargs: process command keyword arguments
         """
-        pass
+        if command['command'] == 'get_attr':
+            self.get_attribute(command)
+        else:
+            raise NotImplementedError(f"Unknown command: {command['command']}")
