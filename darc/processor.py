@@ -318,7 +318,7 @@ class Processor(DARCBase):
             self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']}")
             # A stop observation should also stop this processor, as there is only one per observation
-            self.stop()
+            self.stop_event.set()
             return
 
         # clear processing thread
@@ -364,7 +364,7 @@ class Processor(DARCBase):
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
                          f"{self.obs_config['datetimesource']}")
         # stop this processor
-        self.stop()
+        self.stop_event.set()
 
     def _read_and_process_data(self):
         """
