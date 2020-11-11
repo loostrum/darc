@@ -1,6 +1,7 @@
 #!usr/bin/env python3
 
 import os
+import logging
 import socket
 import threading
 from textwrap import dedent
@@ -14,6 +15,7 @@ import numpy as np
 
 from darc import DARCBase
 from darc import util
+from darc.control import send_command
 from darc.definitions import WORKERS, TSAMP
 
 
@@ -32,6 +34,9 @@ class ProcessorMasterManager(DARCBase):
         self.current_observation_queue = None
 
         self.scavenger = None
+
+        # reduce logging from status check commands
+        logging.getLogger('darc.control').setLevel(logging.ERROR)
 
     def run(self):
         """
@@ -166,6 +171,7 @@ class ProcessorMaster(DARCBase):
         self.warnings_sent = []
         self.status = None
         self.process = None
+        self.central_result_dir = None
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -282,19 +288,57 @@ class ProcessorMaster(DARCBase):
 
     def _check_node_online(self, node):
         """
-        Check if the processor on a node is still online
+        Check if the processor on a node is still online and processing the current observation
 
         :param str node: Hostname of node to check
         :return: status (bool): True if node is online, else False
         """
-        self.logger.warning("Node status check not yet implemented, returning True")
-        return True
+        # check if the processor on the node is online
+        try:
+            reply = send_command(self.node_timeout, 'processor', 'status', host=node)
+            if reply is None:
+                self.logger.debug(f"No reply received from {node}, assuming it is offline")
+                return False
+            status = reply['message']['processor']
+        except Exception as e:
+            self.logger.error(f"Failed to get {node} status: {type(e)}: {e}")
+            status = ''
+        if status != 'running':
+            # processor is not running
+            self.logger.debug(f"{node} processor is not running")
+            return False
+
+        # get list of running observations from node
+        self.logger.debug(f"{node} is online, checking for observations")
+        try:
+            output = send_command(self.node_timeout, 'processor', 'get_attr observations')['message']['processor']
+            # parse the observation list
+            # the list contains reference to processes, which should be put in quotes first
+            output = ast.literal_eval(output.replace('<', '\'<').replace('>', '>\''))
+            taskids = output['ProcessorManager.observations'].keys()
+        except Exception as e:
+            self.logger.error(f"Failed to get observation list from {node}: {type(e)}: {e}")
+            return False
+        self.logger.debug(f"{node} taskids: {taskids}")
+
+        # check if the node is still processing the current taskid
+        try:
+            taskid = self.obs_config['parset']['task.taskID']
+        except (KeyError, TypeError):
+            # KeyError if parset or task.taskID are missing, TypeError if obs_config is None
+            self.logger.error(f"Failed to get task ID of current master observation, assuming {node} is online")
+            return True
+
+        if taskid in taskids:
+            return True
+        else:
+            return False
 
     def _send_warning(self, node):
         """
         Send a warning email about a node
         """
-        self.logger.warning("Warning email not yet implemented")
+        self.logger.warning(f"Received request to warn about {node}. Warning email not yet implemented")
 
     def _process_results(self, info, coordinates):
         """
