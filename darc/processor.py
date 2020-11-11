@@ -51,8 +51,9 @@ class ProcessorManager(DARCBase):
             for taskid, thread in self.observations.copy().items():
                 if not thread.is_alive():
                     # if the thread is dead, remove it from the list
-                    self.observations.pop(taskid)
                     self.logger.info(f"Scavenging thread of taskid {taskid}")
+                    self.observations.pop(taskid)
+                    self.observation_queues.pop(taskid)
             self.stop_event.wait(self.scavenger_interval)
 
     def cleanup(self):
