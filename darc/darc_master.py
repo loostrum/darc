@@ -5,6 +5,7 @@
 
 import sys
 import os
+import argparse
 import ast
 import yaml
 import multiprocessing as mp
@@ -23,7 +24,7 @@ class DARCMasterException(Exception):
     pass
 
 
-class DARCMaster(object):
+class DARCMaster:
     """
     DARC master service that controls all other services and queues
 
@@ -743,5 +744,11 @@ def main():
     """
     Run DARC Master
     """
-    master = DARCMaster()
+    parser = argparse.ArgumentParser(description="DARC master service")
+    parser.add_argument('--config', default=CONFIG_FILE, help="Path to config file, loaded from $HOME/darc/config.yaml "
+                                                              "if it exists, else default provided with package."
+                                                              "Current default: %(default)s")
+    args = parser.parse_args()
+
+    master = DARCMaster(args.config)
     master.run()
