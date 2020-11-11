@@ -26,14 +26,16 @@ class StatusWebsite(mp.Process):
     across the ARTS cluster at regular intervals
     """
 
-    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
         :param Queue source_queue: Input queue
         :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
         super(StatusWebsite, self).__init__()
         self.stop_event = mp.Event()
         self.source_queue = source_queue
+        self.control_queue = control_queue
 
         # load config, including master for list of services
         with open(config_file, 'r') as f:
@@ -84,16 +86,17 @@ class StatusWebsite(mp.Process):
         #. Generate offline page upon exit
         """
         while not self.stop_event.is_set():
-            # check if a stop command was received
-            self.check_stop()
             self.logger.info("Getting status of all services")
             # get status all nodes
             statuses = {}
             for node in self.all_nodes:
+                # check if a command was received
+                # do it here so we do not have to wait for all status checks
+                self.check_command()
+
                 statuses[node] = {}
-                # self.logger.info("Getting {} status".format(node))
                 try:
-                    status = send_command(10, 'all', 'status', host=node)
+                    status = send_command(self.timeout, 'all', 'status', host=node)
                 except Exception as e:
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
@@ -110,16 +113,42 @@ class StatusWebsite(mp.Process):
         # Create website for non-running status website
         self.make_offline_page()
 
-    def check_stop(self):
+    def _get_attribute(self, command):
         """
-        Check if this service should be stopped
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{type(self).__name__}.{command['attribute']} = {value}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def check_command(self):
+        """
+        Check if this service should execute a command
         """
         try:
             command = self.source_queue.get(timeout=.1)
         except Empty:
             return
-        if command == 'stop':
+        if isinstance(command, str) and command == 'stop':
             self.stop()
+        elif isinstance(command, dict) and command['command'] == 'get_attr':
+            self._get_attribute(command)
         else:
             self.logger.warning(f"Ignoring unknown command: {command['command']}")
 

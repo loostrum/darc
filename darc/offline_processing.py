@@ -45,13 +45,15 @@ class OfflineProcessing(mp.Process):
     - Automated run of calibration tools for drift scans
     - Automated run of known FRB candidate extractor
     """
-    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
         :param Queue source_queue: Input queue
         :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
         super(OfflineProcessing, self).__init__()
         self.observation_queue = source_queue
+        self.control_queue = control_queue
         self.stop_event = mp.Event()
 
         self.threads = {}
@@ -108,6 +110,9 @@ class OfflineProcessing(mp.Process):
             if isinstance(data, str) and data == 'stop':
                 self.stop()
                 continue
+            elif data['command'] == 'get_attr':
+                self._get_attribute(data)
+                continue
 
             # load observation config
             host_type = data['host_type']
@@ -149,6 +154,30 @@ class OfflineProcessing(mp.Process):
                 self.logger.error("Unknown host type: {}".format(self.host_type))
 
         self.logger.info("Stopping Offline processing")
+
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{type(self).__name__}.{command['attribute']} = {value}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
 
     def _start_observation_master(self, obs_config, reload=True):
         """
