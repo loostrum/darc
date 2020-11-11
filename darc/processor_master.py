@@ -115,9 +115,9 @@ class ProcessorMasterManager(DARCBase):
         if taskid not in self.observations.keys():
             self.logger.error(f"Failed to stop observation: no such task ID {taskid}")
 
-        # signal the processor of this observation to stop
-        # this also calls its stop_observation method
-        self.observation_queues[taskid].put({'command': 'stop'})
+        # signal the processor of this observation to stop the observation
+        # when processing is finished, this also stops the Process
+        self.observation_queues[taskid].put({'command': 'stop_observation'})
 
     def _load_parset(self, obs_config):
         """

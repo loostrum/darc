@@ -111,9 +111,9 @@ class ProcessorManager(DARCBase):
         if taskid not in self.observations.keys():
             self.logger.error(f"Failed to stop observation: no such task ID {taskid}")
 
-        # signal the processor of this observation to stop
-        # this also calls its stop_observation method
-        self.observation_queues[taskid].put({'command': 'stop'})
+        # signal the processor of this observation to stop the observation
+        # when processing is finished, this also stops the Process
+        self.observation_queues[taskid].put({'command': 'stop_observation'})
 
     def process_command(self, command):
         """
@@ -214,9 +214,7 @@ class Processor(DARCBase):
 
         :param dict command: Command to process
         """
-        if command['command'] == 'stop':
-            self.stop()
-        elif command['command'] == 'get_attr':
+        if command['command'] == 'get_attr':
             self.get_attribute(command)
         elif command['command'] == 'trigger':
             if not self.observation_running:
@@ -362,6 +360,8 @@ class Processor(DARCBase):
 
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
                          f"{self.obs_config['datetimesource']}")
+        # stop this processor
+        self.stop()
 
     def _read_and_process_data(self):
         """
