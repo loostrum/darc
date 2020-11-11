@@ -268,9 +268,13 @@ class ProcessorMaster(DARCBase):
         """
         Wait for all worker nodes to finish processing this observation
         """
-        self.logger.info(f"Waiting for workers to finish processing {self.obs_config['datetimesource']}")
+        obs = self.obs_config['datetimesource']
+        self.logger.info(f"Waiting for workers to finish processing {obs}")
         twait = 0
+
         for beam in self.obs_config['beams']:
+            # Log which beam we are waiting for
+            self.logger.info(f"{obs} waiting for results from CB{beam:02d}")
             result_file = os.path.join(self.central_result_dir, f'CB{beam:02d}_summary.yaml')
             # wait until the result file is present
             while not os.path.isfile(result_file):
@@ -279,9 +283,8 @@ class ProcessorMaster(DARCBase):
                 twait += self.check_interval
                 # if we waited a long time, check if a warning should be sent if the node is offline
                 node = WORKERS[beam]
-                if (twait > self.max_wait_time) and (node not in self.warnings_sent) and \
-                        (not self._check_node_online(node)):
-                    # node is not in warnings and offline, send a warning
+                if (twait > self.max_wait_time) and (not self._check_node_online(node)) and \
+                   (node not in self.warnings_sent):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
@@ -337,8 +340,64 @@ class ProcessorMaster(DARCBase):
     def _send_warning(self, node):
         """
         Send a warning email about a node
+
+        :param str node: Node to send warning about
         """
-        self.logger.warning(f"Received request to warn about {node}. Warning email not yet implemented")
+        # get observation info from obs config
+        try:
+            date = self.obs_config['date']
+            datetimesource = self.obs_config['datetimesource']
+            taskid = self.obs_config['parset']['task.taskID']
+        except (KeyError, TypeError):
+            # KeyError if parset or task.taskID are missing, TypeError if obs_config is None
+            self.logger.error(f"Failed to get parameters of current master observation, not sending warning email for "
+                              f"{node}")
+            return
+
+        # generate email
+        beam = int(node[-2:]) - 1
+        content = dedent(f"""
+                        <html>
+                        <title>DARC Warning</title>
+                        <body>
+                        <p>
+                        <h3>Warning: DARC may be offline on {node}</h3><br />
+                        DARC on {node} is either offline or no longer processing this observation:<br />
+                        Task ID = {taskid}<br />
+                        Name = {datetimesource}<br />
+                        </p>
+                        <p>
+                        Please check:
+                        <ul>
+                          <li>Is DARC still online on {node}? See http://arts041.apertif/darc/status
+                          <li>Is DARC still processing on {node}?
+                            <ul>
+                                <li>Check the log file: <code>tail -n 50 /home/arts/darc/log/processor.{node}.log</code>
+                                <li>Check if there are files in <code>/data2/output/{date}/{datetimesource}/triggers</code>
+                            </ul>
+                        </ul>
+                        </p>
+                        <p>
+                        If DARC is offline, do the following:
+                        <ul>
+                            <li>Restart DARC on {node}: <code>ssh arts@{node} . darc/venv/bin/activate; darc_start_all_services</code>
+                            <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}.yaml</code>"
+                        </p>
+                        </body>
+                        </html>
+                        """)
+
+        # set email subject with trigger time
+        subject = f"DARC Warning: {node}"
+        # get FQDN in way that actually adds the domain
+        # simply socket.getfqdn does not actually do that on ARTS
+        fqdn = socket.getaddrinfo(socket.gethostname(), None, 0, socket.SOCK_DGRAM, 0, socket.AI_CANONNAME)[0][3]
+        frm = f"DARC Warning System <{os.getlogin()}@{fqdn}>"
+        to = self.email_settings['to']
+        body = {'type': 'html', 'content': content}
+        # send
+        self.logger.info(f"Sending {node} warning email")
+        util.send_email(frm, to, subject, body)
 
     def _process_results(self, info, coordinates):
         """
@@ -361,6 +420,17 @@ class ProcessorMaster(DARCBase):
             # load the summary file
             with open(os.path.join(self.central_result_dir, f'CB{beam:02d}_summary.yaml')) as f:
                 info_beam = yaml.load(f, Loader=yaml.SafeLoader)
+
+            if info_beam is None:
+                self.logger.warning(f"Empty result file for CB{beam:02d}")
+                # add to email with question marks
+                beaminfo += "<tr><td>{beam:02d}</td>" \
+                            "<td>?</td>" \
+                            "<td>?</td>" \
+                            "<td>?</td>" \
+                            "<td>?</td></tr>".format(beam=beam)
+                continue
+
             beaminfo += "<tr><td>{beam:02d}</td>" \
                         "<td>{ncand_raw}</td>" \
                         "<td>{ncand_post_clustering}</td>" \
