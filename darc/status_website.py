@@ -14,8 +14,8 @@ from astropy.time import Time
 
 from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
+from darc.control import send_command
 from darc.logger import get_logger
-from darc import control
 
 
 class StatusWebsiteException(Exception):
@@ -104,7 +104,7 @@ class StatusWebsite(mp.Process):
             for node in self.all_nodes:
                 statuses[node] = {}
                 try:
-                    status = control.send_command(self.timeout, 'all', 'status', host=node)
+                    status = send_command(self.timeout, 'all', 'status', host=node)
                 except Exception as e:
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
@@ -138,7 +138,7 @@ class StatusWebsite(mp.Process):
             reply = f"No such attribute: {command['attribute']}"
         else:
             status = 'Success'
-            reply = f"{type(self).__name__}.{command['attribute']} = {value}"
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
 
         if self.control_queue is not None:
             self.control_queue.put([status, reply])

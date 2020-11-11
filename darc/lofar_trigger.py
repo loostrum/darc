@@ -152,7 +152,7 @@ class LOFARTrigger(mp.Process):
             reply = f"No such attribute: {command['attribute']}"
         else:
             status = 'Success'
-            reply = f"{type(self).__name__}.{command['attribute']} = {value}"
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
 
         if self.control_queue is not None:
             self.control_queue.put([status, reply])

@@ -183,7 +183,7 @@ class DARCBase(mp.Process):
             reply = f"No such attribute: {command['attribute']}"
         else:
             status = 'Success'
-            reply = f"{self.log_name}.{command['attribute']} = {value}"
+            reply = f"{{'{self.log_name}.{command['attribute']}': {value}}}"
 
         if self.control_queue is not None:
             self.control_queue.put([status, reply])
