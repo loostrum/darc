@@ -11,3 +11,5 @@ from .processor_master import ProcessorMaster, ProcessorMasterManager
 from .offline_processing import OfflineProcessing
 from .status_website import StatusWebsite
 from .darc_master import DARCMaster
+
+from .__version__ import __version__

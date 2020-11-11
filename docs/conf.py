@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from darc import __version__
 sys.path.insert(0, os.path.abspath('..'))
 autodoc_mock_imports = ['tensorflow']
 
@@ -29,7 +30,7 @@ copyright = '2020, Leon Oostrum'
 author = 'Leon Oostrum'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------

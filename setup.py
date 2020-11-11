@@ -1,10 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+import os
 from setuptools import setup, find_packages
+
+with open(os.path.join('darc', '__version__.py')) as version_file:
+    version = {}
+    exec(version_file.read(), version)
+    project_version = version['__version__']
 
 
 setup(name='darc',
-      version='2.1',
+      version=project_version,
       description='Data Analysis of Real-time Candidates from ARTS',
       url='http://github.com/loostrum/darc',
       author='Leon Oostrum',

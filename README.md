@@ -4,7 +4,7 @@ Data Analysis of Real-time Candidates from the Apertif Radio Transient System
 [![DOI](https://zenodo.org/badge/165673299.svg)](https://zenodo.org/badge/latestdoi/165673299)[![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
 
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
-As of February 2020, DARC has discovered 11 FRBs.
+As of Summer 2020, DARC has discovered 18 new FRBs and several bursts from known repeaters.
 
 ### Installation
 
@@ -18,13 +18,14 @@ The following packages are automatically installed when installing DARC through 
 * h5py
 * matplotlib
 * numpy
+* pypdf4
 * pytz
 * pyyaml
 * scipy
 * voevent-parse
 
-To install a DARC release, for example v2.0:
-`pip install git+https://github.com/loostrum/darc/archive/v2.0.tar.gz`  
+To install a DARC release, for example v3.0:
+`pip install git+https://github.com/loostrum/darc/archive/v3.0.tar.gz`  
 To install the latest master:
 `pip install git+https://github.com/loostrum/darc.git`
 
@@ -52,9 +53,9 @@ DARC comprises several parts that communicate through either queues or sockets. 
 
 
 ### Usage
-Note: This example is specific to the ARTS cluster and assumes you are logged in to the ARTS master node. The python 3.6 virtual env (`. ~/python36/bin/activate`) needs to be activated to be able to run DARC commands manually. Always start DARC on the master node before starting it on other nodes. DARC can be started automatically across the cluster by running `start_full_pipeline` and stopped with `stop_full_pipeline`.  
+Note: This example is specific to the ARTS cluster and assumes you are logged in to the ARTS master node. The python virtual env (`. ~/darc/venv/bin/activate`) needs to be activated to be able to run DARC commands manually. Always start DARC on the master node before starting it on other nodes. DARC can be started automatically across the cluster by running `start_full_pipeline` and stopped with `stop_full_pipeline`.  
 
-Start DARC (e.g. on the master and arts001): `darc_start_all_services; ssh arts001 . ~/python36/bin/activate && darc_start_all_services`  
+Start DARC (e.g. on the master and arts001): `darc_start_all_services; ssh arts001 . ~/darc/venv/bin/activate && darc_start_all_services`  
 Verify that all services are running: `darc --host arts001 --service all status`  
 Check the log file of a specific service: `tail ~/darc/log/amber_clustering.arts001.log`  
 Restart a specific service: `darc --host arts001 --service amber_clustering restart`  
