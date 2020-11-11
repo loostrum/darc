@@ -199,7 +199,7 @@ class DARCBase(mp.Process):
         :param list args: process command arguments
         :param dict kwargs: process command keyword arguments
         """
-        if command['command'] == 'get_attr':
+        if isinstance(command, dict) and command['command'] == 'get_attr':
             self.get_attribute(command)
         else:
             raise NotImplementedError(f"Unknown command: {command['command']}")

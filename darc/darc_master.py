@@ -357,7 +357,7 @@ class DARCMaster:
         thread = self.threads[service]
         if (thread is None) or (not thread.is_alive()):
             status = 'Error'
-            reply = "Service not running: {service}"
+            reply = f"Service not running: {service}"
             return status, reply
 
         # send attribute get request to service queue

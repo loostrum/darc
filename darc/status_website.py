@@ -5,6 +5,7 @@
 import os
 import yaml
 import multiprocessing as mp
+import threading
 from queue import Empty
 import socket
 from textwrap import dedent
@@ -68,6 +69,8 @@ class StatusWebsite(mp.Process):
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
 
+        self.command_checker = None
+
         self.logger.info('Status website initialized')
 
         # create website directory
@@ -85,15 +88,16 @@ class StatusWebsite(mp.Process):
         #. Publish HTML page with statuses
         #. Generate offline page upon exit
         """
+        # run command checker
+        self.command_checker = threading.Thread(target=self.check_command)
+        self.command_checker.daemon = True
+        self.command_checker.start()
+
         while not self.stop_event.is_set():
             self.logger.info("Getting status of all services")
             # get status all nodes
             statuses = {}
             for node in self.all_nodes:
-                # check if a command was received
-                # do it here so we do not have to wait for all status checks
-                self.check_command()
-
                 statuses[node] = {}
                 try:
                     status = send_command(self.timeout, 'all', 'status', host=node)
@@ -141,16 +145,17 @@ class StatusWebsite(mp.Process):
         """
         Check if this service should execute a command
         """
-        try:
-            command = self.source_queue.get(timeout=.1)
-        except Empty:
-            return
-        if isinstance(command, str) and command == 'stop':
-            self.stop()
-        elif isinstance(command, dict) and command['command'] == 'get_attr':
-            self._get_attribute(command)
-        else:
-            self.logger.warning(f"Ignoring unknown command: {command['command']}")
+        while not self.stop_event.is_set():
+            try:
+                command = self.source_queue.get(timeout=1)
+            except Empty:
+                continue
+            if isinstance(command, str) and command == 'stop':
+                self.stop()
+            elif isinstance(command, dict) and command['command'] == 'get_attr':
+                self._get_attribute(command)
+            else:
+                self.logger.warning(f"Ignoring unknown command: {command['command']}")
 
     def stop(self):
         """

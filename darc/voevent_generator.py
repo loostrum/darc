@@ -114,6 +114,8 @@ class VOEventGenerator(mp.Process):
                     self.stop()
                 elif isinstance(command, str) and command.startswith('voevent_'):
                     self._switch_command(command)
+                elif isinstance(command, dict) and command['command'] == 'get_attr':
+                    self._get_attribute(command)
                 else:
                     self.logger.error(f"Unknown command received: {command}")
 
@@ -144,6 +146,30 @@ class VOEventGenerator(mp.Process):
         # stop the queue server
         self.voevent_server.shutdown()
         self.logger.info("Stopping VOEvent generator")
+
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{type(self).__name__}.{command['attribute']} = {value}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
 
     def _switch_command(self, command):
         """
