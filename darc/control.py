@@ -11,7 +11,14 @@ import subprocess
 
 from darc.definitions import CONFIG_FILE
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG, stream=sys.stdout)
+
+# setup logger
+logger = logging.getLogger('darc.control')
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 
 def send_command(timeout, service, command, payload=None, host='localhost', port=None):
@@ -42,7 +49,7 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
         master_socket.settimeout(timeout)
         master_socket.connect((host, port))
     except socket.error as e:
-        logging.error("Failed to connect to DARC master: {}".format(e))
+        logger.error("Failed to connect to DARC master: {}".format(e))
         return None
     # send message
     master_socket.sendall(message.encode())
@@ -52,18 +59,19 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
         try:
             reply = master_socket.recv(1024).decode()
         except socket.timeout:
-            logging.error("Did not receive reply before timeout")
+            logger.error("Did not receive reply before timeout")
         else:
             try:
                 reply = ast.literal_eval(reply)
             except Exception as e:
-                logging.error("Failed to parse message (): {}".format(e, reply))
+                logger.error("Failed to parse message (): {}".format(e, reply))
             else:
                 if isinstance(reply, dict):
                     for key, value in reply.items():
-                        logging.info("{}: {}".format(key, value))
+                        logger.info("{}: {}".format(key, value))
                 else:
-                    logging.info(reply)
+                    print(reply)
+                    logger.info(reply)
         # close connection
         master_socket.close()
     return reply
@@ -110,7 +118,7 @@ def main():
 
     # Check arguments
     if not args.cmd:
-        logging.error("Add command to execute e.g. \"darc --service amber_listener status\"")
+        logger.error("Add command to execute e.g. \"darc --service amber_listener status\"")
         sys.exit(1)
     cmd = args.cmd[0]
 
@@ -120,10 +128,10 @@ def main():
         attr = None
 
     if cmd not in commands:
-        logging.error("Unknown command: {}. Run darc -h to see available commands".format(cmd))
+        logger.error("Unknown command: {}. Run darc -h to see available commands".format(cmd))
         sys.exit(1)
     elif not args.service and cmd not in master_commands:
-        logging.error("Argument --service is required for given command")
+        logger.error("Argument --service is required for given command")
         sys.exit(1)
 
     # add attribute to command if get_attr is called
@@ -131,7 +139,7 @@ def main():
         if cmd == 'get_attr':
             cmd += f" {attr}"
         else:
-            logging.error("Attribute can only be provided when using get_attr command")
+            logger.error("Attribute can only be provided when using get_attr command")
             sys.exit(1)
 
     # If command is edit, open config in an editor
@@ -142,12 +150,12 @@ def main():
         editor = os.environ.get('EDITOR', default_editor)
         ret = subprocess.Popen([editor, CONFIG_FILE]).wait()
         if ret != 0:
-            logging.error("Editor did not exit properly")
+            logger.error("Editor did not exit properly")
         else:
-            logging.info("Restart services to apply new settings, or run 'darc reload' to reload the master config.\n"
-                         "WARNING: Restarting services aborts any running observation.\n"
-                         "For services without queue server (i.e. all except LOFARTrigger and VOEventGenerator),\n"
-                         "the config is automatically reloaded at the start of each observation.")
+            logger.info("Restart services to apply new settings, or run 'darc reload' to reload the master config.\n"
+                        "WARNING: Restarting services aborts any running observation.\n"
+                        "For services without queue server (i.e. all except LOFARTrigger and VOEventGenerator),\n"
+                        "the config is automatically reloaded at the start of each observation.")
         sys.exit(ret)
 
     # Get payload

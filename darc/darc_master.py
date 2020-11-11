@@ -182,7 +182,7 @@ class DARCMaster:
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
             raw_message = client.recv(1024).decode()
-            self.logger.info("Received message: {}".format(raw_message))
+            self.logger.debug("Received message: {}".format(raw_message))
             try:
                 status, reply = self.parse_message(raw_message)
             except Exception as e:

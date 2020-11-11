@@ -3,6 +3,7 @@
 # Website
 
 import os
+import logging
 import yaml
 import multiprocessing as mp
 import threading
@@ -14,7 +15,7 @@ from astropy.time import Time
 from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
 from darc.logger import get_logger
-from darc.control import send_command
+from darc import control
 
 
 class StatusWebsiteException(Exception):
@@ -71,7 +72,8 @@ class StatusWebsite(mp.Process):
 
         self.command_checker = None
 
-        self.logger.info('Status website initialized')
+        # reduce logging from status check commands
+        logging.getLogger('darc.control').setLevel(logging.ERROR)
 
         # create website directory
         try:
@@ -79,6 +81,8 @@ class StatusWebsite(mp.Process):
         except Exception as e:
             self.logger.error("Failed to create website directory: {}".format(e))
             raise StatusWebsiteException("Failed to create website directory: {}".format(e))
+
+        self.logger.info('Status website initialized')
 
     def run(self):
         """
@@ -100,7 +104,7 @@ class StatusWebsite(mp.Process):
             for node in self.all_nodes:
                 statuses[node] = {}
                 try:
-                    status = send_command(self.timeout, 'all', 'status', host=node)
+                    status = control.send_command(self.timeout, 'all', 'status', host=node)
                 except Exception as e:
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
