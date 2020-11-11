@@ -11,6 +11,7 @@ import h5py
 import yaml
 import matplotlib.pyplot as plt
 import astropy.units as u
+from PyPDF4 import PdfFileMerger
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH
 from darc import util
@@ -193,15 +194,13 @@ class Visualizer:
                 fig.savefig(fig_fname)
         # merge the plots
         output_file = f"{self.output_dir}/CB{self.obs_config['beam']:02d}.pdf"
-        input_files = []
+        merger = PdfFileMerger()
         for plot_type in self.config.plot_types:
             fnames = glob.glob(f'{self.output_dir}/*{plot_type}*.pdf')
             fnames.sort()
-            input_files.extend(fnames)
-        input_file_str = ' '.join(input_files)
-        cmd = f"gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {input_file_str}"
-        self.logger.debug("Running {}".format(cmd))
-        os.system(cmd)
+            for fname in fnames:
+                merger.append(fname)
+        merger.write(output_file)
         # copy the file to the central output directory
         self.logger.info(f"Saving plots to {self.result_dir}/{os.path.basename(output_file)}")
         copy(output_file, self.result_dir)
