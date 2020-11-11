@@ -316,6 +316,8 @@ class Processor(DARCBase):
             self.threads['classifier'].terminate()
             self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']}")
+            # A stop observation should also stop this processor, as there is only one per observation
+            self.stop()
             return
 
         # clear processing thread

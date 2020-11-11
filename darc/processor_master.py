@@ -227,9 +227,6 @@ class ProcessorMaster(DARCBase):
         except Exception as e:
             self.logger.error(f"Failed to process observation. Status = {self.status}: {type(e)}: {e}")
 
-        # stop the processor
-        self.stop_event.set()
-
     def stop_observation(self, abort=False):
         """
         Stop observation
@@ -243,8 +240,12 @@ class ProcessorMaster(DARCBase):
                 self.process.terminate()
                 self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
                                  f"{self.obs_config['datetimesource']}")
+            # A stop observation should also stop this processor, as there is only one per observation
+            self.stop()
         else:
-            self.logger.info("Abort is false, nothing to stop")
+            # wait until the processing is done, then stop this Process itself
+            self.process.join()
+            self.stop()
             return
 
     def cleanup(self):
