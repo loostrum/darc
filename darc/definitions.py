@@ -17,6 +17,7 @@ CONFIG_FILE = config_file
 
 #: ARTS master name
 MASTER = "arts041"
+MASTER = "zeus"
 
 #: ARTS worker names
 WORKERS = ["arts001", "arts002", "arts003", "arts004", "arts005",

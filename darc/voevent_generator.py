@@ -41,14 +41,16 @@ class VOEventGenerator(mp.Process):
     Convert incoming triggers to VOEvent and send to
     the VOEvent broker
     """
-    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, **kwargs):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
         :param Queue source_queue: Input queue for controlling this service
         :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
         super(VOEventGenerator, self).__init__()
         self.stop_event = mp.Event()
-        self.control_queue = source_queue
+        self.input_queue = source_queue
+        self.control_queue = control_queue
 
         self.voevent_server = None
 
@@ -102,14 +104,16 @@ class VOEventGenerator(mp.Process):
 
         # wait for events until stop is set
         while not self.stop_event.is_set():
-            # check if a stop command was received
+            # check if a stop or switch command was received
             try:
-                command = self.control_queue.get(timeout=.1)
+                command = self.input_queue.get(timeout=.1)
             except Empty:
                 pass
             else:
                 if isinstance(command, str) and command == 'stop':
                     self.stop()
+                elif isinstance(command, str) and command.startswith('voevent_'):
+                    self._switch_command(command)
                 else:
                     self.logger.error(f"Unknown command received: {command}")
 
@@ -140,6 +144,37 @@ class VOEventGenerator(mp.Process):
         # stop the queue server
         self.voevent_server.shutdown()
         self.logger.info("Stopping VOEvent generator")
+
+    def _switch_command(self, command):
+        """
+        Check status or enable/disable sending of events
+        """
+        status = 'Success'
+        if command == 'voevent_status':
+            if self.send_events:
+                reply = "VOEvent sending is enabled"
+            else:
+                reply = "VOEvent sending is disabled"
+        elif command == 'voevent_enable':
+            if self.send_events:
+                reply = "VOEvent sending already enabled"
+            else:
+                self.send_events = True
+                reply = "VOEvent sending enabled"
+        elif command == 'voevent_disable':
+            if self.send_events:
+                self.send_events = False
+                reply = "VOEvent sending disabled"
+            else:
+                reply = "VOEvent sending already disabled"
+        else:
+            status = 'Error'
+            reply = f"Unknown command: {command}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send result of switch command to master: no control queue set")
 
     def create_and_send(self, trigger):
         """

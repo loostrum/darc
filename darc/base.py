@@ -19,11 +19,13 @@ class DARCBase(mp.Process):
     Provides common methods to services
     """
 
-    def __init__(self, source_queue, target_queue=None, second_target_queue=None, config_file=CONFIG_FILE):
+    def __init__(self, source_queue, target_queue=None, second_target_queue=None,
+                 control_queue=None, config_file=CONFIG_FILE):
         """
         :param Queue source_queue: Input queue
         :param Queue target_queue: Output queue
         :param Queue second_target_queue: second output queue
+        :param Queue control_queue: Control queue
         :param str config_file: Path to config file
         """
         super(DARCBase, self).__init__()
@@ -32,6 +34,7 @@ class DARCBase(mp.Process):
         self.source_queue = source_queue
         self.target_queue = target_queue
         self.second_target_queue = second_target_queue
+        self.control_queue = control_queue
 
         # set names for config and logger
         self.module_name = type(self).__module__.split('.')[-1]

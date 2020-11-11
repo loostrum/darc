@@ -9,6 +9,7 @@ import argparse
 import ast
 import yaml
 import multiprocessing as mp
+from queue import Empty
 import socket
 from time import sleep, time
 from shutil import copy2
@@ -54,6 +55,9 @@ class DARCMaster:
         self.lofar_trigger_queue = mp.Queue()  # for controlling the LOFARTrigger service
         self.voevent_generator_queue = mp.Queue()  # for controlling the VOEventGenerator service
 
+        self.control_queue = mp.Queue()  # for receiving data from services
+
+        # all queues that are an input to a service
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
                            self.processor_queue, self.offline_queue, self.status_website_queue]
 
@@ -519,6 +523,7 @@ class DARCMaster:
         self.threads[service] = self.service_mapping[service](source_queue=source_queue,
                                                               target_queue=target_queue,
                                                               second_target_queue=second_target_queue,
+                                                              control_queue=self.control_queue,
                                                               config_file=self.config_file)
 
     def stop(self):
@@ -687,56 +692,33 @@ class DARCMaster:
         :param str command: command to run
         :return: status, reply
         """
-        # TODO: Fix this in Process setup
-        if command.startswith('lofar'):
+        if command.startswith('lofar_'):
             service = self.threads['lofar_trigger']
             name = 'LOFAR triggering'
-        elif command.startswith('voevent'):
+            queue = self.lofar_trigger_queue
+        elif command.startswith('voevent_'):
             service = self.threads['voevent_generator']
-            name = 'VOEvent sending'
+            name = 'VOEvent generator'
+            queue = self.voevent_generator_queue
         else:
             self.logger.info("Unknown command: {}".format(command))
-            return "Error", "Failed: Unknown command {}".format(command)
+            return 'Error', "Failed: Unknown command {}".format(command)
 
         if self.hostname != MASTER:
-            return "Error", "Failed: should run on master node"
+            return 'Error', "Failed: should run on master node"
 
-        # status
-        if command.endswith('status'):
-            try:
-                can_send = service.send_events
-                status = 'Success'
-                reply = '{} enabled: {}'.format(name, can_send)
-            except Exception as e:
-                self.logger.error("Failed to get {} status ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to check {} status'.format(name)
+        # check if service is running
+        if (service is None) or (not service.is_alive()):
+            return 'Error', f"{name} service is not running"
 
-        # enable
-        elif command.endswith('enable'):
-            try:
-                service.send_events = True
-                status = 'Success'
-                reply = '{} enabled'.format(name)
-            except Exception as e:
-                self.logger.error("Failed to enable {} ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to enable {}'.format(name)
+        # send command to service
+        queue.put(command)
+        # retrieve reply
+        try:
+            status, reply = self.control_queue.get(timeout=self.control_timeout)
+        except Empty:
+            return 'Error', f"Command sent to service, but no reply received within {self.control_timeout} seconds"
 
-        # disable
-        elif command.endswith('disable'):
-            try:
-                service.send_events = False
-                status = 'Success'
-                reply = '{} disabled'.format(name)
-            except Exception as e:
-                self.logger.error("Failed to disable {} ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to disable {}'.format(name)
-
-        else:
-            status = 'Error'
-            reply = 'Unknown command'
         return status, reply
 
 

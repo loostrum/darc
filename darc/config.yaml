@@ -6,6 +6,7 @@ darc_master:
     socket_timeout: 30  # for creating socket
     setup_time: 5  # start_observation is sent this long before the actual start time
     stop_timeout: 5  # for stopping services
+    control_timeout: 5  # for service interaction, e.g. enabling/disabling lofar triggering
     mode:  'mixed'  # real-time, offline, or mixed
     services_master_rt: ["status_website", "voevent_generator", "lofar_trigger", "processor"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
