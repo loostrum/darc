@@ -15,3 +15,20 @@ install:
 script:
     - pytest
     - find . -name "*.py" -exec pycodestyle --ignore E501,E402,W503 {} +
+
+jobs:
+  include:
+    - stage: deploy
+      python: "3.8"
+      install:
+        - pip install sphinx
+        - pip install .
+      script:
+        - make -C docs/ html
+        - touch docs/_build/html/.nojekyll
+      deploy:
+        provider: pages:git
+        verbose: true
+        token: "$GITHUB_TOKEN"
+        edge: true
+        local_dir: "./docs/_build/html"
