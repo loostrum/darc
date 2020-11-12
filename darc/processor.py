@@ -172,6 +172,7 @@ class Processor(DARCBase):
     #. Clustering + thresholding
     #. Extract data from filterbank
     #. Run classifier
+    #. Visualize candidates
 
     After observation finishes, results are gathered in a central location to be picked up by the master node
     """

@@ -1,47 +1,55 @@
 DARC services
 =============
 
-darc.amber\_clustering
------------------------------
-
-.. automodule:: darc.amber_clustering
-
-darc.amber\_listener
----------------------------
-
-.. automodule:: darc.amber_listener
-
-darc.dada\_trigger
--------------------------
-
-.. automodule:: darc.dada_trigger
-
-darc.darc\_master
-------------------------
+Master service
+--------------
 
 .. automodule:: darc.darc_master
 
-darc.lofar\_trigger
+Reading AMBER candidates
 ------------------------
+
+.. automodule:: darc.amber_listener
+
+Clustering of AMBER candidates
+------------------------------
+
+.. automodule:: darc.amber_clustering
+
+IQUV triggering
+---------------
+
+.. automodule:: darc.dada_trigger
+
+
+LOFAR triggering
+----------------
 
 .. automodule:: darc.lofar_trigger
 
-darc.offline\_processing
--------------------------------
+Sending VOEvents
+----------------
+
+.. automodule:: darc.voevent_generator
+
+Offline data processing
+-----------------------
 
 .. automodule:: darc.offline_processing
 
-darc.processor
----------------------
+Real-time data processing (worker node)
+---------------------------------------
 
 .. automodule:: darc.processor
 
-darc.status\_website
----------------------------
+Real-time data processing (master node)
+---------------------------------------
+
+.. automodule:: darc.processor_master
+
+Monitoring
+----------
 
 .. automodule:: darc.status_website
 
-darc.voevent\_generator
-------------------------------
 
-.. automodule:: darc.voevent_generator

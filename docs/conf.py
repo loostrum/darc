@@ -23,6 +23,8 @@ autoclass_content = 'both'
 autodoc_default_options = {'members': True, 'undoc-members': True,
                            'private-members': True, 'show-inheritance': True}
 
+# make sure link targets are unique
+autosectionlabel_prefix_document = True
 
 # -- Project information -----------------------------------------------------
 
@@ -39,7 +41,7 @@ release = __version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
