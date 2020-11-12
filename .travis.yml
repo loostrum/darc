@@ -22,6 +22,7 @@ jobs:
       python: "3.8"
       install:
         - pip install sphinx
+        - pip install tensorflow git+https://github.com/FRBs/sigpyproc3
         - pip install .
       script:
         - make -C docs/ html
