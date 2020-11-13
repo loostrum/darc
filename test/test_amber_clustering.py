@@ -99,7 +99,7 @@ class TestAMBERClustering(unittest.TestCase):
 
         # sometimes there is one extra trigger, unclear why. This trigger has the same arrival time as another,
         # so both having it and missing it is fine. If the number of triggers does not match the expected value,
-        # add this extrac trigger
+        # add this extra trigger
         if len(output) != len(expected_output):
             expected_output.append({'stokes': 'IQUV', 'dm': 56.8, 'beam': 4, 'width': 1, 'snr': 11.5134,
                                     'time': 0.0244941})
