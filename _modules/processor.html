@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time data processing &#8212; DARC 3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Offline data processing" href="offline.html" />
+    <link rel="prev" title="Real-time triggering" href="triggers.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="real-time-data-processing">
+<h1>Real-time data processing<a class="headerlink" href="#real-time-data-processing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The ARTS transient search pipeline, <a class="reference external" href="https://www.github.com/AA-ALERT/AMBER">AMBER</a>, produces a file with
+metadata of each candidate. The goal of the real-time processing part of DARC is to extract the data of these candidates,
+determine whether or not there are likely to be real, visualize the good candidates, and send an overview of each observation
+including figures of the candidates to the astronomers.</p>
+<p>Similar to the <a class="reference internal" href="triggers.html#real-time-triggering"><span class="std std-ref">real-time triggering</span></a> part of DARC, each worker node of the GPU cluster
+can operate mostly independently. The master node takes care of gathering the figures and summaries from the different nodes,
+and sends the results to the astronomers. On this page, each step of the real-time data processing system is explained in more detail.</p>
+</div>
+<div class="section" id="observation-management">
+<h2>Observation management<a class="headerlink" href="#observation-management" title="Permalink to this headline">¶</a></h2>
+<p>Each observation is managed by one instance of <a class="reference internal" href="services.html#darc.processor.Processor" title="darc.processor.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a> on the worker nodes,
+and <a class="reference internal" href="services.html#darc.processor_master.ProcessorMaster" title="darc.processor_master.ProcessorMaster"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessorMaster</span></code></a> on the master node.</p>
+<p>It is possible that a new observation is started before the previous observation has finished processing. Therefore,
+several instances of the processor must be able to run simultaneously. This is managed by
+<a class="reference internal" href="services.html#darc.processor.ProcessorManager" title="darc.processor.ProcessorManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessorManager</span></code></a> on the worker nodes and
+<a class="reference internal" href="services.html#darc.processor_master.ProcessorMasterManager" title="darc.processor_master.ProcessorMasterManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessorMasterManager</span></code></a> on the master node.
+These create a new processor for each observation and keep track of which observations are running. When an
+observation finishes processing, its processor exits and is evenutally removed from the observation list by a
+thread scavenger. Each observation is uniquely identified by a task ID, as specified in the parset received from the
+central Apertif control system.</p>
+</div>
+<div class="section" id="reading-amber-candidates">
+<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this headline">¶</a></h2>
+<p>The AMBER candidate reader described on the <a class="reference internal" href="triggers.html#reading-amber-candidates"><span class="std std-ref">real-time triggering page</span></a>
+also sends its output to the real-time data processing system.</p>
+</div>
+<div class="section" id="clustering-of-amber-candidates">
+<h2>Clustering of AMBER candidates<a class="headerlink" href="#clustering-of-amber-candidates" title="Permalink to this headline">¶</a></h2>
+<p>The main processor instance takes care of parsing the AMBER candidates. The actual clustering is then run by
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code>. The clustering algorithm is identical
+to that used by the <a class="reference internal" href="triggers.html#clustering-and-thresholding"><span class="std std-ref">real-time triggering system</span></a>. As in that system,
+the user can set a S/N threshold, minimum DM, and maximum DM. There is no split between known and new sources.
+The clustered triggers are written to an output file, and sent to the next step of the pipeline.</p>
+</div>
+<div class="section" id="data-extraction">
+<h2>Data extraction<a class="headerlink" href="#data-extraction" title="Permalink to this headline">¶</a></h2>
+<p>For each post-clustering trigger, the data have to be extracted from the filterbank file. This is done by
+<a class="reference internal" href="processor_tools.html#darc.processor_tools.extractor.Extractor" title="darc.processor_tools.extractor.Extractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Extractor</span></code></a>. The data extraction consists of several steps:</p>
+<ol class="arabic simple">
+<li><p>Calculate start and end time of filterbank chunk that is needed, based on arrival time, width, and DM</p></li>
+<li><p>Wait until the required filterbank data are available on disk</p></li>
+<li><p>Load the data</p></li>
+<li><p>Optionally downsample if the DM smearing timescale is longer than the sampling time</p></li>
+<li><p>Apply AMBER’s RFI mask</p></li>
+<li><p>Apply RFI cleaning</p></li>
+<li><p>Dedisperse to DM as found by AMBER and determine optimized S/N and width</p></li>
+<li><p>If S/N is lower than local S/N threshold: stop here, skip trigger</p></li>
+<li><p>Dedisperse to a range of DMs around the AMBER value</p></li>
+<li><p>Apply further downsampling in time (to match pulse width) and frequency (to reduce data size)</p></li>
+<li><p>Roll the data to put the peak of the timeseries in the centre of the time window</p></li>
+<li><p>Store the frequency-time (at AMBER DM), dm-time, and AMBER + optimized parameters in HDF5 format</p></li>
+</ol>
+<p>Reading the filterbank data is done with <a class="reference internal" href="processor_tools.html#darc.processor_tools.filterbank_reader.ARTSFilterbankReader" title="darc.processor_tools.filterbank_reader.ARTSFilterbankReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">ARTSFilterbankReader</span></code></a>.
+This module reads in the tied-array beam data from disk and converts these to the requested SB.</p>
+<p>For each candidate that passes the local S/N threshold, the path to the HDF5 file is sent to the next step of the pipeline.</p>
+</div>
+<div class="section" id="neural-network-classification-of-candidates">
+<h2>Neural network classification of candidates<a class="headerlink" href="#neural-network-classification-of-candidates" title="Permalink to this headline">¶</a></h2>
+<p>Each candidate is processed by a convolutional neural network, developed by Liam Connor
+(see also the corresponding <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2018AJ....156..256C/abstract">paper</a>).
+The <a class="reference internal" href="processor_tools.html#darc.processor_tools.classifier.Classifier" title="darc.processor_tools.classifier.Classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Classifier</span></code></a> module runs this classification. When an observation starts,
+it initialises the frequency-time and dm-time models on the GPU. For each candidate, it then extracts the data from
+the HDF5 file, reshapes them as needed, and classifies them. The output of the classifier is a probability of being a
+real transient for both the frequency-time and the dm-time data. These probabilities are written to the HDF5 file.
+If the probabilities are above the user-defined thresholds, the path to the HDF5 file is stored so it can be
+picked up by the visualization stage.</p>
+</div>
+<div class="section" id="candidate-visualization">
+<h2>Candidate visualization<a class="headerlink" href="#candidate-visualization" title="Permalink to this headline">¶</a></h2>
+<p>After an observation finishes and all candidates have been processed, the
+<a class="reference internal" href="#neural-network-classification-of-candidates"><span class="std std-ref">classifier</span></a> holds a list of HDF5 files,
+each containing the data and metadata of a candidate that needs to be visualized. These are then visualized
+by the <a class="reference internal" href="processor_tools.html#darc.processor_tools.visualizer.Visualizer" title="darc.processor_tools.visualizer.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a> module. The user can set the number of
+plots per page. For each candidate, a frequency-time, dm-time, and 1d-time plot is generated. The plots are sorted
+by probability, then by S/N. Any candidate with a DM larger than the maximum Milky Way DM estimated from the YMW16
+model gets a red border around the plot. The candidate metadata are shown in the plot title, using the optimized
+parameters. Each page of plots is stored as a separate PDF file, and merged into one PDF after the plotting finishes.</p>
+</div>
+<div class="section" id="observation-summary">
+<h2>Observation summary<a class="headerlink" href="#observation-summary" title="Permalink to this headline">¶</a></h2>
+<p>After the processing finishes, the PDF with candidates is copied to a central directory. Additionally,
+a file with the metadata of all post-classifier triggers is created, as well as a summary file listing the number
+of triggers at different steps in the pipeline.</p>
+<p>The master node picks up these files and generates an email listing observation information and the trigger metadata,
+with each PDF as attachment, as well as a simple web page with the same content. If one or more worker nodes that were
+include in the observation do not create the required output files, the master node will eventually check if these
+nodes are still online and processing the observation, and send a warning email if this is not the case.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a worker node fails, an empty output file must be created for the master node to stop waiting for that node.
+The command to create that file is listed in the warning email that is sent when a node goes offline</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="triggers.html">Real-time triggering</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Real-time data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="offline.html">Offline data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac.html">Monitoring &amp; control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="triggers.html" title="previous chapter">Real-time triggering</a></li>
+      <li>Next: <a href="offline.html" title="next chapter">Offline data processing</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/processor.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

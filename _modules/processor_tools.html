@@ -1,0 +1,755 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Processor tools &#8212; DARC 3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Miscellaneous" href="misc.html" />
+    <link rel="prev" title="DARC services" href="services.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="processor-tools">
+<h1>Processor tools<a class="headerlink" href="#processor-tools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-darc.processor_tools.clustering">
+<span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.processor_tools.clustering" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="darc.processor_tools.clustering.Clustering">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.clustering.</code><code class="sig-name descname">Clustering</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">output_dir</span></em>, <em class="sig-param"><span class="n">logger</span></em>, <em class="sig-param"><span class="n">input_queue</span></em>, <em class="sig-param"><span class="n">output_queue</span></em>, <em class="sig-param"><span class="n">ncluster</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>Clustering and thresholding of AMBER triggers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation settings</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Output directory for data products</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – Processor logger object</p></li>
+<li><p><strong>input_queue</strong> (<em>Queue</em>) – Input queue for triggers</p></li>
+<li><p><strong>output_queue</strong> (<em>Queue</em>) – Output queue for clusters</p></li>
+<li><p><strong>ncluster</strong> (<em>mp.Value</em>) – 0</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.clustering.Clustering._cluster">
+<code class="sig-name descname">_cluster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">triggers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering._cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute trigger clustering</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>triggers</strong> (<em>np.ndarray</em>) – Input triggers, columns: DM, S/N, time,
+integration_step, sb</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.clustering.Clustering._load_config">
+<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering._load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.clustering.Clustering.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.clustering.Clustering.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this thread</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.processor_tools.filterbank_reader">
+<span id="filterbank-reader"></span><h2>Filterbank reader<a class="headerlink" href="#module-darc.processor_tools.filterbank_reader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.filterbank_reader.</code><code class="sig-name descname">ARTSFilterbankReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">cb</span></em>, <em class="sig-param"><span class="n">ntab</span><span class="o">=</span><span class="default_value">12</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Filterbank reader for ARTS data, one file per TAB</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – path to filterbank files, with {cb:02d} and {tab:02d} for CB and TAB indices</p></li>
+<li><p><strong>cb</strong> (<em>int</em>) – CB index</p></li>
+<li><p><strong>ntab</strong> (<em>int</em>) – Number of TABs (Default: NTAB from constants)</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to config file, passed to SBGenerator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader.get_header">
+<code class="sig-name descname">get_header</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tab</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader.get_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read filterbank parameters to self.header</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tab</strong> (<em>int</em>) – TAB index (Default: 0)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader.get_sb">
+<code class="sig-name descname">get_sb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader.get_sb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an SB. TAB data must be read before calling this method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sb</strong> (<em>int</em>) – SB index</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Spectra object with SB data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader.load_single_sb">
+<code class="sig-name descname">load_single_sb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sb</span></em>, <em class="sig-param"><span class="n">startbin</span></em>, <em class="sig-param"><span class="n">chunksize</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader.load_single_sb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience tool to read only a single SB and its associated TABs.
+<em>Note</em>: Any internal TAB data is cleared after calling this method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sb</strong> (<em>int</em>) – SB index</p></li>
+<li><p><strong>startbin</strong> (<em>int</em>) – Index of first time sample to read</p></li>
+<li><p><strong>chunksize</strong> (<em>int</em>) – Number of time samples to read</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Spectra object with SB data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader.read_filterbank">
+<code class="sig-name descname">read_filterbank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tab</span></em>, <em class="sig-param"><span class="n">startbin</span></em>, <em class="sig-param"><span class="n">chunksize</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader.read_filterbank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a chunk of filterbank data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tab</strong> (<em>int</em>) – TAB index</p></li>
+<li><p><strong>startbin</strong> (<em>int</em>) – Index of first time sample to read</p></li>
+<li><p><strong>chunksize</strong> (<em>int</em>) – Number of time samples to read</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>chunk of data with shape (nfreq, chunksize)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader.read_tabs">
+<code class="sig-name descname">read_tabs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">startbin</span></em>, <em class="sig-param"><span class="n">chunksize</span></em>, <em class="sig-param"><span class="n">tabs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader.read_tabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read TAB data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>startbin</strong> (<em>int</em>) – Index of first time sample to read</p></li>
+<li><p><strong>chunksize</strong> (<em>int</em>) – Number of time samples to read</p></li>
+<li><p><strong>tabs</strong> (<em>list</em>) – which TABs to read (Default: all)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="darc.processor_tools.filterbank_reader.ARTSFilterbankReaderError">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.processor_tools.filterbank_reader.</code><code class="sig-name descname">ARTSFilterbankReaderError</code><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReaderError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<span class="target" id="module-darc.processor_tools.spectra"></span><dl class="py class">
+<dt id="darc.processor_tools.spectra.Spectra">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.spectra.</code><code class="sig-name descname">Spectra</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freqs</span></em>, <em class="sig-param"><span class="n">dt</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">starttime</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">dm</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to store spectra. This is mainly to provide
+reusable functionality.</p>
+<p>Spectra constructor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqs</strong> (<em>list</em>) – Observing frequencies for each channel.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Sampling time (seconds)</p></li>
+<li><p><strong>data</strong> (<em>array</em>) – A 2D numpy array containing pulsar data.
+Axis 0 should contain channels. (e.g. data[0,:])
+Axis 1 should contain spectra. (e.g. data[:,0])</p></li>
+<li><p><strong>starttime</strong> (<em>float</em>) – Start time (in seconds) of the spectra
+with respect to the start of the observation.
+(Default: 0).</p></li>
+<li><p><strong>dm</strong> (<em>float</em>) – Dispersion measure (in pc/cm^3). (Default: 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Spectra object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.dedisperse">
+<code class="sig-name descname">dedisperse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dm</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">padval</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.dedisperse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shift channels according to the delays predicted by
+the given DM.
+<strong>* Dedispersion happens in place *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>float</em>) – The DM (in pc/cm^3) to use.</p></li>
+<li><p><strong>padval</strong> (<em>float/str</em>) – The padding value to use when shifting
+channels during dedispersion. See documentation
+of Spectra.shift_channels. (Default: 0)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.downsample">
+<code class="sig-name descname">downsample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">factor</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">trim</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.downsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downsample the spectra by co-adding
+‘factor’ adjacent bins.
+<strong>* Downsampling is done in place *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>factor</strong> (<em>int</em>) – Reduce the number of spectra by this
+factor. Must be a factor of the number of
+spectra if ‘trim’ is False.</p></li>
+<li><p><strong>trim</strong> (<em>bool</em>) – Trim off excess bins.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.get_chan">
+<code class="sig-name descname">get_chan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channum</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.get_chan" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.get_spectrum">
+<code class="sig-name descname">get_spectrum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">specnum</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.get_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.masked">
+<code class="sig-name descname">masked</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span></em>, <em class="sig-param"><span class="n">maskval</span><span class="o">=</span><span class="default_value">'median-mid80'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.masked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace masked data with ‘maskval’. Returns
+a masked copy of the Spectra object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>array</em>) – An array of boolean values of the same size and shape
+as self.data. True represents an entry to be masked.</p></li>
+<li><p><strong>maskval</strong> (<em>str</em>) – <p>Value to use when masking. This can be a numeric
+value, ‘median’, ‘mean’, or ‘median-mid80’.</p>
+<p>The values ‘median’ and ‘mean’ refer to the median and
+mean of the channel, respectively. The value ‘median-mid80’
+refers to the median of the channel after the top and bottom
+10% of the sorted channel is removed.
+(Default: ‘median-mid80’)</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>maskedspec: A masked version of the Spectra object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.scaled">
+<code class="sig-name descname">scaled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indep</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.scaled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a scaled version of the Spectra object.
+When scaling subtract the median from each channel,
+and divide by global std deviation (if indep==False), or
+divide by std deviation of each row (if indep==True).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indep</strong> (<em>bool</em>) – If True, scale each row
+independently (Default: False).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>scaled_spectra: A scaled version of the
+Spectra object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.scaled2">
+<code class="sig-name descname">scaled2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indep</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.scaled2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a scaled version of the Spectra object.
+When scaling subtract the min from each channel,
+and divide by global max (if indep==False), or
+divide by max of each row (if indep==True).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indep</strong> (<em>bool</em>) – If True, scale each row
+independently (Default: False).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>scaled_spectra: A scaled version of the
+Spectra object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.shift_channels">
+<code class="sig-name descname">shift_channels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bins</span></em>, <em class="sig-param"><span class="n">padval</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.shift_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shift each channel to the left by the corresponding
+value in bins, an array.
+<strong>* Shifting happens in-place *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bins</strong> (<em>array</em>) – An array containing the number of bins
+to shift each channel by.</p></li>
+<li><p><strong>padval</strong> (<em>float/str</em>) – <p>Value to use when shifting near the edge
+of a channel. This can be a numeric value,
+‘median’, ‘mean’, or ‘rotate’.</p>
+<p>The values ‘median’ and ‘mean’ refer to the
+median and mean of the channel. The value
+‘rotate’ takes values from one end of the
+channel and shifts them to the other.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.smooth">
+<code class="sig-name descname">smooth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">padval</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth each channel by convolving with a top hat
+of given width. The height of the top had is
+chosen shuch that RMS=1 after smoothing.
+Overlap values are determined by ‘padval’.
+This bit of code is taken from Scott Ransom’s
+PRESTO’s single_pulse_search.py (line ~ 423).
+<strong>* Smoothing is done in place. *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>int</em>) – Number of bins to smooth by (Default: no smoothing)</p></li>
+<li><p><strong>padval</strong> (<em>float/str</em>) – Padding value to use. Possible values are
+float-value, ‘mean’, ‘median’, ‘wrap’.
+(Default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.subband">
+<code class="sig-name descname">subband</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nsub</span></em>, <em class="sig-param"><span class="n">subdm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padval</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.subband" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce the number of channels to ‘nsub’ by subbanding.
+The channels within a subband are combined using the
+DM ‘subdm’. ‘padval’ is passed to the call to
+‘Spectra.shift_channels’.
+<strong>* Subbanding happens in-place *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsub</strong> (<em>int</em>) – Number of subbands. Must be a factor of
+the number of channels.</p></li>
+<li><p><strong>subdm</strong> (<em>float</em>) – The DM with which to combine channels within
+each subband (Default: don’t shift channels
+within each subband)</p></li>
+<li><p><strong>padval</strong> (<em>float/str</em>) – The padding value to use when shifting
+channels during dedispersion. See documentation
+of Spectra.shift_channels. (Default: 0)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.spectra.Spectra.trim">
+<code class="sig-name descname">trim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bins</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.Spectra.trim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trim the end of the data by ‘bins’ spectra.
+<strong>* Trimming is done in place *</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bins</strong> (<em>int</em>) – Number of spectra to trim off the end of the observation.
+If bins is negative trim spectra off the beginning of the
+observation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="darc.processor_tools.spectra.delay_from_DM">
+<code class="sig-prename descclassname">darc.processor_tools.spectra.</code><code class="sig-name descname">delay_from_DM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">DM</span></em>, <em class="sig-param"><span class="n">freq_emitted</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.delay_from_DM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the delay in seconds caused by dispersion, given
+a Dispersion Measure in cm-3 pc, and the emitted
+frequency of the pulsar in MHz.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DM</strong> (<em>float</em>) – dispersion measure</p></li>
+<li><p><strong>freq_emitted</strong> (<em>float</em>) – frequency</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="darc.processor_tools.spectra.rotate">
+<code class="sig-prename descclassname">darc.processor_tools.spectra.</code><code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arr</span></em>, <em class="sig-param"><span class="n">bins</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.spectra.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an array rotated by ‘bins’ places to the left</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>list</em>) – Input data</p></li>
+<li><p><strong>bins</strong> (<em>int</em>) – Number of bins to rotate by</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.processor_tools.extractor">
+<span id="data-extraction"></span><h2>Data extraction<a class="headerlink" href="#module-darc.processor_tools.extractor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="darc.processor_tools.extractor.Extractor">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.extractor.</code><code class="sig-name descname">Extractor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">output_dir</span></em>, <em class="sig-param"><span class="n">logger</span></em>, <em class="sig-param"><span class="n">input_queue</span></em>, <em class="sig-param"><span class="n">output_queue</span></em>, <em class="sig-param"><span class="n">ncand_above_threshold</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>Extract data from filterbank files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation settings</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Output directory for data products</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – Processor logger object</p></li>
+<li><p><strong>input_queue</strong> (<em>Queue</em>) – Input queue for clusters</p></li>
+<li><p><strong>output_queue</strong> (<em>Queue</em>) – Output queue for classifier</p></li>
+<li><p><strong>ncand_above_threshold</strong> (<em>mp.Value</em>) – 0</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor._extract">
+<code class="sig-name descname">_extract</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dm</span></em>, <em class="sig-param"><span class="n">snr</span></em>, <em class="sig-param"><span class="n">toa</span></em>, <em class="sig-param"><span class="n">downsamp</span></em>, <em class="sig-param"><span class="n">sb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor._extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute data extraction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>float</em>) – Dispersion Measure (pc/cc)</p></li>
+<li><p><strong>snr</strong> (<em>float</em>) – AMBER S/N</p></li>
+<li><p><strong>toa</strong> (<em>float</em>) – Arrival time at top of band (s)</p></li>
+<li><p><strong>downsamp</strong> (<em>int</em>) – Downsampling factor</p></li>
+<li><p><strong>sb</strong> (<em>int</em>) – Synthesized beam index</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor._load_config">
+<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor._load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor._rficlean">
+<code class="sig-name descname">_rficlean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor._rficlean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean data of RFI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor._store_data">
+<code class="sig-name descname">_store_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">sb</span></em>, <em class="sig-param"><span class="n">tsamp</span></em>, <em class="sig-param"><span class="n">dms</span></em>, <em class="sig-param"><span class="n">params_amber</span></em>, <em class="sig-param"><span class="n">params_opt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor._store_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save candidate to HDF5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – Output file</p></li>
+<li><p><strong>sb</strong> (<em>int</em>) – Synthesized beam index</p></li>
+<li><p><strong>tsamp</strong> (<em>float</em>) – Sampling time (s)</p></li>
+<li><p><strong>dms</strong> (<em>Quantity</em>) – array of DMs used in DM-time array</p></li>
+<li><p><strong>params_amber</strong> (<em>tuple</em>) – AMBER parameters: dm, snr, toa</p></li>
+<li><p><strong>params_opt</strong> (<em>tuple</em>) – Optimized parameters: snr, toa</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor.init_filterbank_reader">
+<code class="sig-name descname">init_filterbank_reader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor.init_filterbank_reader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the ARTS filterbank reader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.extractor.Extractor.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this thread</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.processor_tools.classifier">
+<span id="neural-network-classification-of-candidates"></span><h2>Neural network classification of candidates<a class="headerlink" href="#module-darc.processor_tools.classifier" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="darc.processor_tools.classifier.Classifier">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.classifier.</code><code class="sig-name descname">Classifier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span></em>, <em class="sig-param"><span class="n">input_queue</span></em>, <em class="sig-param"><span class="n">conn</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>Classify candidates from HDF5 files produced by Extractor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger</strong> (<em>Logger</em>) – Processor logger object</p></li>
+<li><p><strong>input_queue</strong> (<em>Queue</em>) – Input queue for triggers</p></li>
+<li><p><strong>conn</strong> (<em>Connection</em>) – Pipe connection to send output to</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier._classify">
+<code class="sig-name descname">_classify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier._classify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classify a candidate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – Path to HDF5 file containing candidate data and metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier._init_models">
+<code class="sig-name descname">_init_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier._init_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the keras models</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier._load_config">
+<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier._load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier._load_tensorflow">
+<code class="sig-name descname">_load_tensorflow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier._load_tensorflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load tensorflow into local namespace</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier._prepare_data">
+<code class="sig-name descname">_prepare_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier._prepare_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify data shape and downsampled as needed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>success (bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main loop</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.classifier.Classifier.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this thread</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-darc.processor_tools.visualizer">
+<span id="candidate-visualization"></span><h2>Candidate visualization<a class="headerlink" href="#module-darc.processor_tools.visualizer" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="darc.processor_tools.visualizer.ProcessorException">
+<em class="property">exception </em><code class="sig-prename descclassname">darc.processor_tools.visualizer.</code><code class="sig-name descname">ProcessorException</code><a class="headerlink" href="#darc.processor_tools.visualizer.ProcessorException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="darc.processor_tools.visualizer.Visualizer">
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_tools.visualizer.</code><code class="sig-name descname">Visualizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_dir</span></em>, <em class="sig-param"><span class="n">result_dir</span></em>, <em class="sig-param"><span class="n">logger</span></em>, <em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">files</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.visualizer.Visualizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Visualize candidates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_dir</strong> (<em>str</em>) – Output directory for data products</p></li>
+<li><p><strong>result_dir</strong> (<em>str</em>) – central directory to copy output PDF to</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – Processor logger object</p></li>
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observations settings</p></li>
+<li><p><strong>files</strong> (<em>list</em>) – HDF5 files to visualize</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor_tools.visualizer.Visualizer._get_plot_order">
+<code class="sig-name descname">_get_plot_order</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.visualizer.Visualizer._get_plot_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the order of files to plot them in descending freq-time probability order,
+then by S/N if probabilities are equal</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>file order (np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.visualizer.Visualizer._load_config">
+<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.visualizer.Visualizer._load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>config (Namespace)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.visualizer.Visualizer._load_data">
+<code class="sig-name descname">_load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">data_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.visualizer.Visualizer._load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load HDF5 data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – Path to HDF5 file</p></li>
+<li><p><strong>data_type</strong> – which data type to get, options: freq_time, dm_time, 1d_time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data (np.ndarray), params (dict with tsamp, dm, snr, toa, downsamp, sb, dms)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_tools.visualizer.Visualizer._visualize">
+<code class="sig-name descname">_visualize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.visualizer.Visualizer._visualize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the visualization of candidates</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="triggers.html">Real-time triggering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processor.html">Real-time data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="offline.html">Offline data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac.html">Monitoring &amp; control</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="api.html">API reference</a><ul>
+      <li>Previous: <a href="services.html" title="previous chapter">DARC services</a></li>
+      <li>Next: <a href="misc.html" title="next chapter">Miscellaneous</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/processor_tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

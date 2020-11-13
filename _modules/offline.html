@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline data processing &#8212; DARC 3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Monitoring &amp; control" href="mac.html" />
+    <link rel="prev" title="Real-time data processing" href="processor.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="offline-data-processing">
+<h1>Offline data processing<a class="headerlink" href="#offline-data-processing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The offline processing pipeline takes care of analyses that can only run after the data recording of an observation
+finishes. This is handled by the <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> module.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The offline processing module is also capable of running a complete candidate analysis, but that part has been
+superseded by the <a class="reference internal" href="processor.html#real-time-data-processing"><span class="std std-ref">real-time data processing</span></a>.
+The complete candidate analysis is still available in the current offline processing module, but disabled and
+undocumented.</p>
+</div>
+</div>
+<div class="section" id="pulsar-folding">
+<h2>Pulsar folding<a class="headerlink" href="#pulsar-folding" title="Permalink to this headline">¶</a></h2>
+<p>If a known test pulsar (as defined in the source list file) is being observed, and it is explicitly located in
+the compound beam that is processed by the current worker node, the filterbank data of tied-array beam zero
+are folded at the pulsar ephemeris with PRESTO’s <code class="docutils literal notranslate"><span class="pre">prepfold</span></code>. The resulting postscript plot is converted to PDF.
+An external tool picks up these figures, as well as any output figures from the real-tie pipeline,
+and copies them to the Apertif surveys wordpress website, so they can be easily inspected without logging in to the system.</p>
+</div>
+<div class="section" id="drift-scan-calibration">
+<h2>Drift scan calibration<a class="headerlink" href="#drift-scan-calibration" title="Permalink to this headline">¶</a></h2>
+<p>An external tool to measure the sensitivity of the system based on drift scans of known calibrator sources is available,
+and called automatically when <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> detects that</p>
+<ul class="simple">
+<li><p>The source name contains a known calibrator (as determined from the config file)</p></li>
+<li><p>The current compound beam is part of the drift scan</p></li>
+</ul>
+<p>This requires source names of the format <code class="docutils literal notranslate"><span class="pre">&lt;source&gt;drift&lt;first_beam&gt;&lt;last_beam&gt;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&lt;source&gt;drift&lt;beam&gt;</span></code> in case of a drift
+through one compound beam. <code class="docutils literal notranslate"><span class="pre">&lt;beam&gt;</span></code> should always be a two-digit number. For example: <code class="docutils literal notranslate"><span class="pre">3C286drift0107</span></code> would be
+a drift scan through the top row of compound beams.</p>
+<p>The output of the drift scan calibration consists of a numpy file for each TAB of each CB, containing downsampled
+filterbank data, and a figure showing a spectrum and different sensitivity metrics. These plots are stored in a folder
+named <code class="docutils literal notranslate"><span class="pre">&lt;date&gt;_&lt;source&gt;</span></code> within the calibration directory specified in the config file.</p>
+</div>
+<div class="section" id="deep-search-for-known-frb-sources">
+<h2>Deep search for known FRB sources<a class="headerlink" href="#deep-search-for-known-frb-sources" title="Permalink to this headline">¶</a></h2>
+<p>An external tool that visualizes any of the post-clustering candidates if their DM is close to that of a known source
+and that known source is in the field, is available and automatically called after every observation.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="triggers.html">Real-time triggering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processor.html">Real-time data processing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Offline data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac.html">Monitoring &amp; control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="processor.html" title="previous chapter">Real-time data processing</a></li>
+      <li>Next: <a href="mac.html" title="next chapter">Monitoring &amp; control</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/offline.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

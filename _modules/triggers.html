@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time triggering &#8212; DARC 3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Real-time data processing" href="processor.html" />
+    <link rel="prev" title="Welcome to DARC’s documentation" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="real-time-triggering">
+<h1>Real-time triggering<a class="headerlink" href="#real-time-triggering" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The ARTS GPU cluster receives both a Stokes I and Stokes IQUV data stream from the
+beamformer, and searches the Stokes I data for transients in real-time using a GPU pipeline,
+<a class="reference external" href="https://www.github.com/AA-ALERT/AMBER">AMBER</a>. The real-time triggering part of DARC takes
+the candidate metadata produced by AMBER, and decides whether or not to send a trigger to store
+IQUV data, observe with the LOFAR transient buffer boards (TBBs), or send a VOEvent to the outside world.</p>
+<p>Each of the 40 worker nodes of the GPU cluster processes the data from one Compound Beam (CB). Each CB
+points in a different direction of the sky, so the nodes can operate mostly independently from one another.
+The notable exception to this is external triggers: LOFAR and VOEvents. While the worker nodes identify potential
+external triggers, actually sending the triggers is taken care of by the master node. On this page, each step of the
+real-time triggering system is explained in more detail.</p>
+</div>
+<div class="section" id="reading-amber-candidates">
+<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this headline">¶</a></h2>
+<p>Each worker node runs three instances of AMBER, each searching a different part of parameter space.
+The candidate metadata is written to a text file, one file per AMBER instance. These files are read by
+the <a class="reference internal" href="services.html#darc.amber_listener.AMBERListener" title="darc.amber_listener.AMBERListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERListener</span></code></a> module, in a
+way similar to the <strong class="command">tail -f</strong> command in bash. Each line of an AMBER file, containing the metadata of one candidate,
+is fed to the next modules as-is, i.e. as one string. As the triggers with different DMs and the same arrival time
+are detected by AMBER at different times, the candidates as output by
+<a class="reference internal" href="services.html#darc.amber_listener.AMBERListener" title="darc.amber_listener.AMBERListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERListener</span></code></a> are not necessarily in order of arrival time.</p>
+</div>
+<div class="section" id="clustering-and-thresholding">
+<h2>Clustering and thresholding<a class="headerlink" href="#clustering-and-thresholding" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="services.html#darc.amber_clustering.AMBERClustering" title="darc.amber_clustering.AMBERClustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERClustering</span></code></a> takes the AMBER candidates and decides whether to
+send triggers to different parts of the system. It first parses the triggers based on the header (which is also
+sent by the <a class="reference internal" href="#reading-amber-candidates"><span class="std std-ref">AMBER listener module</span></a>). At a configurable interval,
+all triggers that arrived during that interval are clustered together. The clustering algorithm was originally developed
+by Liam Connor as part of <a class="reference external" href="https://github.com/AA-ALERT/arts-analysis">arts-analysis</a>. It clusters candidates in time
+and DM, automatically selecting the optimal width and Synthesized Beam (SB) index. In addition, it has an SB periodicity
+filter developed by Dany Vohl, which can be enabled in the DARC config file.
+If a known source is being observed, the clustering and following triggering runs twice: once for triggers with a DM
+close to that of the known source, and once for any DM.
+An S/N limit, minimum DM, and maximum DM can be set in the config file.</p>
+<p>After clustering, each remaining
+trigger is checked against the IQUV trigger thresholds. These include a limit on width (for new sources) and DM (at least
+some fraction of the maximum Milky Way DM estimated from the YMW16 model). There is also a limit on how often IQUV triggers
+can be executed, because the disks cannot handle writing IQUV data continuously. If a trigger passes all these checks,
+it is sent to the <a class="reference internal" href="#iquv-triggering"><span class="std std-ref">IQUV triggering system</span></a>.</p>
+<p>The triggers passing the IQUV thresholds are then checked against the LOFAR triggering thresholds. As LOFAR triggering can
+only be done for the best candidates, the LOFAR trigger thresholds are always assumed to be more strict than the IQUV
+thresholds. LOFAR triggering can set to run for all sources, only for known sources, or only for a specific list of
+sources listed in the config file. Each type has separate user-configurable thresholds in DM, S/N, and width.
+For the specific sources, the system can also be set to only trigger on the central few CBs, to reduce the false
+positive rate. Triggers passing the LOFAR thresholds are sent to both the
+<a class="reference internal" href="#lofar-triggering"><span class="std std-ref">LOFAR trigger system</span></a> and
+the <a class="reference internal" href="#sending-voevents"><span class="std std-ref">VOEvent system</span></a>.</p>
+</div>
+<div class="section" id="iquv-triggering">
+<h2>IQUV triggering<a class="headerlink" href="#iquv-triggering" title="Permalink to this headline">¶</a></h2>
+<p>The IQUV data are buffered using a <a class="reference external" href="https://psrdada.sourceforge.net/">PSRDADA</a> ringbuffer. PSRDADA’s <cite>dada_dbevent</cite>
+listens on a network port for a trigger. A trigger contains the UTC start/end time of the data that should be stored,
+and several burst parameters. If the ringbuffer still contains the requested data, these are copied to a second ringbuffer
+to which <cite>dada_dbdisk</cite> is connected, which then writes the data to disk.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The data as written by <cite>dada_dbdisk</cite> are not in a nicely
+readable format. A tool is available to convert the data
+to PSRFITS: <a class="reference external" href="https://github.com/AA-ALERT/dadafits">dadafits</a>.
+<cite>dadafits</cite> reads data from a ringbuffer, so the
+data on disk must be put into a ringbuffer with
+<cite>dada_diskdb</cite>. <cite>dadafits</cite> cannot run in real-time
+because the data conversion is a slow process.</p>
+</div>
+<p><a class="reference internal" href="services.html#darc.dada_trigger.DADATrigger" title="darc.dada_trigger.DADATrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">DADATrigger</span></code></a> takes care of sending IQUV triggers to <cite>dada_dbevent</cite>.
+Using the burst arrival time and dispersion measure, it determines which chunk of data should be stored to disk.</p>
+<p><a class="reference internal" href="services.html#darc.dada_trigger.DADATrigger" title="darc.dada_trigger.DADATrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">DADATrigger</span></code></a> is also capable of sending Stokes I triggers.
+This works exactly the same as IQUV triggers, but the trigger is sent to a second <cite>dada_dbevent</cite> listening on
+a different network port. This mode is not currently used. Instead, the Stokes I data are always read from
+the filterbank data on disk (See also the <a class="reference internal" href="processor.html#data-extraction"><span class="std std-ref">data extraction</span></a> section
+of the real-time data processing section).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Sending a Stokes I trigger but not reading the triggered data from the ringbuffer can cause the entire observation to
+stall.</p>
+</div>
+<div class="section" id="polarization-calibration">
+<h3>Polarization calibration<a class="headerlink" href="#polarization-calibration" title="Permalink to this headline">¶</a></h3>
+<p>In order to calibrate IQUV data, typically one or more calibrator sources are observed. Some IQUV data should be stored
+during these observations, even if there are no AMBER triggers.
+In order to facilitate this, <a class="reference internal" href="services.html#darc.dada_trigger.DADATrigger" title="darc.dada_trigger.DADATrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">DADATrigger</span></code></a> has a polarization calibration mode.
+This mode is activated when</p>
+<ul class="simple">
+<li><p>The source name contains “polcal”</p></li>
+<li><p>The source was explicitly put in the CB processed by this worker node</p></li>
+</ul>
+<p>In polarization calibration mode, the <a class="reference internal" href="services.html#darc.dada_trigger.DADATrigger" title="darc.dada_trigger.DADATrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">DADATrigger</span></code></a> sends IQUV triggers
+at regular intervals. The length of each trigger and interval can be configured.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In polarization calibration mode, regular triggering is disabled.</p>
+<p>IQUV triggers should be no longer than 30 s in duration, and have at least an interval equal to the trigger duration.
+As the data rate is higher than the writing speed of the disks, this ensures the disks can keep up.</p>
+</div>
+</div>
+</div>
+<div class="section" id="lofar-triggering">
+<h2>LOFAR triggering<a class="headerlink" href="#lofar-triggering" title="Permalink to this headline">¶</a></h2>
+<p>The master node takes care of LOFAR triggers using <a class="reference internal" href="services.html#darc.lofar_trigger.LOFARTrigger" title="darc.lofar_trigger.LOFARTrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">LOFARTrigger</span></code></a>. This module
+runs a server, that all other nodes can send their potential LOFAR triggers to.
+When <a class="reference internal" href="services.html#darc.lofar_trigger.LOFARTrigger" title="darc.lofar_trigger.LOFARTrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">LOFARTrigger</span></code></a> receives a trigger through this server, it waits
+for a short time to check if other nodes have sent triggers as well. A bright transient can show up
+in several CBs, so this is quite likely. If several triggers are received, preference is given to triggers from known
+sources. Then the trigger with the highest S/N is chosen.</p>
+<p>From the trigger arrival time at ARTS and its DM, <a class="reference internal" href="services.html#darc.lofar_trigger.LOFARTrigger" title="darc.lofar_trigger.LOFARTrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">LOFARTrigger</span></code></a> calculates
+the arrival time at LOFAR frequencies. It then aims to have the signal in the centre of the few-second TBB buffer when
+the buffers are frozen. To execute the actual buffer freeze, a message is sent to a server at LOFAR containg the
+buffer freeze time accurate to a millisecond, the DM accurate to 0.1 pc cm <sup>-3</sup>, and a flag indicating
+whether the message is a test or a real observation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To check whether the LOFAR trigger module is enabled/disabled, or check its status, DARC supports the
+<cite>lofar_enable</cite>, <cite>lofar_disable</cite>, and <cite>lofar_status</cite> commands. These commands must be sent to the master node.</p>
+</div>
+</div>
+<div class="section" id="sending-voevents">
+<h2>Sending VOEvents<a class="headerlink" href="#sending-voevents" title="Permalink to this headline">¶</a></h2>
+<p>The VOEvent system is very similar to the <a class="reference internal" href="#lofar-triggering"><span class="std std-ref">LOFAR trigger system</span></a>.
+If it receives multiple triggers, it selects the trigger with the highest S/N. Unlike the LOFAR trigger system, it does
+not give preference to known sources. For the selected trigger, an XML-format VOEvent is generated following the
+<a class="reference external" href="https://github.com/ebpetroff/FRB_VOEvent">community standard</a>. This event is then sent to the VOEvent broker at
+ASTRON using <a class="reference external" href="https://comet.transientskp.org/en/stable/">comet</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To check whether the VOEvent module is enabled/disabled, or check its status, DARC supports the
+<cite>voevent_enable</cite>, <cite>voevent_disable</cite>, and <cite>voevent_status</cite> commands. These commands must be sent to the master node.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Real-time triggering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processor.html">Real-time data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="offline.html">Offline data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac.html">Monitoring &amp; control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to DARC’s documentation</a></li>
+      <li>Next: <a href="processor.html" title="next chapter">Real-time data processing</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/triggers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

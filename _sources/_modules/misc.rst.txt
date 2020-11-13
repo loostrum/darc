@@ -1,36 +1,36 @@
 Miscellaneous
 =============
 
-darc.base
+Base class
 ----------------
 
 .. automodule:: darc.base
 
-darc.control
+Control
 -------------------
 
 .. automodule:: darc.control
 
 
-darc.definitions
------------------------
+Definitions
+-----------
 
 .. automodule:: darc.definitions
 
-darc.logger
-------------------
+Logger
+------
 
 .. automodule:: darc.logger
 
 
-darc.sb\_generator
--------------------------
+Synthesized Beam Generator
+--------------------------
 
 .. automodule:: darc.sb_generator
 
 
-darc.util
-----------------
+Utilities
+---------
 
 .. automodule:: darc.util
 

@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring &amp; control &#8212; DARC 3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API reference" href="api.html" />
+    <link rel="prev" title="Offline data processing" href="offline.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="monitoring-control">
+<h1>Monitoring &amp; control<a class="headerlink" href="#monitoring-control" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="control">
+<h2>Control<a class="headerlink" href="#control" title="Permalink to this headline">¶</a></h2>
+<p>DARC is controlled by a master service, <a class="reference internal" href="services.html#darc.darc_master.DARCMaster" title="darc.darc_master.DARCMaster"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCMaster</span></code></a>.
+This service controls all other services and takes care of starting/stopping observations.
+It also holds the Python queues that connect different services together.
+The <strong class="command">darc_service</strong> starts the master service. However, the user is advised to use one of the supplied
+scripts to start DARC (see <a class="reference internal" href="#scripts"><span class="std std-ref">scripts</span></a>).</p>
+<p>The master service listens for commands on a network port. DARC includes an executable to handle communication
+with the master service (see <a class="reference internal" href="#command-line-interface"><span class="std std-ref">command line interface</span></a>),
+but this can also be done from Python. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">darc.control</span> <span class="kn">import</span> <span class="n">send_command</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">send_command</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">service</span><span class="o">=</span><span class="s1">&#39;processor&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;arts001&#39;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">)</span>
+<span class="go">status: Success</span>
+<span class="go">message: {&#39;processor&#39;: &#39;running&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span>
+<span class="go">{&#39;status&#39;: &#39;Success&#39;, &#39;message&#39;: {&#39;processor&#39;: &#39;running&#39;}}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">send_command</span></code> returns a dictionary, unless something failed in which case it returns None.</p>
+<div class="section" id="command-line-interface">
+<h3>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h3>
+<p>The user can interact with <a class="reference internal" href="services.html#darc.darc_master.DARCMaster" title="darc.darc_master.DARCMaster"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCMaster</span></code></a> through the <code class="docutils literal notranslate"><span class="pre">darc</span></code> executable.
+All options can be listed by running <code class="docutils literal notranslate"><span class="pre">darc</span> <span class="pre">-h</span></code>. A few examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>arts@arts041:~$ darc --service all status
+status: Success
+message: {&#39;offline_processing&#39;: &#39;running&#39;, &#39;status_website&#39;: &#39;running&#39;, &#39;voevent_generator&#39;: &#39;running&#39;, &#39;lofar_trigger&#39;: &#39;running&#39;, &#39;processor&#39;: &#39;running&#39;}
+
+arts@arts041:~$ darc --service lofar_trigger get_attr log_file
+status: Success
+message: {&#39;lofar_trigger&#39;: &quot;{&#39;LOFARTrigger.log_file&#39;: /home/arts/darc/log/lofar_trigger.arts041.log}&quot;}
+
+arts@arts041:~$ darc lofar_status
+status: Success
+message: LOFAR triggering is enabled
+
+arts@arts041:~$ darc --host arts001 --service amber_clustering restart
+status: Success
+message: {&#39;amber_clustering&#39;: {&#39;stop&#39;: &#39;stopped&#39;, &#39;start&#39;: &#39;started&#39;}}
+
+arts@arts041:~$ darc --host nonexistent --service all status
+Failed to connect to DARC master: [Errno -2] Name or service not known
+
+arts@arts041:~$ darc stop_master
+status: Success
+message: Stopping master
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <cite>start_observation</cite> and <cite>stop_observation</cite> commands are normally executed by <cite>ARTSSurveyControl</cite> and should
+not be executed by the user.</p>
+</div>
+</div>
+<div class="section" id="scripts">
+<h3>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h3>
+<p>DARC comes with several scripts to make control of the pipeline easier:</p>
+<ul class="simple">
+<li><p><strong class="command">darc_start_master</strong>: Starts the master service on the current node and checks whether it starts up properly.
+It also redirects the output to a log file located at <code class="docutils literal notranslate"><span class="pre">$HOME/darc/log/darc_master.&lt;hostname&gt;.log</span></code>.</p></li>
+<li><p><strong class="command">darc_stop_master</strong>: Stops the master service an by extension all other services, also aborting any
+running observations.</p></li>
+<li><p><strong class="command">darc_start_all_services</strong>: Starts all services, including DARC Master if it is not running.</p></li>
+<li><p><strong class="command">darc_start_stop_all_services</strong>: Stops all services except the master service. Aborts any running observation.</p></li>
+<li><p><strong class="command">darc_kill_all</strong>: Kill master service and all other services. Use when DARC fails to exit using the normal
+stop command.</p></li>
+</ul>
+<p>In addition, the following two commands are available on the ARTS cluster:
+* <strong class="command">start_full_pipeline</strong>: Starts all DARC services on all nodes
+* <strong class="command">stop_full_piepline</strong>: Stops DARC services, including master service, on all nodes.</p>
+</div>
+</div>
+<div class="section" id="monitoring">
+<h2>Monitoring<a class="headerlink" href="#monitoring" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="status-website">
+<h3>Status website<a class="headerlink" href="#status-website" title="Permalink to this headline">¶</a></h3>
+<p>This is handled by the <a class="reference internal" href="services.html#darc.status_website.StatusWebsite" title="darc.status_website.StatusWebsite"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusWebsite</span></code></a> service, which runs on the master node.
+It generates a simple web page showning whether or not the DARC services are online on each node
+of the ARTS cluster. If a node cannot be reached, it turns grey. Otherwise each service on the node is checked and
+shown in green if it is running, and in red if it is not.</p>
+</div>
+<div class="section" id="logging">
+<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
+<p>Each service has its own log file, by default located at <code class="docutils literal notranslate"><span class="pre">$HOME/darc/log/&lt;service&gt;.&lt;hostname&gt;.log</span></code>.
+The log files include timestamps, allowing the user to check what happened at some point in the past.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">DARC</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="triggers.html">Real-time triggering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processor.html">Real-time data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="offline.html">Offline data processing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Monitoring &amp; control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="offline.html" title="previous chapter">Offline data processing</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Leon Oostrum.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_modules/mac.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
