@@ -16,7 +16,7 @@ external triggers, actually sending the triggers is taken care of by the master 
 real-time triggering system is explained in more detail.
 
 Reading AMBER candidates
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 Each worker node runs three instances of AMBER, each searching a different part of parameter space.
 The candidate metadata is written to a text file, one file per AMBER instance. These files are read by
 the :class:`AMBERListener <darc.amber_listener.AMBERListener>` module, in a
@@ -26,7 +26,7 @@ are detected by AMBER at different times, the candidates as output by
 :class:`AMBERListener <darc.amber_listener.AMBERListener>` are not necessarily in order of arrival time.
 
 Clustering and thresholding
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 :class:`AMBERClustering <darc.amber_clustering.AMBERClustering>` takes the AMBER candidates and decides whether to
 send triggers to different parts of the system. It first parses the triggers based on the header (which is also
 sent by the :ref:`AMBER listener module <_modules/triggers:Reading AMBER candidates>`). At a configurable interval,
@@ -54,7 +54,7 @@ positive rate. Triggers passing the LOFAR thresholds are sent to both the
 the :ref:`VOEvent system <_modules/triggers:Sending VOEvents>`.
 
 IQUV triggering
-^^^^^^^^^^^^^^^
+---------------
 The IQUV data are buffered using a `PSRDADA <https://psrdada.sourceforge.net/>`_ ringbuffer. PSRDADA's `dada_dbevent`
 listens on a network port for a trigger. A trigger contains the UTC start/end time of the data that should be stored,
 and several burst parameters. If the ringbuffer still contains the requested data, these are copied to a second ringbuffer
@@ -75,17 +75,15 @@ Using the burst arrival time and dispersion measure, it determines which chunk o
 :class:`DADATrigger <darc.dada_trigger.DADATrigger>` is also capable of sending Stokes I triggers.
 This works exactly the same as IQUV triggers, but the trigger is sent to a second `dada_dbevent` listening on
 a different network port. This mode is not currently used. Instead, the Stokes I data are always read from
-the filterbank data on disk
-
-..
-  (See also :ref:`_modules/processor:Data extraction`).
+the filterbank data on disk (See also the :ref:`data extraction <_modules/processor:Data extraction>` section
+of the real-time data processing section).
 
 .. warning::
     Sending a Stokes I trigger but not reading the triggered data from the ringbuffer can cause the entire observation to
     stall.
 
 Polarization calibration
-""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^
 In order to calibrate IQUV data, typically one or more calibrator sources are observed. Some IQUV data should be stored
 during these observations, even if there are no AMBER triggers.
 In order to facilitate this, :class:`DADATrigger <darc.dada_trigger.DADATrigger>` has a polarization calibration mode.
@@ -104,7 +102,7 @@ at regular intervals. The length of each trigger and interval can be configured.
     As the data rate is higher than the writing speed of the disks, this ensures the disks can keep up.
 
 LOFAR triggering
-^^^^^^^^^^^^^^^^
+----------------
 The master node takes care of LOFAR triggers using :class:`LOFARTrigger <darc.lofar_trigger.LOFARTrigger>`. This module
 runs a server, that all other nodes can send their potential LOFAR triggers to.
 When :class:`LOFARTrigger <darc.lofar_trigger.LOFARTrigger>` receives a trigger through this server, it waits
@@ -123,7 +121,7 @@ whether the message is a test or a real observation.
     `lofar_enable`, `lofar_disable`, and `lofar_status` commands. These commands must be sent to the master node.
 
 Sending VOEvents
-^^^^^^^^^^^^^^^^
+----------------
 The VOEvent system is very similar to the :ref:`LOFAR trigger system <_modules/triggers:LOFAR triggering>`.
 If it receives multiple triggers, it selects the trigger with the highest S/N. Unlike the LOFAR trigger system, it does
 not give preference to known sources. For the selected trigger, an XML-format VOEvent is generated following the
