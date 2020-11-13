@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import os
 import sys
 import unittest
 import multiprocessing as mp
@@ -9,10 +8,10 @@ import errno
 from time import sleep
 from astropy.time import Time, TimeDelta
 import socket
-from queue import Empty
 
-from darc.dada_trigger import DADATrigger
+from darc import DADATrigger
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 class TestDADATrigger(unittest.TestCase):
@@ -65,9 +64,7 @@ class TestDADATrigger(unittest.TestCase):
         # create input queue
         queue = mp.Queue()
         # init DADA Trigger
-        dadatrigger = DADATrigger()
-        # set the queue
-        dadatrigger.set_source_queue(queue)
+        dadatrigger = DADATrigger(queue)
         # start dadatrigger
         dadatrigger.start()
 
@@ -140,6 +137,7 @@ class TestDADATrigger(unittest.TestCase):
                         raise
         else:
             out_event = client.recv(1024).decode()
+        client.close()
         # close the socket
         sock.close()
 
@@ -148,7 +146,7 @@ class TestDADATrigger(unittest.TestCase):
         self.assertListEqual(in_event_split, out_event_split)
 
         # stop dadatrigger
-        dadatrigger.stop()
+        queue.put('stop')
 
     def test_polcal(self):
         """
@@ -157,15 +155,13 @@ class TestDADATrigger(unittest.TestCase):
         # create input queue
         queue = mp.Queue()
         # init DADA Trigger
-        dadatrigger = DADATrigger()
-        # set the queue
-        dadatrigger.set_source_queue(queue)
-        # start dadatrigger
-        dadatrigger.start()
+        dadatrigger = DADATrigger(queue)
         # set IQUV dump size, interval, max number of dumps
         dadatrigger.polcal_dump_size = 1
         dadatrigger.polcal_interval = 2
         dadatrigger.polcal_max_dumps = 5
+        # start dadatrigger
+        dadatrigger.start()
         # timeout for receiving first dump event
         # must be larger than polcal_interval
         timeout = 5
@@ -193,7 +189,7 @@ class TestDADATrigger(unittest.TestCase):
         for k, v in parset.items():
             parset_str += '{} = {}\n'.format(k, v)
         # create full configuration
-        obs_config = {'startpacket': tstart.unix * 781250, 'duration': duration, 'beam': 0,
+        obs_config = {'startpacket': tstart.unix * TIME_UNIT, 'duration': duration, 'beam': 0,
                       'parset': util.encode_parset(parset_str)}
 
         # start observation
@@ -222,12 +218,13 @@ class TestDADATrigger(unittest.TestCase):
                             raise
             else:
                 event = client.recv(1024).decode()
+            client.close()
             received_events.append(event)
 
         # close the socket
         sock.close()
         # stop dada trigger
-        dadatrigger.stop()
+        queue.put('stop')
 
         self.assertTrue(ndump == len(received_events))
 

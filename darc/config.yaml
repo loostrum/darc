@@ -6,17 +6,18 @@ darc_master:
     socket_timeout: 30  # for creating socket
     setup_time: 5  # start_observation is sent this long before the actual start time
     stop_timeout: 5  # for stopping services
+    control_timeout: 5  # for service interaction, e.g. enabling/disabling lofar triggering
     mode:  'mixed'  # real-time, offline, or mixed
-    services_master_rt: ["status_website", "voevent_generator", "lofar_trigger"]
+    services_master_rt: ["status_website", "voevent_generator", "lofar_trigger", "processor"]
     services_worker_rt: ["amber_listener", "amber_clustering", "dada_trigger", "processor"]
     services_master_off: ["offline_processing", "status_website"]
     services_worker_off: ["offline_processing"]
-    services_master_mix: ["offline_processing", "status_website", "voevent_generator", "lofar_trigger"]
-    services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger"]
+    services_master_mix: ["offline_processing", "status_website", "voevent_generator", "lofar_trigger", "processor"]
+    services_worker_mix: ["offline_processing", "amber_listener", "amber_clustering", "dada_trigger", "processor"]
     master_commands: ["start_observation", "stop_observation", "abort_observation", "stop_master", "edit", "reload",
                       "lofar_status", "lofar_enable", "lofar_disable", "voevent_status", "voevent_enable",
-                      "voevent_disable"]
-    service_commands: ["status", "start", "stop", "restart"]
+                      "voevent_disable", "get_attr"]
+    service_commands: ["status", "start", "stop", "restart", "get_attr"]
     editor: "vim"
 
 # Status website
@@ -34,7 +35,7 @@ status_website:
         amber_listener: "AMBER listener"
         amber_clustering: "AMBER clustering"
         offline_processing: "Offline processing"
-        dada_trigger: "I/IQUV triggering"
+        dada_trigger: "IQUV triggering"
         lofar_trigger: "LOFAR triggering"
         processor: "Processor"
 
@@ -131,19 +132,79 @@ sb_generator:
         sc3: 114
         sc4: 71
 
-# Trigger processor
+# Trigger processor (master):
+processor_master:
+    log_file: "{home}/darc/log/processor.{hostname}.log"
+    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+    check_interval: 60  # How often to check whether workers are done with processing (s)
+    max_wait_time: 600  # After how much processing time we should check if a node is still online
+    ntrig_email_max: 100  # Maximum number of triggers to show in email
+    webdir: "triggers_realtime"  # subdir of public_html/darc to use for trigger website
+    email_settings:
+        to: "test@localhost"
+
+
+# Trigger processor (worker)
 processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
-    model_dir: "{home}/keras_models"
-    model_name_freqtime: '20190416freq_time.hdf5'
-    model_name_dmtime: 'heimdall_dm_time.hdf5'
-    nfreq: 32
-    ntime: 64
-    ndm: 64
+    scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+    interval: 1.1  # how often to process candidates (seconds)
+    num_extractor: 2  # how many data extractors to run
+    output_subdir: "triggers_realtime"  # output dir for triggers on each node
+    result_dir: "{home}/darc/results"  # central output dir for observation results
+    stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
+    # clustering settings
+    clustering:
+        output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers
+        dm_min: 20
+        dm_max: -1  # -1 = infinite
+        snr_min_clustering: 8  # during clustering
+        snr_min: 10  # post-clustering (i.e. also post SB periodicity filter)
+        sb_filter: False
+        sb_filter_period_min: 10
+        sb_filter_period_max: 15
+        clustering_window: 0.5
+        width_max: -1  # max downsampling factor, -1 = infinite
+    # data extractor settings:
+    extractor:
+        dm_halfrange: 10
+        ndm: 64  # number of DM samples. Must be multiple of classifier ndm
+        ntime: 64  # number of time samples in output. Must be multiple of classifier ntime
+        nfreq: 64  # number of frequency channels in output. Must be multiple of classifier nfreq
+        delay: 5   # how long to wait until attempting to read filterbank (s)
+        rfi_mask: "{home}/.controller/amber_conf/zapped_channels_FREQ.conf"  # path to rfi mask. FREQ is replace by central frequency
+        rfi_apply_mask: True
+        rfi_clean_type: "perchannel"  # RFI cleaning type, options: time, freqency, both, perchannel, None
+        rfi_threshold_time: 3.25
+        rfi_n_iter_time: 3
+        rfi_threshold_freq: 2.75
+        rfi_n_iter_freq: 3
+        rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels in the filterbank data
+        snr_min_local: 5  # skip any triggers with a local S/N below this value
+    # ML classifier settings
+    classifier:
+        gpu: 0
+        thresh_freqtime: 0.5
+        thresh_dmtime: 0.0
+        ndm: 64  # fixed by model shape
+        ntime: 64  # fixed by model shape
+        nfreq: 32  # fixed by model shape
+        model_dir: "{home}/keras_models"
+        model_freqtime: "20190501freq_time.hdf5"
+        model_dmtime: "heimdall_dm_time.hdf5"
+    # Visualization settings:
+    visualizer:
+        nplot_per_side: 5
+        figsize: 15
+        cmap_freqtime: "viridis"  # any matplotlib colour map
+        cmap_dmtime: "viridis"  # any matplotlib colour map
+        colour_1dtime: "black"  # any matplotlib colour
+        plot_types: ['freq_time', 'dm_time', '1d_time']  # order of plots in PDF output. Options: freq_time, dm_time, 1d_time
 
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    delay: 10
     process_sb: True
     numthread: 2
     result_dir: "{home}/observations/results/"
@@ -155,7 +216,7 @@ offline_processing:
     ntime_plot: 64
     nfreq_plot: 64
     ndm: 64
-    snrmin_processing: 10
+    snrmin_processing: 8
     snrmin_processing_local: 5
     dmmin: 20
     dmmax: 100000

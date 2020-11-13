@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # AMBER Listener
 
@@ -7,8 +7,9 @@ from time import sleep, time
 import threading
 import ast
 
-from darc.base import DARCBase
+from darc import DARCBase
 from darc import util
+from darc.definitions import CONFIG_FILE
 
 
 class AMBERListenerException(Exception):
@@ -21,12 +22,10 @@ class AMBERListener(DARCBase):
     candidates on output queue.
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         """
-        super(AMBERListener, self).__init__()
-        self.needs_target_queue = True
-
+        super(AMBERListener, self).__init__(*args, **kwargs)
         self.observation_threads = []
         self.observation_events = []
 
@@ -67,14 +66,13 @@ class AMBERListener(DARCBase):
             event = threading.Event()
             self.observation_events.append(event)
             thread = threading.Thread(target=self._follow_file, args=[trigger_file, event], name="step{}".format(step))
-            thread.daemon = True
             thread.start()
             self.observation_threads.append(thread)
 
         self.logger.info("Observation started")
         # ToDo: Automatic stop? Careful not to overwrite a new observation
 
-    def stop_observation(self):
+    def stop_observation(self, *args, **kwargs):
         """
         Stop observation
         """
@@ -85,16 +83,12 @@ class AMBERListener(DARCBase):
             thread.join()
         self.observation_threads = []
 
-    # only start and stop observation commands exist for amber listener
-    def process_command(self):
-        pass
-
     def _follow_file(self, fname, event):
         """
         Tail a file an put lines on queue
 
         :param str fname: file to follow
-        :param threading.Event event: stop event
+        :param Event event: stop event
         """
         # wait until the file exists, with a timeout
         start = time()
@@ -114,4 +108,8 @@ class AMBERListener(DARCBase):
             for line in util.tail(f, event):
                 line = line.strip()
                 if line:
+                    # put trigger on queue
                     self.target_queue.put({'command': 'trigger', 'trigger': line})
+                    # add same trigger to second queue if present
+                    if self.second_target_queue is not None:
+                        self.second_target_queue.put({'command': 'trigger', 'trigger': line})

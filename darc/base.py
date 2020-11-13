@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # DARC base class
 
 import os
 import socket
-import threading
-from multiprocessing import queues
+import multiprocessing as mp
 import yaml
 from queue import Empty
 
@@ -13,30 +12,36 @@ from darc.logger import get_logger
 from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 
 
-class DARCBase(threading.Thread):
+class DARCBase(mp.Process):
     """
     DARC Base class
 
     Provides common methods to services
     """
 
-    def __init__(self):
+    def __init__(self, source_queue, target_queue=None, second_target_queue=None,
+                 control_queue=None, config_file=CONFIG_FILE):
         """
+        :param Queue source_queue: Input queue
+        :param Queue target_queue: Output queue
+        :param Queue second_target_queue: second output queue
+        :param Queue control_queue: Control queue
+        :param str config_file: Path to config file
         """
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = threading.Event()
+        super(DARCBase, self).__init__()
+        self.stop_event = mp.Event()
 
-        self.needs_source_queue = True
-        self.needs_target_queue = False
-        self.source_queue = None
-        self.target_queue = None
+        self.source_queue = source_queue
+        self.target_queue = target_queue
+        self.second_target_queue = second_target_queue
+        self.control_queue = control_queue
 
         # set names for config and logger
         self.module_name = type(self).__module__.split('.')[-1]
         self.log_name = type(self).__name__
 
         # load config
+        self.config_file = config_file
         self.load_config()
 
         # setup logger
@@ -57,7 +62,7 @@ class DARCBase(threading.Thread):
         """
         Load config file
         """
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)[self.module_name]
 
         # set config, expanding strings
@@ -67,37 +72,19 @@ class DARCBase(threading.Thread):
                 value = value.format(**kwargs)
             setattr(self, key, value)
 
-    def stop(self):
+    def stop(self, abort=False):
         """
         Stop this service
+
+        :param bool abort: Whether to abort running observation
         """
         self.logger.info("Stopping {}".format(self.log_name))
-        self.cleanup()
+        # run cleanup, avoid issue if abort keyword does not exist
+        try:
+            self.cleanup(abort=abort)
+        except TypeError:
+            self.cleanup()
         self.stop_event.set()
-
-    def set_source_queue(self, queue):
-        """
-        Set input queue
-
-        :param queues.Queue queue: Input queue
-        """
-        if not isinstance(queue, queues.Queue):
-            self.logger.error("Given source queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.source_queue = queue
-
-    def set_target_queue(self, queue):
-        """
-        Set output queue
-
-        :param queues.Queue queue: Output queue
-        """
-        if not isinstance(queue, queues.Queue):
-            self.logger.error("Given target queue is not an instance of Queue")
-            self.stop()
-        else:
-            self.target_queue = queue
 
     def run(self):
         """
@@ -108,14 +95,6 @@ class DARCBase(threading.Thread):
         """
         # check queues
         try:
-            if self.needs_source_queue and not self.source_queue:
-                self.logger.error("Source queue not set")
-                self.stop()
-
-            if self.needs_target_queue and not self.target_queue:
-                self.logger.error("Target queue not set")
-                self.stop()
-
             self.logger.info("Starting {}".format(self.log_name))
             while not self.stop_event.is_set():
                 # read from queue
@@ -124,7 +103,11 @@ class DARCBase(threading.Thread):
                 except Empty:
                     continue
                 # command received, process it
-                if command['command'] == "start_observation":
+                if isinstance(command, str) and command == 'stop':
+                    self.stop()
+                elif isinstance(command, str) and command == 'abort':
+                    self.stop(abort=True)
+                elif command['command'] == "start_observation":
                     self.logger.info("Starting observation")
                     try:
                         if 'reload_conf' in command.keys():
@@ -133,10 +116,13 @@ class DARCBase(threading.Thread):
                             self.start_observation(command['obs_config'])
 
                     except Exception as e:
-                        self.logger.error("Failed to start observation: {}".format(e))
+                        self.logger.error("Failed to start observation: {}: {}".format(type(e), e))
                 elif command['command'] == "stop_observation":
                     self.logger.info("Stopping observation")
-                    self.stop_observation()
+                    if 'obs_config' in command.keys():
+                        self.stop_observation(obs_config=command['obs_config'])
+                    else:
+                        self.stop_observation()
                 else:
                     self.process_command(command)
         # EOFError can occur due to usage of queues
@@ -144,7 +130,7 @@ class DARCBase(threading.Thread):
         except EOFError:
             pass
         except Exception as e:
-            self.logger.error("Caught exception in main loop: {}".format(e))
+            self.logger.error("Caught exception in main loop: {}: {}".format(type(e), e))
             self.stop()
 
     def start_observation(self, *args, reload=True, **kwargs):
@@ -168,17 +154,52 @@ class DARCBase(threading.Thread):
         """
         pass
 
-    def cleanup(self):
+    def cleanup(self, abort=False):
         """
         Stub for commands to run upon service stop, defaults to self.stop_observation
-        """
-        self.stop_observation()
 
-    def process_command(self, *args, **kwargs):
+        :param bool abort: Whether to abort running observation
         """
-        Process command from queue, other than start_observation and stop_observation
+        # run stop observation, avoid issue if abort keyword does not exist
+        try:
+            self.stop_observation(abort=abort)
+        except TypeError:
+            self.stop_observation()
 
+    def get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{{'{self.log_name}.{command['attribute']}': {value}}}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def process_command(self, command, *args, **kwargs):
+        """
+        Process command from queue, other than start_observation and stop_observation.
+        By default only provides get_attribute command
+
+        :param dict command: Input command
         :param list args: process command arguments
         :param dict kwargs: process command keyword arguments
         """
-        raise NotImplementedError("process_command should be defined by subclass")
+        if isinstance(command, dict) and command['command'] == 'get_attr':
+            self.get_attribute(command)
+        else:
+            raise NotImplementedError(f"Unknown command: {command['command']}")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -8,13 +8,13 @@ from copy import copy
 from darc import util
 
 
-def get_logger(name, log_file, level=logging.DEBUG):
+def get_logger(name, log_file, level=logging.INFO):
     """
     Create logger
 
     :param str name: name to use in log prints
     :param str log_file: Path to log file
-    :param int level: log level (default: logging.DEBUG)
+    :param int level: log level (default: logging.INFO)
     :return: logger
     """
     # create log dir

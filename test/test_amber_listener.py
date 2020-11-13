@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
-import numpy as np
 import itertools
 import unittest
 import multiprocessing as mp
@@ -21,13 +20,11 @@ class TestAMBERListener(unittest.TestCase):
 
         # create input queue
         obs_queue = mp.Queue()
-        # create output queue
+        # create output queues
         amber_queue = mp.Queue()
+        amber_queue2 = mp.Queue()
         # init AMBER Listener
-        listener = AMBERListener()
-        # set the queues
-        listener.set_source_queue(obs_queue)
-        listener.set_target_queue(amber_queue)
+        listener = AMBERListener(obs_queue, amber_queue, amber_queue2)
         # start the listener
         listener.start()
         # start observation
@@ -39,6 +36,7 @@ class TestAMBERListener(unittest.TestCase):
         obs_queue.put(command)
 
         output = []
+        output2 = []
         # read queue until empty
         while True:
             try:
@@ -46,16 +44,29 @@ class TestAMBERListener(unittest.TestCase):
             except Empty:
                 break
             output.append(raw_trigger['trigger'])
+        # read second queue
+        while True:
+            try:
+                raw_trigger = amber_queue2.get(timeout=2)
+            except Empty:
+                break
+            output2.append(raw_trigger['trigger'])
 
         # stop the observation
         obs_queue.put({'command': 'stop_observation'})
         sleep(1)
 
         # stop the listener
-        listener.stop()
+        obs_queue.put('stop')
 
         # check if there is any output at all
         self.assertTrue(len(output) > 0)
+
+        # both outputs should contain the same triggers, but not necessarily in the same order
+        # sort by last element (S/N)
+        output.sort()
+        output2.sort()
+        self.assertListEqual(output, output2)
 
         # check the output is correct, i.e. equal to input
         # load all trigger files
@@ -68,8 +79,7 @@ class TestAMBERListener(unittest.TestCase):
             triggers = [line.strip() for line in triggers]
             all_triggers.extend(triggers)
 
-        # sort input and output by last element (S/N)
-        output.sort()
+        # sort input by last element (S/N)
         all_triggers.sort()
         self.assertListEqual(output, all_triggers)
 
@@ -145,10 +155,7 @@ class TestAMBERListener(unittest.TestCase):
         # create output queue
         amber_queue = mp.Queue()
         # init AMBER Listener
-        listener = AMBERListener()
-        # set the queues
-        listener.set_source_queue(obs_queue)
-        listener.set_target_queue(amber_queue)
+        listener = AMBERListener(obs_queue, amber_queue)
         # start the listener
         listener.start()
         # start observation
@@ -178,10 +185,8 @@ class TestAMBERListener(unittest.TestCase):
 
         # stop the observation
         obs_queue.put({'command': 'stop_observation'})
-        sleep(5)
-
         # stop the listener
-        listener.stop()
+        obs_queue.put('stop')
 
         # delete temp output files
         for step in range(1, nstep + 1):

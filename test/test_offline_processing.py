@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # OfflineProcessing end to end test
 
@@ -11,8 +11,9 @@ import socket
 
 from astropy.time import Time
 
-from darc.offline_processing import OfflineProcessing
+from darc import OfflineProcessing
 from darc import util
+from darc.definitions import TIME_UNIT
 
 TESTDIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,7 +37,7 @@ class TestOfflineProcessing(unittest.TestCase):
         result_dir = os.path.join(output_dir, 'results')
 
         duration = 300.032
-        startpacket = int((Time.now().unix - duration) * 781250)
+        startpacket = int((Time.now().unix - duration) * TIME_UNIT)
         endtime = Time.now().datetime.strftime('%Y-%m-%d %H:%M:%S')
 
         # generate parset
@@ -69,8 +70,12 @@ class TestOfflineProcessing(unittest.TestCase):
         # config
         config = self.gen_config(sb=False)
 
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
-        logger = logging.getLogger()
+        logger = logging.getLogger('test_worker_processing_tab')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
         # output file names
         fname_yaml = "CB00_summary.yaml"
@@ -146,8 +151,12 @@ class TestOfflineProcessing(unittest.TestCase):
         # config
         config = self.gen_config(sb=True)
 
-        logging.basicConfig(format='%(asctime)s.%(levelname)s.%(module)s: %(message)s', level='DEBUG')
-        logger = logging.getLogger()
+        logger = logging.getLogger('test_worker_processing_sb')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
         # output file names
         fname_yaml = "CB00_summary.yaml"

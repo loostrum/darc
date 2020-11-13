@@ -1,10 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+import os
 from setuptools import setup, find_packages
+
+with open(os.path.join('darc', '__version__.py')) as version_file:
+    version = {}
+    exec(version_file.read(), version)
+    project_version = version['__version__']
 
 
 setup(name='darc',
-      version='2.1',
+      version=project_version,
       description='Data Analysis of Real-time Candidates from ARTS',
       url='http://github.com/loostrum/darc',
       author='Leon Oostrum',
@@ -13,13 +19,14 @@ setup(name='darc',
       packages=find_packages(),
       zip_safe=False,
       install_requires=['numpy',
-                        'astropy<3',
+                        'astropy',
                         'pyyaml',
-                        'h5py',
+                        'h5py<3',  # bug in 3.0 causes error on keras model load
                         'pytz',
                         'voevent-parse',
                         'scipy',
-                        'matplotlib'],
+                        'matplotlib',
+                        'PyPDF4'],
       extras_require={'psrdada': ['psrdada-python', 'single_pulse_ml']},
       include_package_data=True,
       entry_points={'console_scripts': ['darc=darc.control:main',

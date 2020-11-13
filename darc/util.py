@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # utility functions
 
 import os
 import errno
+import ast
+import subprocess
 import datetime
 import time
 import json
@@ -17,22 +19,22 @@ import numpy as np
 from astropy.time import Time
 import astropy.units as u
 import astropy.constants as const
-from astropy.coordinates import SkyCoord, FK5
+from astropy.coordinates import SkyCoord, SphericalRepresentation
 from queue import Empty
 
-from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LON, WSRT_LAT, NDISH
+from darc.definitions import DISH_DIAM, TSYS, AP_EFF, BANDWIDTH, WSRT_LOC, NDISH
 
 
 def sleepuntil_utc(end_time, event=None):
     """
     Sleep until specified time
 
-    :param datetime.datetime/astropy.time.Time end_time: sleep until this time
+    :param datetime.datetime/astropy.time.Time/str end_time: sleep until this time
     :param threading.Event event: if specified, uses event.wait instead of time.sleep
     """
 
     # convert datetime to astropy time
-    if isinstance(end_time, datetime.datetime):
+    if isinstance(end_time, datetime.datetime) or isinstance(end_time, str):
         end_time = Time(end_time)
 
     # get seconds to sleep
@@ -96,17 +98,14 @@ def parse_parset(parset_str):
     """
     # split per line, remove comments
     raw_parset = parset_str.split('\n')
-    # remove any line starting with #
+    # remove empty/whitespace-only lines and any line starting with #
     parset = []
     for line in raw_parset:
-        if not line.startswith('#'):
+        if line.strip() and not line.startswith('#'):
             parset.append(line)
     # Split keys/values. Separator might be "=" or " = "
     parset = [item.replace(' = ', '=').strip().split('=') for item in parset]
     # remove empty last line if present
-    if parset[-1] == ['']:
-        parset = parset[:-1]
-
     # convert to dict
     parset_dict = dict(parset)
     # remove any comments
@@ -128,6 +127,10 @@ def parse_parset(parset_str):
     for key in ['proctrigger', 'enable_iquv']:
         if key in parset_dict.keys():
             parset_dict[key] = json.loads(parset_dict[key].lower())
+    # lists
+    for key in ['beams']:
+        if key in parset_dict.keys():
+            parset_dict[key] = json.loads(parset_dict[key])
     return parset_dict
 
 
@@ -136,8 +139,8 @@ def tail(f, event, interval=.1):
     Read all lines of a file, then tail until stop event is set
 
     :param filehandle f: handle to file to tail
-    :param event: stop event
-    :param interval: sleep time between checks for new lines (default: .1)
+    :param threading.Event event: stop event
+    :param float interval: sleep time between checks for new lines (default: .1)
     """
     # first read any lines already present
     while not event.is_set():
@@ -190,40 +193,33 @@ def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
     return flux.to(u.mJy)
 
 
-def ra_to_ha(ra, dec, t):
+def radec_to_hadec(ra, dec, t):
     """
-    Convert J2000 RA, Dec to WSRT HA, Dec
-
-    :param astropy.units.quantity.Quantity ra: right ascension with unit
-    :param astropy.units.quantity.Quantity dec: declination with unit
-    :param str/astropy.time.Time t: UTC time
-    :return: SkyCoord object of apparent HA, Dec coordinates
+    Convert RA, Dec to apparent WSRT HA, Dec
+    :param Quantity ra: Right ascension
+    :param Quantity dec: Declination
+    :param Time/str t: Observing time
+    :return: HA (Quantity), Dec (Quantity)
     """
 
     # Convert time to Time object if given as string
     if isinstance(t, str):
         t = Time(t)
 
-    # Apparent LST at WSRT at this time
-    lst = t.sidereal_time('apparent', WSRT_LON)
-    # Equinox of date (because hour angle uses apparent coordinates)
-    coord_system = FK5(equinox='J{}'.format(t.decimalyear))
-    # convert coordinates to apparent
-    coord_apparent = SkyCoord(ra, dec, frame='icrs').transform_to(coord_system)
-    # HA = LST - apparent RA
-    ha = lst - coord_apparent.ra
-    dec = coord_apparent.dec
-    # return SkyCoord of (Ha, Dec)
-    return SkyCoord(ha, dec, frame=coord_system)
+    coord = SkyCoord(ra, dec, frame='icrs', obstime=t)
+    ha = WSRT_LOC.lon - coord.itrs.spherical.lon
+    ha.wrap_at(12 * u.hourangle, inplace=True)
+    dec = coord.itrs.spherical.lat
+
+    return ha, dec
 
 
-def ha_to_ra(ha, dec, t):
+def hadec_to_radec(ha, dec, t):
     """
-    Convert WSRT HA, Dec to J2000 RA, Dec
-
-    :param astropy.units.quantity.Quantity ha: hour angle with unit
-    :param astropy.units.quantity.Quantity dec: declination with unit
-    :param str/astropy.time.Time t: UTC time
+    Convert apparent HA, Dec to J2000 RA, Dec
+    :param ha: hour angle with unit
+    :param dec: declination with unit
+    :param Time/str t: Observing time
     :return: SkyCoord object of J2000 coordinates
     """
 
@@ -231,27 +227,24 @@ def ha_to_ra(ha, dec, t):
     if isinstance(t, str):
         t = Time(t)
 
-    # Apparent LST at WSRT at this time
-    lst = t.sidereal_time('apparent', WSRT_LON)
-    # Equinox of date (because hour angle uses apparent coordinates)
-    coord_system = FK5(equinox='J{}'.format(t.decimalyear))
-    # apparent RA = LST - HA
-    ra_apparent = lst - ha
-    coord_apparent = SkyCoord(ra_apparent, dec, frame=coord_system)
-    return coord_apparent.transform_to('icrs')
+    # create spherical representation of ITRS coordinates of given ha, dec
+    itrs_spherical = SphericalRepresentation(WSRT_LOC.lon - ha, dec, 1.)
+    # create ITRS object, which requires cartesian input
+    coord = SkyCoord(itrs_spherical.to_cartesian(), frame='itrs', obstime=t)
+    # convert to J2000
+    return coord.icrs.ra, coord.icrs.dec
 
 
-def ha_to_proj(ha, dec):
+def hadec_to_rot(ha, dec):
     """
-    Convert WSRT HA, Dec to parallactic angle
+    Convert WSRT HA, Dec to TAB rotation angle
 
     :param astropy.units.quantity.Quantity ha: hour angle with unit
     :param astropy.units.quantity.Quantity dec: declination with unit
     """
-    theta_proj = np.arctan(np.cos(WSRT_LAT) * np.sin(ha)
-                           / (np.sin(WSRT_LAT) * np.cos(dec)
-                           - np.cos(WSRT_LAT) * np.sin(dec) * np.cos(ha))).to(u.deg)
-    return theta_proj.to(u.deg)
+    theta_rot = np.arctan2(np.sin(dec) * np.sin(ha), np.cos(ha))
+
+    return theta_rot.to(u.deg)
 
 
 def dm_to_delay(dm, flo, fhi):
@@ -268,6 +261,19 @@ def dm_to_delay(dm, flo, fhi):
     return delay.to(u.s)
 
 
+def dm_to_smearing(dm, f, df):
+    """
+    Calculate intra-channel smearing time
+
+    :param astropy.units.quantity.Quantity dm: dispersion measure
+    :param astropy.units.quantity.Quantity f: frequency
+    :param astropy.units.quantity.Quantity df: channel width
+    """
+    k = 4.148808e3 * u.cm ** 3 * u.s * u.MHz ** 2 / u.pc
+    smearing = 2 * k * dm * df * f**-3
+    return smearing.to(u.s)
+
+
 def send_email(frm, to, subject, body, attachments=None):
     """
     Send email, only possible to ASTRON addresses
@@ -281,12 +287,14 @@ def send_email(frm, to, subject, body, attachments=None):
 
     # ensure "to" is a single string
     if isinstance(to, list):
-        to = ', '.join(to)
+        to_str = ', '.join(to)
+    else:
+        to_str = to
 
     # init email
     msg = MIMEMultipart('mixed')
     # set to, from, subject
-    msg['To'] = to
+    msg['To'] = to_str
     msg['From'] = frm
     msg['Subject'] = subject
 
@@ -324,3 +332,106 @@ def send_email(frm, to, subject, body, attachments=None):
         smtp.sendmail(frm, to, msg.as_string())
 
     smtp.close()
+
+
+def calc_snr_amber(data, thresh=3):
+    """
+    Calculate peak S/N using the same method as AMBER:
+    Outliers are removed four times before calculating the S/N as peak - median / sigma
+    The result is scaled by 1.048 to account for the removed values
+
+    :param array data: timeseries data
+    :param float thresh: sigma threshold for outliers (Default: 3)
+    :return: peak S/N
+    """
+    sig = np.std(data)
+    dmax = data.max()
+    dmed = np.median(data)
+
+    # remove outliers 4 times until there
+    # are no events above threshold * sigma
+    for i in range(4):
+        ind = np.abs(data - dmed) < thresh * sig
+        sig = np.std(data[ind])
+        dmed = np.median(data[ind])
+        data = data[ind]
+
+    return (dmax - dmed) / (1.048 * sig)
+
+
+def calc_snr_matched_filter(data, widths=None):
+    """
+    Calculate S/N using several matched filter widths, then pick the highest S/N
+
+    :param np.ndarray data: timeseries data
+    :param np.ndarray widths: matched filters widths to try
+                             (Default: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])
+    :return: highest S/N, corresponding matched filter width
+    """
+    if widths is None:
+        # all possible widths as used by AMBER
+        widths = np.array([1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])
+
+    snr_max = 0
+    width_max = None
+
+    # get S/N for each width, store only max S/N
+    for w in widths:
+        # apply boxcar-shaped filter
+        mf = np.ones(w)
+        data_mf = np.correlate(data, mf)
+
+        # get S/N
+        snr = calc_snr_amber(data_mf)
+
+        # store if S/N is highest
+        if snr > snr_max:
+            snr_max = snr
+            width_max = w
+
+    return snr_max, width_max
+
+
+def get_ymw16(parset, beam=0, logger=None):
+    """
+    Get YMW16 DM
+
+    :param dict parset: Observation parset
+    :param int beam: CB for which to get YMW16 DM
+    :param Logger logger: Logger object (optional)
+    :return: YMW16 DM (float)
+    """
+    # get pointing
+    try:
+        key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
+        c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+        c1 = c1 * u.deg
+        c2 = c2 * u.deg
+    except Exception as e:
+        if logger is not None:
+            logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
+        return 0
+    # convert HA to RA if HADEC is used
+    if parset['task.directionReferenceFrame'].upper() == 'HADEC':
+        # Get RA at the mid point of the observation
+        timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+        c1, c2 = radec_to_hadec(c1, c2, timestamp)
+
+    pointing = SkyCoord(c1, c2)
+
+    # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
+    gl, gb = pointing.galactic.to_string(precision=8).split(' ')
+    cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
+    try:
+        result = subprocess.check_output(cmd)
+    except OSError as e:
+        if logger is not None:
+            logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
+        return 0
+    try:
+        dm = float(result.split()[7])
+    except Exception as e:
+        if logger is not None:
+            logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
+        return 0
+    return dm

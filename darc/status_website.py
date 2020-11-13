@@ -1,39 +1,46 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Website
 
 import os
+import logging
 import yaml
+import multiprocessing as mp
 import threading
+from queue import Empty
 import socket
 from textwrap import dedent
 from astropy.time import Time
 
 from darc.definitions import CONFIG_FILE, MASTER, WORKERS
 from darc import util
-from darc.logger import get_logger
 from darc.control import send_command
+from darc.logger import get_logger
 
 
 class StatusWebsiteException(Exception):
     pass
 
 
-class StatusWebsite(threading.Thread):
+class StatusWebsite(mp.Process):
     """
     Generate a HTML page with the status of each service
     across the ARTS cluster at regular intervals
     """
 
-    def __init__(self):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
+        :param Queue source_queue: Input queue
+        :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(StatusWebsite, self).__init__()
+        self.stop_event = mp.Event()
+        self.source_queue = source_queue
+        self.control_queue = control_queue
 
         # load config, including master for list of services
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config_all = yaml.load(f, Loader=yaml.SafeLoader)
 
         config = config_all['status_website']
@@ -63,7 +70,10 @@ class StatusWebsite(threading.Thread):
         # setup logger
         self.logger = get_logger(__name__, self.log_file)
 
-        self.logger.info('Status website initialized')
+        self.command_checker = None
+
+        # reduce logging from status check commands
+        logging.getLogger('darc.control').setLevel(logging.ERROR)
 
         # create website directory
         try:
@@ -71,6 +81,8 @@ class StatusWebsite(threading.Thread):
         except Exception as e:
             self.logger.error("Failed to create website directory: {}".format(e))
             raise StatusWebsiteException("Failed to create website directory: {}".format(e))
+
+        self.logger.info('Status website initialized')
 
     def run(self):
         """
@@ -80,15 +92,19 @@ class StatusWebsite(threading.Thread):
         #. Publish HTML page with statuses
         #. Generate offline page upon exit
         """
+        # run command checker
+        self.command_checker = threading.Thread(target=self.check_command)
+        self.command_checker.daemon = True
+        self.command_checker.start()
+
         while not self.stop_event.is_set():
             self.logger.info("Getting status of all services")
             # get status all nodes
             statuses = {}
             for node in self.all_nodes:
                 statuses[node] = {}
-                # self.logger.info("Getting {} status".format(node))
                 try:
-                    status = send_command(10, 'all', 'status', host=node)
+                    status = send_command(self.timeout, 'all', 'status', host=node)
                 except Exception as e:
                     status = None
                     self.logger.error("Failed to get {} status: {}".format(node, e))
@@ -104,6 +120,46 @@ class StatusWebsite(threading.Thread):
             self.stop_event.wait(self.interval)
         # Create website for non-running status website
         self.make_offline_page()
+
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def check_command(self):
+        """
+        Check if this service should execute a command
+        """
+        while not self.stop_event.is_set():
+            try:
+                command = self.source_queue.get(timeout=1)
+            except Empty:
+                continue
+            if isinstance(command, str) and command == 'stop':
+                self.stop()
+            elif isinstance(command, dict) and command['command'] == 'get_attr':
+                self._get_attribute(command)
+            else:
+                self.logger.warning(f"Ignoring unknown command: {command['command']}")
 
     def stop(self):
         """

@@ -1,15 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
-# DARC master process
-# Controls all services
+# Offline processing
 
 import os
 import ast
 import glob
 import yaml
-import codecs
 import multiprocessing as mp
-from multiprocessing import queues
 from queue import Empty
 import threading
 import socket
@@ -24,7 +21,7 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from darc.definitions import CONFIG_FILE, WSRT_LON, NUMCB
+from darc.definitions import CONFIG_FILE, NUMCB
 from darc.logger import get_logger
 from darc import util
 
@@ -33,7 +30,7 @@ class OfflineProcessingException(Exception):
     pass
 
 
-class OfflineProcessing(threading.Thread):
+class OfflineProcessing(mp.Process):
     """
     Full offline processing pipeline:
 
@@ -48,17 +45,21 @@ class OfflineProcessing(threading.Thread):
     - Automated run of calibration tools for drift scans
     - Automated run of known FRB candidate extractor
     """
-    def __init__(self):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
+        :param Queue source_queue: Input queue
+        :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.stop_event = threading.Event()
+        super(OfflineProcessing, self).__init__()
+        self.observation_queue = source_queue
+        self.control_queue = control_queue
+        self.stop_event = mp.Event()
 
-        self.observation_queue = None
         self.threads = {}
 
         # load config
+        self.config_file = config_file
         self.load_config()
 
         # setup logger
@@ -67,7 +68,7 @@ class OfflineProcessing(threading.Thread):
 
     def load_config(self):
         # load config file
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['offline_processing']
 
         # set config, expanding strings
@@ -84,17 +85,6 @@ class OfflineProcessing(threading.Thread):
         else:
             config['keys_data'].append('tab')
         self.config = config
-
-    def set_source_queue(self, queue):
-        """
-        Set input queue
-
-        :param queues.Queue queue: Source of start_observation commands
-        """
-        if not isinstance(queue, queues.Queue):
-            self.logger.error('Given source queue is not an instance of Queue')
-            raise OfflineProcessingException('Given source queue is not an instance of Queue')
-        self.observation_queue = queue
 
     def stop(self):
         """
@@ -116,6 +106,12 @@ class OfflineProcessing(threading.Thread):
             try:
                 data = self.observation_queue.get(timeout=1)
             except Empty:
+                continue
+            if isinstance(data, str) and data == 'stop':
+                self.stop()
+                continue
+            elif data['command'] == 'get_attr':
+                self._get_attribute(data)
                 continue
 
             # load observation config
@@ -159,6 +155,30 @@ class OfflineProcessing(threading.Thread):
 
         self.logger.info("Stopping Offline processing")
 
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
     def _start_observation_master(self, obs_config, reload=True):
         """
         Start observation on master node
@@ -187,8 +207,8 @@ class OfflineProcessing(threading.Thread):
         # create coordinates file
         coord_cb00 = self._get_coordinates(obs_config)
 
-        # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
+        # wait until end time + delay
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -238,8 +258,8 @@ class OfflineProcessing(threading.Thread):
             obs_config['mode'] = 'TAB'
             trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
-        # wait until end time + 10s
-        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(10, format='sec')
+        # wait until end time + delay
+        start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
 
@@ -597,7 +617,7 @@ class OfflineProcessing(threading.Thread):
             sb_option = ''
 
         # Galactic DM
-        dmgal = self._get_ymw16(obs_config)
+        dmgal = util.get_ymw16(obs_config['parset'], obs_config['beam'], self.logger)
 
         # Add optional classifier models (1D time and DM-time)
         model_option = ''
@@ -606,11 +626,12 @@ class OfflineProcessing(threading.Thread):
         if self.model_1dtime:
             model_option += ' --fn_model_time {model_dir}/{model_1dtime}'.format(**obs_config)
 
-        cmd = "export CUDA_VISIBLE_DEVICES={ml_gpus}; python {classifier} " \
+        cmd = "export CUDA_VISIBLE_DEVICES={ml_gpus}; /home/{user}/python36/bin/python3 {classifier} " \
               " {model_option} {sb_option} " \
               " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
               " --pthresh_dm {pthresh_dmtime} --DMgal {dmgal} " \
-              " {model_dir}/20190416freq_time.hdf5".format(output_prefix=output_prefix, sb_option=sb_option,
+              " {model_dir}/20190416freq_time.hdf5".format(user=os.getlogin(),
+                                                           output_prefix=output_prefix, sb_option=sb_option,
                                                            model_option=model_option, dmgal=dmgal,
                                                            input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
@@ -764,14 +785,13 @@ class OfflineProcessing(threading.Thread):
             try:
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(cb)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+                c1 = c1 * u.deg
+                c2 = c2 * u.deg
                 if mode == 'HA':
-                    # RA = LST - HA. Get RA at the start of the observation
-                    start_time = Time(parset['task.startTime'])
-                    # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-                    start_time.delta_ut1_utc = 0
-                    lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-                    c1 = lst_start.to(u.deg).value - c1
-                pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+                    # Get RA at the mid point of the observation
+                    timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+                    c1, c2 = util.radec_to_hadec(c1, c2, timestamp)
+                pointing = SkyCoord(c1, c2)
             except Exception as e:
                 self.logger.error("Failed to get pointing for CB{}: {}".format(cb, e))
                 coordinates[cb] = [0, 0, 0, 0]
@@ -808,55 +828,12 @@ class OfflineProcessing(threading.Thread):
         info['utc_start'] = parset['task.startTime']
         info['tobs'] = parset['task.duration']
         info['source'] = parset['task.source.name']
-        info['ymw16'] = "{:.2f}".format(self._get_ymw16(obs_config))
+        # get YMW16 DM for central beam
+        info['ymw16'] = "{:.2f}".format(util.get_ymw16(parset, logger=self.logger))
         info['telescopes'] = parset['task.telescopes'].replace('[', '').replace(']', '')
         info['taskid'] = parset['task.taskID']
         with open(info_file, 'w') as f:
             yaml.dump(info, f, default_flow_style=False)
-
-    def _get_ymw16(self, obs_config):
-        """
-        Get YMW16 DM
-
-        :param dict obs_config: Observation config
-        :return: YMW16 DM
-        """
-        # get pointing
-        parset = obs_config['parset']
-        if self.host_type == 'master':
-            beam = 0
-        else:
-            beam = obs_config['beam']
-        try:
-            key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
-            c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
-        except Exception as e:
-            self.logger.error("Could not parse pointing for CB{:02d}, setting YMW16 DM to zero ({})".format(beam, e))
-            return 0
-        # convert HA to RA if HADEC is used
-        if parset['task.directionReferenceFrame'].upper() == 'HADEC':
-            # RA = LST - HA. Get RA at the start of the observation
-            start_time = Time(parset['task.startTime'])
-            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-            start_time.delta_ut1_utc = 0
-            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-            c1 = lst_start.to(u.deg).value - c1
-        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
-
-        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
-        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
-        try:
-            result = subprocess.check_output(cmd)
-        except OSError as e:
-            self.logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
-            return 0
-        try:
-            dm = float(result.split()[7])
-        except Exception as e:
-            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
-            return 0
-        return dm
 
     def _fold_pulsar(self, source, obs_config):
         """

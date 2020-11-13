@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import glob
 import scipy.signal
@@ -438,15 +439,15 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
                 if read_beam:
                     beam_cut.append(beam[ind_maxsnr])
                     cond_tt = (tt == tt[ind_maxsnr])
-                cond_dm = ((dm <= dm[ind_maxsnr] + 20) & (dm >= dm[ind_maxsnr] - 20))
-                sigmas = sig[np.where(cond_tt & cond_dm)]
-                if len(sigmas) > 0:
-                    sb_snrs = np.zeros(71)
-                    beams = beam[np.where(cond_tt & cond_dm)].astype(int)
-                    sb_snrs[beams] = sigmas
-                    sb_period_cut.append(autocorr_period(sb_snrs)[0])
-                else:
-                    sb_period_cut.append(-1)
+                    cond_dm = ((dm <= dm[ind_maxsnr] + 20) & (dm >= dm[ind_maxsnr] - 20))
+                    sigmas = sig[np.where(cond_tt & cond_dm)]
+                    if len(sigmas) > 0:
+                        sb_snrs = np.zeros(71)
+                        beams = beam[np.where(cond_tt & cond_dm)].astype(int)
+                        sb_snrs[beams] = sigmas
+                        sb_period_cut.append(autocorr_period(sb_snrs)[0])
+                    else:
+                        sb_period_cut.append(-1)
 
                 ind_full.append(ind_maxsnr)
             except Exception:
@@ -470,8 +471,8 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
 
     # print(("Grouped down to %d triggers from %d\n" % (ntrig_group, ntrig_orig)))
 
-    # SB periodicity filtering
-    if sb_filter:
+    # SB periodicity filtering (can only run if read_beam is True)
+    if read_beam and sb_filter:
         ind = np.where((sb_period_cut > sb_filter_period_min) & (sb_period_cut < sb_filter_period_max))[0]
         dm_cut = dm_cut[ind]
         ind_full = ind_full[ind]
@@ -482,24 +483,23 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
         beam_cut = np.array(beam_cut)[ind]
         sb_period_cut = np.array(sb_period_cut)[ind]
 
-    rm_ii = []
-
     if dm_width_filter:
+        rm_ii = []
         for ii in range(len(ds_cut)):
             tdm = 8.3 * delta_nu_MHz / nu_GHz**3 * dm_cut[ii]  # microseconds#
 
             if ds_cut[ii] * dt < (0.5 * (dt**2 + tdm**2)**0.5):
                 rm_ii.append(ii)
 
-    dm_cut = np.delete(dm_cut, rm_ii)
-    tt_cut = np.delete(tt_cut, rm_ii)
-    sig_cut = np.delete(sig_cut, rm_ii)
-    ds_cut = np.delete(ds_cut, rm_ii)
-    ntrig_clust_arr = np.delete(ntrig_clust_arr, rm_ii)
-    if read_beam:
-        beam_cut = np.delete(beam_cut, rm_ii)
-        sb_period_cut = np.delete(sb_period_cut, rm_ii)
-    ind_full = np.delete(ind_full, rm_ii)
+        dm_cut = np.delete(dm_cut, rm_ii)
+        tt_cut = np.delete(tt_cut, rm_ii)
+        sig_cut = np.delete(sig_cut, rm_ii)
+        ds_cut = np.delete(ds_cut, rm_ii)
+        ntrig_clust_arr = np.delete(ntrig_clust_arr, rm_ii)
+        if read_beam:
+            beam_cut = np.delete(beam_cut, rm_ii)
+            sb_period_cut = np.delete(sb_period_cut, rm_ii)
+        ind_full = np.delete(ind_full, rm_ii)
 
     if fnout:
         if read_beam:

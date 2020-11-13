@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # dada_dbevent triggers
 
@@ -9,8 +9,9 @@ import socket
 import numpy as np
 from astropy.time import Time, TimeDelta
 
-from darc.base import DARCBase
+from darc import DARCBase
 from darc import util
+from darc.definitions import TIME_UNIT, CONFIG_FILE
 
 
 class DADATriggerException(Exception):
@@ -22,10 +23,10 @@ class DADATrigger(DARCBase):
     Generate and send dada_dbevent triggers
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         """
-        super(DADATrigger, self).__init__()
+        super(DADATrigger, self).__init__(*args, **kwargs)
         self.thread_trigger = None
         self.thread_polcal = None
         self.triggers_enabled = True
@@ -56,7 +57,6 @@ class DADATrigger(DARCBase):
             self.triggers_enabled = False
             # do the automated polcal dumps
             self.thread_polcal = threading.Thread(target=self.polcal_dumps, args=[obs_config])
-            self.thread_polcal.daemon = True
             self.thread_polcal.start()
         else:
             self.logger.info("No polarisation calibrator in this beam, enabling regular triggering")
@@ -76,8 +76,9 @@ class DADATrigger(DARCBase):
                 return
             # process trigger
             self.thread_trigger = threading.Thread(target=self.send_event, args=[command['trigger']])
-            self.thread_trigger.daemon = True
             self.thread_trigger.start()
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
@@ -237,12 +238,12 @@ class DADATrigger(DARCBase):
 
         :param dict obs_config: Observation config
         """
-        tstart = Time(obs_config['startpacket'] / 781250., format='unix')
+        tstart = Time(obs_config['startpacket'] / TIME_UNIT, format='unix')
         duration = TimeDelta(obs_config['duration'], format='sec')
         tend = tstart + duration
 
         # round up polcal dump size to nearest 1.024 s
-        dump_size = np.ceil(self.polcal_dump_size / 1.024) * 1.024
+        dump_size = TimeDelta(np.ceil(self.polcal_dump_size / 1.024) * 1.024, format='sec')
         dump_interval = TimeDelta(self.polcal_interval, format='sec')
 
         # sleep until first trigger time

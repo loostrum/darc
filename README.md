@@ -4,23 +4,29 @@
 Data Analysis of Real-time Candidates from the Apertif Radio Transient System
 
 This repository contains the necessary software to automatically process FRB candidates produced by the ARTS real-time system.
-As of May 2020, DARC has discovered 17 new FRBs.
-
+As of Summer 2020, DARC has discovered 18 new FRBs and several bursts from known repeaters.
 An extended description of DARC and other ARTS software can be found in my PhD thesis, available [here](http://hdl.handle.net/11245.1/abe5c8fa-1fdf-490b-ac0d-61e946f5791f).
 
 ### Installation
 
 ## Requirements:
+* Tensorflow (preferably with GPU support: `pip install tensorflow-gpu` for tensorflow < 2.0, `pip install tensorflow` for tensorflow >= 2.0)
+* sigpyproc3 (https://github.com/FRBs/sigpyproc3)
+
+The following packages are automatically installed when installing DARC through pip:
+
 * astropy
 * h5py
 * matplotlib
 * numpy
+* pypdf4
+* pytz
 * pyyaml
 * scipy
 * voevent-parse
 
-To install a DARC release, for example v2.0:
-`pip install git+https://github.com/loostrum/darc/archive/v2.0.tar.gz`  
+To install a DARC release, for example v3.0:
+`pip install git+https://github.com/loostrum/darc/archive/v3.0.tar.gz`  
 To install the latest master:
 `pip install git+https://github.com/loostrum/darc.git`
 
@@ -35,6 +41,7 @@ DARC comprises several parts that communicate through either queues or sockets. 
 * VOEventGenerator: Converts incoming triggers to a VOEvent and sends them to a VOEvent broker.
 * StatusWebsite: Queries status of all services and generates status webpage.
 * OfflineProcesing: Handles offline processing, runs after every observation.
+* Processor: Semi-real-time extraction and analysis of AMBER triggers. Replacement for OfflineProcessing
 
 ### Executables
 `darc`: Used to interact with the all services through the DARC Master service.\
@@ -47,9 +54,9 @@ DARC comprises several parts that communicate through either queues or sockets. 
 
 
 ### Usage
-Note: This example is specific to the ARTS cluster and assumes you are logged in to the ARTS master node. The python 3.6 virtual env (`. ~/python36/bin/activate`) needs to be activated to be able to run DARC commands manually. Always start DARC on the master node before starting it on other nodes. DARC can be started automatically across the cluster by running `start_full_pipeline` and stopped with `stop_full_pipeline`.  
+Note: This example is specific to the ARTS cluster and assumes you are logged in to the ARTS master node. The python virtual env (`. ~/darc/venv/bin/activate`) needs to be activated to be able to run DARC commands manually. Always start DARC on the master node before starting it on other nodes. DARC can be started automatically across the cluster by running `start_full_pipeline` and stopped with `stop_full_pipeline`.  
 
-Start DARC (e.g. on the master and arts001): `darc_start_all_services; ssh arts001 . ~/python36/bin/activate && darc_start_all_services`  
+Start DARC (e.g. on the master and arts001): `darc_start_all_services; ssh arts001 . ~/darc/venv/bin/activate && darc_start_all_services`  
 Verify that all services are running: `darc --host arts001 --service all status`  
 Check the log file of a specific service: `tail ~/darc/log/amber_clustering.arts001.log`  
 Restart a specific service: `darc --host arts001 --service amber_clustering restart`  

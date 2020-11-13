@@ -20,12 +20,9 @@ try:
 except ImportError:
     psrdada = None
 
-from darc.darc_master import DARCMaster
-from darc.control import send_command
-from darc.amber_listener import AMBERListener
-from darc.amber_clustering import AMBERClustering
-from darc.dada_trigger import DADATrigger
+from darc import AMBERListener, AMBERClustering, DADATrigger
 from darc import util
+from darc.definitions import TIME_UNIT
 
 
 # only run this test if this script is run directly, _not_ in automated testing (pytest etc)
@@ -56,7 +53,7 @@ class TestFullRun(unittest.TestCase):
         with open('/tank/data/sky/B1933+16/20200211_dump/parset', 'r') as f:
             parset = f.read().strip()
 
-        # nreader: one for each programme readding from the buffer, i.e. 3x AMBER
+        # nreader: one for each programme reading from the buffer, i.e. 3x AMBER
         self.settings = {'resolution': 1536 * 12500 * 12, 'nbuf': 5, 'key_i': 'aaaa',
                          'hdr_size': 40960, 'dada_files': files, 'nreader': 3,
                          'freq': 1370, 'amber_dir': amber_dir, 'nbatch': len(files) * 10,
@@ -111,9 +108,9 @@ class TestFullRun(unittest.TestCase):
         # remove buffers
         print("Removing buffers")
         os.system('dada_db -d -k {key_i}'.format(**self.settings))
-        self.listener.stop()
-        self.clustering.stop()
-        self.dadatrigger.stop()
+        self.listener.source_queue.put('stop')
+        self.clustering.source_queue.put('stop')
+        self.dadatrigger.source_queue.put('stop')
 
     def writer(self):
         """
@@ -312,7 +309,7 @@ class TestFullRun(unittest.TestCase):
         # start DARC observation 5s in the future
         tstart = Time.now() + TimeDelta(5, format='sec')
         # add start time to config
-        self.settings['startpacket'] = tstart.unix * 781250
+        self.settings['startpacket'] = tstart.unix * TIME_UNIT
 
         # Todo: ensure DARC waits for start time
 

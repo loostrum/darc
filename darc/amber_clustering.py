@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # AMBER Clustering
 
@@ -6,7 +6,6 @@ import os
 from time import sleep
 import yaml
 import ast
-import subprocess
 import threading
 import multiprocessing as mp
 import numpy as np
@@ -15,10 +14,8 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 
 
-from darc.base import DARCBase
-from darc.voevent_generator import VOEventQueueServer
-from darc.lofar_trigger import LOFARTriggerQueueServer
-from darc.definitions import TSAMP, NCHAN, BANDWIDTH, WSRT_LON, CONFIG_FILE, MASTER
+from darc import DARCBase, VOEventQueueServer, LOFARTriggerQueueServer
+from darc.definitions import TSAMP, NCHAN, BANDWIDTH, MASTER, TIME_UNIT
 from darc.external import tools
 from darc import util
 
@@ -37,15 +34,12 @@ class AMBERClustering(DARCBase):
     4. Put LOFAR triggers on remote LOFAR trigger queue and on VOEvent queue
     """
 
-    def __init__(self, connect_vo=True, connect_lofar=True):
+    def __init__(self, *args, connect_vo=True, connect_lofar=True, **kwargs):
         """
         :param bool connect_vo: Whether or not to connect to VOEvent queue on master node
         :param bool connect_lofar: Whether or not to connect to LOFAR trigger queue on master node
         """
-        super(AMBERClustering, self).__init__()
-        self.needs_source_queue = True
-        self.needs_target_queue = True
-
+        super(AMBERClustering, self).__init__(*args, **kwargs)
         self.connect_vo = connect_vo
         self.connect_lofar = connect_lofar
         self.dummy_queue = mp.Queue()
@@ -56,6 +50,7 @@ class AMBERClustering(DARCBase):
         self.observation_running = False
         self.amber_triggers = []
         self.source_list = None
+        self.lock = mp.Lock()
 
         # store when we are allowed to do IQUV / LOFAR triggering
         self.time_iquv = Time.now()
@@ -109,13 +104,16 @@ class AMBERClustering(DARCBase):
         """
         Process command received from queue
 
-        :param str command: Command to process
+        :param dict command: Command to process
         """
         if command['command'] == 'trigger':
             if not self.observation_running:
                 self.logger.error("Trigger(s) received but no observation is running - ignoring")
             else:
-                self.amber_triggers.append(command['trigger'])
+                with self.lock:
+                    self.amber_triggers.append(command['trigger'])
+        elif command['command'] == 'get_attr':
+            self.get_attribute(command)
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
@@ -168,12 +166,11 @@ class AMBERClustering(DARCBase):
 
         # process triggers in thread
         self.threads['processing'] = threading.Thread(target=self._process_triggers)
-        self.threads['processing'].daemon = True
         self.threads['processing'].start()
 
         self.logger.info("Observation started")
 
-    def stop_observation(self):
+    def stop_observation(self, *args, **kwargs):
         """
         Stop observation
         """
@@ -191,14 +188,13 @@ class AMBERClustering(DARCBase):
                 thread.join()
                 self.threads[key] = None
 
-    @staticmethod
-    def voevent_connector():
+    def voevent_connector(self):
         """
         Connect to the VOEvent generator on the master node
         """
         # Load VO server settings
         VOEventQueueServer.register('get_queue')
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()
@@ -206,14 +202,13 @@ class AMBERClustering(DARCBase):
         server.connect()
         return server.get_queue()
 
-    @staticmethod
-    def lofar_connector():
+    def lofar_connector(self):
         """
         Connect to the LOFAR triggering system on the master node
         """
         # Load LOFAR trigger server settings
         LOFARTriggerQueueServer.register('get_queue')
-        with open(CONFIG_FILE, 'r') as f:
+        with open(self.config_file, 'r') as f:
             server_config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
         port = server_config['server_port']
         key = server_config['server_auth'].encode()
@@ -357,6 +352,8 @@ class AMBERClustering(DARCBase):
                 # check CB number
                 try:
                     allowed_cbs = self.thresh_lofar_override['cb']
+                    if isinstance(allowed_cbs, float):
+                        allowed_cbs = [allowed_cbs]
                     if self.obs_config['beam'] not in allowed_cbs:
                         return
                 except KeyError:
@@ -364,8 +361,8 @@ class AMBERClustering(DARCBase):
                     pass
                 else:
                     # source known, CB valid: set thresholds
-                    snr_min_lofar = self.thresh_override['snr_min']
-                    width_max_lofar = self.thresh_override['width_max']
+                    snr_min_lofar = self.thresh_lofar_override['snr_min']
+                    width_max_lofar = self.thresh_lofar_override['width_max']
                     self.logger.warning("Setting LOFAR trigger thresholds: S/N > {}, downsamp <= {}".format(snr_min_lofar,
                                                                                                             width_max_lofar))
         else:
@@ -462,17 +459,14 @@ class AMBERClustering(DARCBase):
         """
 
         # set observation parameters
-        utc_start = Time(self.obs_config['startpacket'] / 781250., format='unix')
+        utc_start = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         datetimesource = self.obs_config['datetimesource']
         dt = TSAMP.to(u.second).value
         chan_width = (BANDWIDTH / float(NCHAN)).to(u.MHz).value
         cent_freq = (self.obs_config['min_freq'] * u.MHz + 0.5 * BANDWIDTH).to(u.GHz).value
         sys_params = {'dt': dt, 'delta_nu_MHz': chan_width, 'nu_GHz': cent_freq}
         pointing = self._get_pointing()
-        if pointing is not None:
-            dmgal = self._get_ymw16(pointing)
-        else:
-            dmgal = 0
+        dmgal = util.get_ymw16(self.obs_config['parset'], self.obs_config['beam'], self.logger)
 
         # get known source dm and type
         dm_src, src_type, src_name = self._get_source()
@@ -514,9 +508,9 @@ class AMBERClustering(DARCBase):
         while self.observation_running:
             if self.amber_triggers:
                 # Copy the triggers so class-wide list can receive new triggers without those getting lost
-                triggers = self.amber_triggers
-
-                self.amber_triggers = []
+                with self.lock:
+                    triggers = self.amber_triggers
+                    self.amber_triggers = []
                 # check for header (always, because it is received once for every amber instance)
                 if not self.hdr_mapping:
                     for trigger in triggers:
@@ -554,7 +548,6 @@ class AMBERClustering(DARCBase):
                     self.logger.error("Failed to process triggers: {}".format(e))
                     continue
 
-                #
                 # pick columns to feed to clustering algorithm
                 triggers_for_clustering = triggers[:, (self.hdr_mapping['DM'], self.hdr_mapping['SNR'],
                                                        self.hdr_mapping['time'], self.hdr_mapping['integration_step'],
@@ -568,14 +561,12 @@ class AMBERClustering(DARCBase):
                                                                             args=(triggers_for_clustering, sys_params,
                                                                                   utc_start, datetimesource),
                                                                             kwargs=thresh_src)
-                    self.threads['trigger_known_source'].daemon = True
                     self.threads['trigger_known_source'].start()
                 # new source triggering
                 self.threads['trigger_new_source'] = threading.Thread(target=self._check_triggers,
                                                                       args=(triggers_for_clustering, sys_params,
                                                                             utc_start, datetimesource),
                                                                       kwargs=thresh_new)
-                self.threads['trigger_new_source'].daemon = True
                 self.threads['trigger_new_source'].start()
 
             sleep(self.interval)
@@ -603,44 +594,19 @@ class AMBERClustering(DARCBase):
         try:
             key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
             c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
+            c1 = c1 * u.deg
+            c2 = c2 * u.deg
         except Exception as e:
             self.logger.error("Could not parse pointing for CB{:02d} ({})".format(beam, e))
             return None
         # convert HA to RA if HADEC is used
         if parset['task.directionReferenceFrame'].upper() == 'HADEC':
-            # RA = LST - HA. Get RA at the start of the observation
-            start_time = Time(parset['task.startTime'])
-            # set delta UT1 UTC to zero to avoid requiring up-to-date IERS table
-            start_time.delta_ut1_utc = 0
-            lst_start = start_time.sidereal_time('mean', WSRT_LON).to(u.deg)
-            c1 = lst_start.to(u.deg).value - c1
+            # Get RA at the mid point of the observation
+            timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+            c1, c2 = util.radec_to_hadec(c1, c2, timestamp)
         # create SkyCoord object
-        pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
+        pointing = SkyCoord(c1, c2)
         return pointing
-
-    def _get_ymw16(self, pointing):
-        """
-        Get YMW16 DM from pointing
-
-        :param astropy.coordinates.SkyCoord pointing: Compound beam pointing
-        :return: YMW16 DM
-        """
-        # ymw16 arguments: mode, Gl, Gb, dist(pc), 2=dist->DM. 1E6 pc should cover entire MW
-        gl, gb = pointing.galactic.to_string(precision=8).split(' ')
-        cmd = ['ymw16', 'Gal', gl, gb, '1E6', '2']
-        # run ymw16 command
-        try:
-            result = subprocess.check_output(cmd)
-        except OSError as e:
-            self.logger.error("Failed to run ymw16, setting YMW16 DM to zero: {}".format(e))
-            return 0
-        # parse output
-        try:
-            dm = float(result.split()[7])
-        except Exception as e:
-            self.logger.error('Failed to parse DM from YMW16 output {}, setting YMW16 DM to zero: {}'.format(result, e))
-            return 0
-        return dm
 
     def _load_parset(self, obs_config):
         """

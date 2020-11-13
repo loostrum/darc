@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import unittest
 from time import sleep
+import multiprocessing as mp
 
-from darc.voevent_generator import VOEventGenerator, VOEventQueueServer
+from darc import VOEventGenerator, VOEventQueueServer
 
 
 class TestVOEventGenerator(unittest.TestCase):
@@ -14,7 +15,8 @@ class TestVOEventGenerator(unittest.TestCase):
         Test that the VOEvent generator converts a trigger into a VOEvent
         """
         # init VOEvent Generator
-        generator = VOEventGenerator()
+        control_queue = mp.Queue()
+        generator = VOEventGenerator(control_queue)
         # overwrite server location
         generator.server_host = 'localhost'
         # events are only generated if send = True
@@ -45,7 +47,8 @@ class TestVOEventGenerator(unittest.TestCase):
             queue.put(trigger)
         # wait and stop
         sleep(5)
-        generator.stop()
+        control_queue.put('stop')
+        generator.join()
         # check the output file
         filename = os.path.join(generator.voevent_dir, "{}.xml".format(trigger_utc))
 

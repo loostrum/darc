@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
+import numpy as np
 import astropy.units as u
+from astropy.coordinates import EarthLocation
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,14 +28,9 @@ WORKERS = ["arts001", "arts002", "arts003", "arts004", "arts005",
            "arts031", "arts032", "arts033", "arts034", "arts035",
            "arts036", "arts037", "arts038", "arts039", "arts040"]
 
-#: WSRT latitude
-WSRT_LAT = 52.915184 * u.deg
-
-#: WSRT longitude
-WSRT_LON = 6.60387 * u.deg
-
-#: WSRT altitude
-WSRT_ALT = 16 * u.m
+#: ITRF WSRT reference position
+ARRAY_ITRF = np.array([3828630.63486200943589211, 443593.39226634375518188, 5064922.99755000043660402]) * u.m
+WSRT_LOC = EarthLocation.from_geocentric(*ARRAY_ITRF)
 
 #: WSRT dish diameter
 DISH_DIAM = 25 * u.m
@@ -58,3 +55,9 @@ AP_EFF = .60
 
 #: Apertif/ARTS number of dishes in use
 NDISH = 8
+
+#: Number of tied-array beams
+NTAB = 12
+
+#: Beamformer time constant: number of samples per second
+TIME_UNIT = 781250

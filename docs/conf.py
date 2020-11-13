@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from darc import __version__
 sys.path.insert(0, os.path.abspath('..'))
 autodoc_mock_imports = ['tensorflow']
 
@@ -19,8 +20,11 @@ autodoc_mock_imports = ['tensorflow']
 autoclass_content = 'both'
 
 # what to show with autodoc
-autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'show-inheritance']
+autodoc_default_options = {'members': True, 'undoc-members': True,
+                           'private-members': True, 'show-inheritance': True}
 
+# make sure link targets are unique
+autosectionlabel_prefix_document = True
 
 # -- Project information -----------------------------------------------------
 
@@ -29,7 +33,7 @@ copyright = '2020, Leon Oostrum'
 author = 'Leon Oostrum'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -37,7 +41,7 @@ release = '2.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

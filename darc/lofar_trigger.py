@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # LOFAR trigger system
 
@@ -8,7 +8,6 @@ import multiprocessing as mp
 from queue import Empty
 from time import sleep
 import numpy as np
-import threading
 import socket
 import struct
 from textwrap import dedent
@@ -18,7 +17,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 
-from darc.definitions import BANDWIDTH, CONFIG_FILE, TSAMP
+from darc.definitions import CONFIG_FILE, TSAMP
 from darc import util
 from darc.logger import get_logger
 
@@ -34,20 +33,24 @@ class LOFARTriggerException(Exception):
     pass
 
 
-class LOFARTrigger(threading.Thread):
+class LOFARTrigger(mp.Process):
     """
     Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering
     """
-    def __init__(self):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
+        :param Queue source_queue: Input queue for controlling this service
+        :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(LOFARTrigger, self).__init__()
+        self.stop_event = mp.Event()
+        self.input_queue = source_queue
+        self.control_queue = control_queue
 
         self.trigger_server = None
 
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['lofar_trigger']
 
         # set config, expanding strings
@@ -89,6 +92,22 @@ class LOFARTrigger(threading.Thread):
 
         # wait for events until stop is set
         while not self.stop_event.is_set():
+            # check if a stop or switch command was received
+            try:
+                command = self.input_queue.get(timeout=.1)
+            except Empty:
+                pass
+            else:
+                if isinstance(command, str) and command == 'stop':
+                    self.stop()
+                elif isinstance(command, str) and command.startswith('lofar_'):
+                    self._switch_command(command)
+                elif isinstance(command, dict) and command['command'] == 'get_attr':
+                    self._get_attribute(command)
+                else:
+                    self.logger.error(f"Unknown command received: {command}")
+
+            # check if a trigger was received
             try:
                 trigger = self.trigger_queue.get(timeout=.1)
             except Empty:
@@ -115,6 +134,61 @@ class LOFARTrigger(threading.Thread):
         # stop the queue server
         self.trigger_server.shutdown()
         self.logger.info("Stopping LOFAR Trigger")
+
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def _switch_command(self, command):
+        """
+        Check status or enable/disable sending of events
+        """
+        status = 'Success'
+        if command == 'lofar_status':
+            if self.send_events:
+                reply = "LOFAR triggering is enabled"
+            else:
+                reply = "LOFAR triggering is disabled"
+        elif command == 'lofar_enable':
+            if self.send_events:
+                reply = "LOFAR triggering already enabled"
+            else:
+                self.send_events = True
+                reply = "LOFAR triggering enabled"
+        elif command == 'lofar_disable':
+            if self.send_events:
+                self.send_events = False
+                reply = "LOFAR triggering disabled"
+            else:
+                reply = "LOFAR triggering already disabled"
+        else:
+            status = 'Error'
+            reply = f"Unknown command: {command}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send result of switch command to master: no control queue set")
 
     def create_and_send(self, trigger):
         """
@@ -188,7 +262,8 @@ class LOFARTrigger(threading.Thread):
             else:
                 self.logger.info("Sent warning email")
 
-    def _select_trigger(self, triggers):
+    @staticmethod
+    def _select_trigger(triggers):
         """
         Select trigger with highest S/N from a list of triggers.
         If there are triggers from both known and new sources, select the known source
@@ -202,7 +277,6 @@ class LOFARTrigger(threading.Thread):
         # if not, there are known sources. Select only those
         if not np.all([trigger['name'] == 'candidate' for trigger in triggers]):
             triggers_known_sources = [trigger for trigger in triggers if trigger['name'] != 'candidate']
-            ntrig_removed = len(triggers) - len(triggers_known_sources)
             triggers = triggers_known_sources
 
         # select max S/N

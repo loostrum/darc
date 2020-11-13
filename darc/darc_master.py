@@ -1,37 +1,31 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # DARC master process
 # Controls all services
 
 import sys
 import os
+import argparse
 import ast
 import yaml
 import multiprocessing as mp
-import threading
+from queue import Empty
 import socket
 from time import sleep, time
 from shutil import copy2
 from astropy.time import Time, TimeDelta
 
-from darc.definitions import MASTER, WORKERS, CONFIG_FILE
+import darc
+from darc.definitions import MASTER, WORKERS, CONFIG_FILE, TIME_UNIT
 from darc import util
 from darc.logger import get_logger
-import darc.amber_listener
-import darc.amber_clustering
-import darc.voevent_generator
-import darc.status_website
-import darc.offline_processing
-import darc.dada_trigger
-import darc.processor
-import darc.lofar_trigger
 
 
 class DARCMasterException(Exception):
     pass
 
 
-class DARCMaster(object):
+class DARCMaster:
     """
     DARC master service that controls all other services and queues
 
@@ -42,7 +36,11 @@ class DARCMaster(object):
         :param str config_file: path to DARC configuration file
         """
         # setup stop event for master
-        self.stop_event = threading.Event()
+        self.stop_event = mp.Event()
+
+        # dict to hold thread for each service
+        self.threads = {}
+        self.services = []
 
         # save host name
         self.hostname = socket.gethostname()
@@ -51,27 +49,42 @@ class DARCMaster(object):
         self.amber_listener_queue = mp.Queue()  # only used for start observation commands
         self.amber_trigger_queue = mp.Queue()  # for amber triggers
         self.dadatrigger_queue = mp.Queue()  # for dada triggers
-        self.processor_queue = mp.Queue()  # for offline or real-time processing
+        self.processor_queue = mp.Queue()  # for semi-realtime processing
+        self.offline_queue = mp.Queue()  # for offline processing
+        self.status_website_queue = mp.Queue()  # for controlling the StatusWebsite service
+        self.lofar_trigger_queue = mp.Queue()  # for controlling the LOFARTrigger service
+        self.voevent_generator_queue = mp.Queue()  # for controlling the VOEventGenerator service
 
+        self.control_queue = mp.Queue()  # for receiving data from services
+
+        # all queues that are an input to a service
         self.all_queues = [self.amber_listener_queue, self.amber_trigger_queue, self.dadatrigger_queue,
-                           self.processor_queue]
-
-        # service to class mapper
-        self.service_mapping = {'voevent_generator': darc.voevent_generator.VOEventGenerator,
-                                'status_website': darc.status_website.StatusWebsite,
-                                'amber_listener': darc.amber_listener.AMBERListener,
-                                'amber_clustering': darc.amber_clustering.AMBERClustering,
-                                'dada_trigger': darc.dada_trigger.DADATrigger,
-                                'lofar_trigger': darc.lofar_trigger.LOFARTrigger,
-                                'processor': darc.processor.Processor,
-                                'offline_processing': darc.offline_processing.OfflineProcessing}
-
-        # Load config file
-        self.config_file = config_file
-        self._load_config()
+                           self.processor_queue, self.offline_queue, self.status_website_queue]
 
         # store hostname
         self.hostname = socket.gethostname()
+
+        # Load config file, this also initializes the logger
+        self.config_file = config_file
+        self._load_config()
+
+        # service to class mapper
+        self.service_mapping = {'voevent_generator': darc.VOEventGenerator,
+                                'status_website': darc.StatusWebsite,
+                                'amber_listener': darc.AMBERListener,
+                                'amber_clustering': darc.AMBERClustering,
+                                'dada_trigger': darc.DADATrigger,
+                                'lofar_trigger': darc.LOFARTrigger,
+                                'offline_processing': darc.OfflineProcessing}
+
+        # select which processor to run on this host
+        if self.hostname == MASTER:
+            self.service_mapping['processor'] = darc.ProcessorMasterManager
+        elif self.hostname in WORKERS:
+            self.service_mapping['processor'] = darc.ProcessorManager
+        else:
+            self.logger.warning("Cannot determine host type; setting processor to worker mode")
+            self.service_mapping['processor'] = darc.ProcessorManager
 
         # setup listening socket
         command_socket = None
@@ -79,6 +92,7 @@ class DARCMaster(object):
         while not command_socket and time() - start < self.socket_timeout:
             try:
                 command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                command_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 command_socket.bind(("", self.port))
             except socket.error as e:
                 self.logger.warning("Failed to create socket, will retry: {}".format(e))
@@ -86,7 +100,7 @@ class DARCMaster(object):
                 sleep(1)
 
         if not command_socket:
-            self.logger.error("Failed to ceate socket")
+            self.logger.error("Failed to create socket")
             raise DARCMasterException("Failed to setup command socket")
 
         self.command_socket = command_socket
@@ -97,6 +111,7 @@ class DARCMaster(object):
         """
         Load configuration file
         """
+
         with open(self.config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['darc_master']
 
@@ -135,16 +150,15 @@ class DARCMaster(object):
         else:
             self.services = []
 
-        # Initialize services. Log dir must exist at this point
-        if not hasattr(self, 'threads'):
-            self.threads = {}
+        # terminate any existing threads in case this is a reload
+        for service, thread in self.threads.items():
+            if thread is not None:
+                self.logger.warning(f"Config reload, terminating existing {service}")
+                thread.terminate()
+
+        # start with empty thread for each service
         for service in self.services:
-            # only create thread if it did not exist yet (required to allow reloading of config)
-            try:
-                _ = self.threads[service]
-            except KeyError:
-                _service_class = self.service_mapping[service]
-                self.threads[service] = _service_class()
+            self.threads[service] = None
 
         # print config file path
         self.logger.info("Loaded config from {}".format(self.config_file))
@@ -152,6 +166,7 @@ class DARCMaster(object):
     def run(self):
         """
         Main loop
+
         Listen for messages on the command socket and process them
         """
         # wait for commands
@@ -167,7 +182,7 @@ class DARCMaster(object):
                 raise DARCMasterException('Caught exception while waiting for command: {}', e)
 
             raw_message = client.recv(1024).decode()
-            self.logger.info("Received message: {}".format(raw_message))
+            self.logger.debug("Received message: {}".format(raw_message))
             try:
                 status, reply = self.parse_message(raw_message)
             except Exception as e:
@@ -242,7 +257,12 @@ class DARCMaster(object):
         # only stop in real-time modes, as offline processing runs after the observation
         elif command == 'stop_observation':
             if self.mode in ['real-time', 'mixed']:
-                status, reply = self.stop_observation()
+                if not payload:
+                    self.logger.error('Payload is required when stopping observation')
+                    status = 'Error'
+                    reply = {'error': 'Payload missing'}
+                else:
+                    status, reply = self.stop_observation(payload)
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
                 status = 'Success'
@@ -260,10 +280,14 @@ class DARCMaster(object):
         # master config reload
         elif command == 'reload':
             self._load_config()
-            return 'Success', ''
+            return 'Success', 'Config reloaded'
         # lofar / voevent trigger commands
         elif command.startswith('lofar') or command.startswith('voevent'):
             status, reply = self._switch_cmd(command)
+            return status, reply
+        # get attribute command for master
+        elif command.startswith('get_attr') and service == 'None':
+            status, reply = self._get_attribute('master', command)
             return status, reply
 
         # Service interaction
@@ -288,6 +312,8 @@ class DARCMaster(object):
                 _status, _reply = self.restart_service(service)
             elif command.lower() == 'status':
                 _status, _reply = self.check_status(service)
+            elif command.startswith('get_attr'):
+                _status, _reply = self._get_attribute(service, command)
             else:
                 self.logger.error('Received unknown command: {}'.format(command))
                 status = 'Error'
@@ -296,6 +322,52 @@ class DARCMaster(object):
             if _status != 'Success':
                 status = 'Error'
             reply[service] = _reply
+
+        return status, reply
+
+    def _get_attribute(self, service, command):
+        """
+        Get attribute of a service instance
+
+        :param str service: Which service to get an attribute of
+        :param str command: Full service command ("get_attr {attribute}")
+        """
+        # split command in actual command and attribute
+        cmd, attr = command.split(' ')
+
+        # check if we need to get attribute of self
+        if service == 'master':
+            try:
+                value = getattr(self, attr)
+            except KeyError:
+                self.logger.error("Missing 'attribute' key from command")
+                status = 'Error'
+                reply = 'missing attribute key from command'
+            except AttributeError:
+                status = 'Error'
+                reply = f"No such attribute: {attr}"
+            else:
+                status = 'Success'
+                reply = f"DARCMaster.{attr} = {value}"
+            print(reply)
+            return status, reply
+
+        # get the service instance. process_message already checks for invalid service, no need to
+        # to that here
+        thread = self.threads[service]
+        if (thread is None) or (not thread.is_alive()):
+            status = 'Error'
+            reply = f"Service not running: {service}"
+            return status, reply
+
+        # send attribute get request to service queue
+        queue = self.get_queue(service)
+        queue.put({'command': cmd, 'attribute': attr})
+        # retrieve reply
+        try:
+            status, reply = self.control_queue.get(timeout=self.control_timeout)
+        except Empty:
+            return 'Error', f"Command sent to service, but no reply received within {self.control_timeout} seconds"
 
         return status, reply
 
@@ -315,7 +387,7 @@ class DARCMaster(object):
             # no thread means the service is not running
             # self.logger.info("{} is stopped".format(service))
             reply = 'stopped'
-        elif thread.isAlive():
+        elif thread.is_alive():
             # self.logger.info("{} is running".format(service))
             reply = 'running'
         else:
@@ -323,6 +395,33 @@ class DARCMaster(object):
             reply = 'stopped'
 
         return status, reply
+
+    def get_queue(self, service):
+        """
+        Get control queue corresponding to a service
+
+        :param str service: Service to get queue for
+        :return: queue (Queue)
+        """
+        if service == 'amber_listener':
+            queue = self.amber_listener_queue
+        elif service == 'amber_clustering':
+            queue = self.amber_trigger_queue
+        elif service == 'voevent_generator':
+            queue = self.voevent_generator_queue
+        elif service == 'status_website':
+            queue = self.status_website_queue
+        elif service == 'offline_processing':
+            queue = self.offline_queue
+        elif service == 'dada_trigger':
+            queue = self.dadatrigger_queue
+        elif service == 'lofar_trigger':
+            queue = self.lofar_trigger_queue
+        elif service == 'processor':
+            queue = self.processor_queue
+        else:
+            queue = None
+        return queue
 
     def start_service(self, service):
         """
@@ -332,32 +431,7 @@ class DARCMaster(object):
         :return: status, reply
         """
 
-        # settings for specific services
-        if service == 'amber_listener':
-            source_queue = self.amber_listener_queue
-            target_queue = self.amber_trigger_queue
-        elif service == 'amber_clustering':
-            source_queue = self.amber_trigger_queue
-            target_queue = self.dadatrigger_queue
-        elif service == 'voevent_generator':
-            source_queue = None
-            target_queue = None
-        elif service == 'status_website':
-            source_queue = None
-            target_queue = None
-        elif service == 'offline_processing':
-            source_queue = self.processor_queue
-            target_queue = None
-        elif service == 'dada_trigger':
-            source_queue = self.dadatrigger_queue
-            target_queue = None
-        elif service == 'lofar_trigger':
-            source_queue = None
-            target_queue = None
-        elif service == 'processor':
-            source_queue = self.processor_queue
-            target_queue = self.dadatrigger_queue
-        else:
+        if service not in self.service_mapping.keys():
             self.logger.error('Unknown service: {}'.format(service))
             status = 'Error'
             reply = "Unknown service"
@@ -367,7 +441,7 @@ class DARCMaster(object):
         thread = self.threads[service]
 
         # check if a new thread has to be generated
-        if thread is None:
+        if thread is None or not thread.is_alive():
             self.logger.info("Creating new thread for service {}".format(service))
             self.create_thread(service)
             thread = self.threads[service]
@@ -375,20 +449,15 @@ class DARCMaster(object):
         # start the specified service
         self.logger.info("Starting service: {}".format(service))
         # check if already running
-        if thread.isAlive():
+        if thread.is_alive():
             status = 'Success'
             reply = 'already running'
             self.logger.warning("Service already running: {}".format(service))
         else:
-            # set queues
-            if source_queue:
-                thread.set_source_queue(source_queue)
-            if target_queue:
-                thread.set_target_queue(target_queue)
             # start
             thread.start()
             # check status
-            if not thread.isAlive():
+            if not thread.is_alive():
                 status = 'Error'
                 reply = "failed"
                 self.logger.error("Failed to start service: {}".format(service))
@@ -418,7 +487,11 @@ class DARCMaster(object):
         thread = self.threads[service]
 
         # check is it was running at all
-        if thread is None or not thread.isAlive():
+        if thread is None or not thread.is_alive():
+            # is_alive is false if thread died
+            # remove thread if that is the case
+            if thread is not None and not thread.is_alive():
+                self.threads[service] = None
             self.logger.info("Service not running: {}".format(service))
             reply = 'Success'
             status = 'Stopped service'
@@ -426,11 +499,17 @@ class DARCMaster(object):
 
         # stop the specified service
         self.logger.info("Stopping service: {}".format(service))
-        thread.stop()
+        queue = self.get_queue(service)
+        if not queue:
+            status = 'Error'
+            reply = f"No queue to stop {service}"
+            return status, reply
+
+        queue.put('stop')
         tstart = time()
-        while thread.isAlive() and time() - tstart < self.stop_timeout:
+        while thread.is_alive() and time() - tstart < self.stop_timeout:
             sleep(.1)
-        if thread.isAlive():
+        if thread.is_alive():
             status = 'error'
             reply = "Failed to stop service before timeout"
             self.logger.error("Failed to stop service before timeout: {}".format(service))
@@ -466,11 +545,38 @@ class DARCMaster(object):
 
         :param str service: service to create a new thread for
         """
-        if service in self.service_mapping.keys():
-            # Instantiate a new instance of the class
-            self.threads[service] = self.service_mapping[service]()
+        # settings for specific services
+        source_queue = self.get_queue(service)
+        second_target_queue = None
+        if service == 'amber_listener':
+            target_queue = self.amber_trigger_queue
+            # only output to processor if this is not the master
+            if self.hostname != MASTER:
+                second_target_queue = self.processor_queue
+        elif service == 'amber_clustering':
+            target_queue = self.dadatrigger_queue
+        elif service == 'voevent_generator':
+            target_queue = None
+        elif service == 'status_website':
+            target_queue = None
+        elif service == 'offline_processing':
+            target_queue = None
+        elif service == 'dada_trigger':
+            target_queue = None
+        elif service == 'lofar_trigger':
+            target_queue = None
+        elif service == 'processor':
+            target_queue = None
         else:
             self.logger.error("Cannot create thread for {}".format(service))
+            return
+
+        # Instantiate a new instance of the class
+        self.threads[service] = self.service_mapping[service](source_queue=source_queue,
+                                                              target_queue=target_queue,
+                                                              second_target_queue=second_target_queue,
+                                                              control_queue=self.control_queue,
+                                                              config_file=self.config_file)
 
     def stop(self):
         """
@@ -537,14 +643,22 @@ class DARCMaster(object):
             self.logger.error("Running on unknown host: {}".format(self.hostname))
             return "Error", "Failed: running on unknown host"
 
+        # create command
+        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
+
         # wait until start time
-        utc_start = Time(config['startpacket'] / 781250., format='unix')
+        utc_start = Time(config['startpacket'] / TIME_UNIT, format='unix')
+        utc_end = utc_start + TimeDelta(config['duration'], format='sec')
+        # if end time is in the past, only start offline processing
+        if utc_end < Time.now():
+            self.logger.warning("End time in past! Only starting offline processing and processor")
+            self.offline_queue.put(command)
+            self.processor_queue.put(command)
+            return "Warning", "Only offline processing and processor started"
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
         self.logger.info("Starting observation at {}".format(t_setup.isot))
         util.sleepuntil_utc(t_setup)
 
-        # create command
-        command = {'command': 'start_observation', 'obs_config': config, 'host_type': host_type}
         # clear queues, then send command
         for queue in self.all_queues:
             util.clear_queue(queue)
@@ -552,20 +666,35 @@ class DARCMaster(object):
             queue.put(command)
         return "Success", "Observation started"
 
-    def stop_observation(self, abort=False):
+    def stop_observation(self, config_file, abort=False):
         """
         Stop an observation
 
+        :param str config_file: path to observation config file
         :param bool abort: whether to abort the observation
         :return: status, reply message
         """
+        self.logger.info("Received stop_observation command with config file {}".format(config_file))
+        # check if config file exists
+        if not os.path.isfile(config_file):
+            self.logger.error("File not found: {}".format(config_file))
+            return "Error", "Failed: config file not found"
+        # load config
+        if config_file.endswith('.yaml'):
+            config = self._load_yaml(config_file)
+        elif config_file.endswith('.parset'):
+            config = self._load_parset(config_file)
+        else:
+            self.logger.error("Failed to determine config file type from {}".format(config_file))
+            return "Error", "Failed: unknown config file type"
+
         # call stop_observation for all relevant services through their queues
         for queue in self.all_queues:
-            # in mixed mode, skip stopping offline_procssing, unless abort is True
-            if (self.mode == 'mixed') and (queue == self.processor_queue) and not abort:
+            # in mixed mode, skip stopping offline_processing, unless abort is True
+            if (self.mode == 'mixed') and (queue == self.offline_queue) and not abort:
                 self.logger.info("Skipping stopping offline processing in mixed mode")
                 continue
-            queue.put({'command': 'stop_observation'})
+            queue.put({'command': 'stop_observation', 'obs_config': config})
 
         status = 'Success'
         reply = "Stopped observation"
@@ -615,55 +744,33 @@ class DARCMaster(object):
         :param str command: command to run
         :return: status, reply
         """
-        if command.startswith('lofar'):
+        if command.startswith('lofar_'):
             service = self.threads['lofar_trigger']
             name = 'LOFAR triggering'
-        elif command.startswith('voevent'):
+            queue = self.lofar_trigger_queue
+        elif command.startswith('voevent_'):
             service = self.threads['voevent_generator']
-            name = 'VOEvent sending'
+            name = 'VOEvent generator'
+            queue = self.voevent_generator_queue
         else:
             self.logger.info("Unknown command: {}".format(command))
-            return "Error", "Failed: Unknown command {}".format(command)
+            return 'Error', "Failed: Unknown command {}".format(command)
 
         if self.hostname != MASTER:
-            return "Error", "Failed: should run on master node"
+            return 'Error', "Failed: should run on master node"
 
-        # status
-        if command.endswith('status'):
-            try:
-                can_send = service.send_events
-                status = 'Success'
-                reply = '{} enabled: {}'.format(name, can_send)
-            except Exception as e:
-                self.logger.error("Failed to get {} status ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to check {} status'.format(name)
+        # check if service is running
+        if (service is None) or (not service.is_alive()):
+            return 'Error', f"{name} service is not running"
 
-        # enable
-        elif command.endswith('enable'):
-            try:
-                service.send_events = True
-                status = 'Success'
-                reply = '{} enabled'.format(name)
-            except Exception as e:
-                self.logger.error("Failed to enable {} ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to enable {}'.format(name)
+        # send command to service
+        queue.put(command)
+        # retrieve reply
+        try:
+            status, reply = self.control_queue.get(timeout=self.control_timeout)
+        except Empty:
+            return 'Error', f"Command sent to service, but no reply received within {self.control_timeout} seconds"
 
-        # disable
-        elif command.endswith('disable'):
-            try:
-                service.send_events = False
-                status = 'Success'
-                reply = '{} disabled'.format(name)
-            except Exception as e:
-                self.logger.error("Failed to disable {} ({})".format(name, e))
-                status = 'Error'
-                reply = 'Failed to disable {}'.format(name)
-
-        else:
-            status = 'Error'
-            reply = 'Unknown command'
         return status, reply
 
 
@@ -671,5 +778,11 @@ def main():
     """
     Run DARC Master
     """
-    master = DARCMaster()
+    parser = argparse.ArgumentParser(description="DARC master service")
+    parser.add_argument('--config', default=CONFIG_FILE, help="Path to config file, loaded from $HOME/darc/config.yaml "
+                                                              "if it exists, else default provided with package."
+                                                              "Current default: %(default)s")
+    args = parser.parse_args()
+
+    master = DARCMaster(args.config)
     master.run()

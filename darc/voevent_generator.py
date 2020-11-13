@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # VOEvent Generator
 
@@ -9,7 +9,6 @@ import subprocess
 from queue import Empty
 from time import sleep
 import numpy as np
-import threading
 import socket
 from multiprocessing.managers import BaseManager
 from astropy.coordinates import SkyCoord
@@ -37,21 +36,25 @@ class VOEventGeneratorException(Exception):
     pass
 
 
-class VOEventGenerator(threading.Thread):
+class VOEventGenerator(mp.Process):
     """
     Convert incoming triggers to VOEvent and send to
     the VOEvent broker
     """
-    def __init__(self):
+    def __init__(self, source_queue, *args, config_file=CONFIG_FILE, control_queue=None, **kwargs):
         """
+        :param Queue source_queue: Input queue for controlling this service
+        :param str config_file: Path to config file
+        :param Queue control_queue: Control queue of parent Process
         """
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.daemon = True
+        super(VOEventGenerator, self).__init__()
+        self.stop_event = mp.Event()
+        self.input_queue = source_queue
+        self.control_queue = control_queue
 
         self.voevent_server = None
 
-        with open(CONFIG_FILE, 'r') as f:
+        with open(config_file, 'r') as f:
             config = yaml.load(f, Loader=yaml.SafeLoader)['voevent_generator']
 
         # set config, expanding strings
@@ -101,6 +104,22 @@ class VOEventGenerator(threading.Thread):
 
         # wait for events until stop is set
         while not self.stop_event.is_set():
+            # check if a stop or switch command was received
+            try:
+                command = self.input_queue.get(timeout=.1)
+            except Empty:
+                pass
+            else:
+                if isinstance(command, str) and command == 'stop':
+                    self.stop()
+                elif isinstance(command, str) and command.startswith('voevent_'):
+                    self._switch_command(command)
+                elif isinstance(command, dict) and command['command'] == 'get_attr':
+                    self._get_attribute(command)
+                else:
+                    self.logger.error(f"Unknown command received: {command}")
+
+            # check if a trigger was received
             try:
                 trigger = self.voevent_queue.get(timeout=.1)
             except Empty:
@@ -127,6 +146,61 @@ class VOEventGenerator(threading.Thread):
         # stop the queue server
         self.voevent_server.shutdown()
         self.logger.info("Stopping VOEvent generator")
+
+    def _get_attribute(self, command):
+        """
+        Get attribute as given in input command
+
+        :param dict command: Command received over queue
+        """
+        try:
+            value = getattr(self, command['attribute'])
+        except KeyError:
+            self.logger.error("Missing 'attribute' key from command")
+            status = 'Error'
+            reply = 'missing attribute key from command'
+        except AttributeError:
+            status = 'Error'
+            reply = f"No such attribute: {command['attribute']}"
+        else:
+            status = 'Success'
+            reply = f"{{'{type(self).__name__}.{command['attribute']}': {value}}}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send reply: no control queue set")
+
+    def _switch_command(self, command):
+        """
+        Check status or enable/disable sending of events
+        """
+        status = 'Success'
+        if command == 'voevent_status':
+            if self.send_events:
+                reply = "VOEvent sending is enabled"
+            else:
+                reply = "VOEvent sending is disabled"
+        elif command == 'voevent_enable':
+            if self.send_events:
+                reply = "VOEvent sending already enabled"
+            else:
+                self.send_events = True
+                reply = "VOEvent sending enabled"
+        elif command == 'voevent_disable':
+            if self.send_events:
+                self.send_events = False
+                reply = "VOEvent sending disabled"
+            else:
+                reply = "VOEvent sending already disabled"
+        else:
+            status = 'Error'
+            reply = f"Unknown command: {command}"
+
+        if self.control_queue is not None:
+            self.control_queue.put([status, reply])
+        else:
+            self.logger.error("Cannot send result of switch command to master: no control queue set")
 
     def create_and_send(self, trigger):
         """
@@ -184,8 +258,8 @@ class VOEventGenerator(threading.Thread):
         t = Time(trigger['utc'])
         # IERS server is down, avoid using it
         t.delta_ut1_utc = 0
-        hadec = util.ra_to_ha(coord.ra, coord.dec, t)
-        trigger['posang'] = util.ha_to_proj(hadec.ra, hadec.dec).to(u.deg).value
+        ha, dec = util.radec_to_hadec(coord.ra, coord.dec, t)
+        trigger['posang'] = util.hadec_to_rot(ha, dec).to(u.deg).value
 
         self.logger.info("Creating VOEvent")
         self._NewVOEvent(**trigger)
@@ -297,17 +371,17 @@ class VOEventGenerator(threading.Thread):
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.smajAxis", ac=True, value=semiMaj)
         beam_sma = vp.Param(name="beam_semi-minor_axis", unit="MM",
                             ucd="instr.beam;pos.errorEllipse;phys.angSize.sminAxis", ac=True, value=semiMin)
-        beam_rot = vp.Param(name="beam_rotation_angle", value=posang, unit="Degrees",
+        beam_rot = vp.Param(name="beam_rotation_angle", value=str(posang), unit="Degrees",
                             ucd="instr.beam;pos.errorEllipse;instr.offset", ac=True)
-        tsamp = vp.Param(name="sampling_time", value=dt, unit="ms", ucd="time.resolution", ac=True)
-        bw = vp.Param(name="bandwidth", value=delta_nu_MHz, unit="MHz", ucd="instr.bandwidth", ac=True)
+        tsamp = vp.Param(name="sampling_time", value=str(dt), unit="ms", ucd="time.resolution", ac=True)
+        bw = vp.Param(name="bandwidth", value=str(delta_nu_MHz), unit="MHz", ucd="instr.bandwidth", ac=True)
         nchan = vp.Param(name="nchan", value=str(NCHAN), dataType="int",
                          ucd="meta.number;em.freq;em.bin", unit="None")
         cf = vp.Param(name="centre_frequency", value=str(1000 * nu_GHz), unit="MHz", ucd="em.freq;instr", ac=True)
         npol = vp.Param(name="npol", value="2", dataType="int", unit="None")
         bits = vp.Param(name="bits_per_sample", value="8", dataType="int", unit="None")
-        gain = vp.Param(name="gain", value=gain, unit="K/Jy", ac=True)
-        tsys = vp.Param(name="tsys", value=TSYS.to(u.Kelvin).value, unit="K", ucd="phot.antennaTemp", ac=True)
+        gain = vp.Param(name="gain", value=str(gain), unit="K/Jy", ac=True)
+        tsys = vp.Param(name="tsys", value=str(TSYS.to(u.Kelvin).value), unit="K", ucd="phot.antennaTemp", ac=True)
         backend = vp.Param(name="backend", value="ARTS")
         # beam = vp.Param(name="beam", value= )
 
