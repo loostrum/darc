@@ -9,15 +9,6 @@ a subset of the pipeline. The pipeline consists of four global parts:
 #. Offline post-processing
 #. Monitoring & control
 
-
-..
-    The real-time part analyses trigger metadata and determines whether
-    to send an IQUV trigger, LOFAR trigger and/or VOEvent. The offline part extracts the filterbank data
-    of each candidate, uses a neural network to classify them and sends a summary of each observation
-    to the astronomers. The offline part can run completely offline, i.e. only starting after the data recording
-    of an observation finishes, or in semi-real-time, where every candidate is processed in chronological order
-    as soon as they come in.
-
 For more information about these different parts of DARC, consult one of the following pages:
 
 .. toctree::
