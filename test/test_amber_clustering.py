@@ -104,6 +104,10 @@ class TestAMBERClustering(unittest.TestCase):
             expected_output.append({'stokes': 'IQUV', 'dm': 56.8, 'beam': 4, 'width': 1, 'snr': 11.5134,
                                     'time': 0.0244941})
 
+        # sort the outputs by arrival time, then snr
+        output = sorted(output, key=lambda item: (item['time'], item['snr']))
+        expected_output = sorted(expected_output, key=lambda item: (item['time'], item['snr']))
+
         # now the lengths should be equal
         self.assertEqual(len(output), len(expected_output))
         # test clusters are equal
