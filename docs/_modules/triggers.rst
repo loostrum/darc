@@ -5,7 +5,7 @@ Introduction
 ------------
 The ARTS GPU cluster receives both a Stokes I and Stokes IQUV data stream from the
 beamformer, and searches the Stokes I data for transients in real-time using a GPU pipeline,
-`AMBER <https://www.github.com/AA-ALERT/AMBER>`_. The real-time triggering part of DARC takes
+`AMBER <https://www.github.com/TRASAL/AMBER>`_. The real-time triggering part of DARC takes
 the candidate metadata produced by AMBER, and decides whether or not to send a trigger to store
 IQUV data, observe with the LOFAR transient buffer boards (TBBs), or send a VOEvent to the outside world.
 
@@ -31,7 +31,7 @@ Clustering and thresholding
 send triggers to different parts of the system. It first parses the triggers based on the header (which is also
 sent by the :ref:`AMBER listener module <_modules/triggers:Reading AMBER candidates>`). At a configurable interval,
 all triggers that arrived during that interval are clustered together. The clustering algorithm was originally developed
-by Liam Connor as part of `arts-analysis <https://github.com/AA-ALERT/arts-analysis>`_. It clusters candidates in time
+by Liam Connor as part of `arts-analysis <https://github.com/TRASAL/arts-analysis>`_. It clusters candidates in time
 and DM, automatically selecting the optimal width and Synthesized Beam (SB) index. In addition, it has an SB periodicity
 filter developed by Dany Vohl, which can be enabled in the DARC config file.
 If a known source is being observed, the clustering and following triggering runs twice: once for triggers with a DM
@@ -63,7 +63,7 @@ to which `dada_dbdisk` is connected, which then writes the data to disk.
 .. note::
     The data as written by `dada_dbdisk` are not in a nicely
     readable format. A tool is available to convert the data
-    to PSRFITS: `dadafits <https://github.com/AA-ALERT/dadafits>`_.
+    to PSRFITS: `dadafits <https://github.com/TRASAL/dadafits>`_.
     `dadafits` reads data from a ringbuffer, so the
     data on disk must be put into a ringbuffer with
     `dada_diskdb`. `dadafits` cannot run in real-time
