@@ -96,6 +96,7 @@ voevent_generator:
 # LOFAR triggers
 lofar_trigger:
     log_file: "{home}/darc/log/lofar_trigger.{hostname}.log"
+    test: True  # send real observation or test events?
     interval: 1.0  # how long to keep gathering triggers after one arrives
     send_events: False  # the lofar_enable and lofar_disable commands change send_events to True or False
     server_port: 5201   # Port the LOFAR trigger service listens to

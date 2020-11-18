@@ -295,7 +295,7 @@ class LOFARTrigger(mp.Process):
         # index is now index of trigger with highest S/N
         return triggers[index], num_unique_cb
 
-    def _new_trigger(self, dm, utc, nu_GHz=1.37, test=False):
+    def _new_trigger(self, dm, utc, nu_GHz=1.37, test=None):
         """
         Create a LOFAR trigger struct
 
@@ -325,10 +325,16 @@ class LOFARTrigger(mp.Process):
         # dm is sent as int, multiplied by ten to preserve one decimal place
         dm_int = int(np.round(10 * dm.to(u.pc * u.cm**-3).value))
 
+        # use default value for test flag if not set
+        if test is None:
+            test = self.test
+
         # test event or real event
         if test:
+            self.logger.info("Event type is test")
             test_flag = b'T'  # = \x54
         else:
+            self.logger.info("Event type is observation")
             test_flag = b'S'  # = \x53
 
         # struct format
