@@ -252,12 +252,8 @@ class VOEventGenerator(mp.Process):
         gain = (AP_EFF * np.pi * (DISH_DIAM / 2.) ** 2 / (2 * const.k_B) * NDISH).to(u.Kelvin / (1000 * u.mJy)).value
         trigger['gain'] = gain
 
-        # calculate parallactic angle - Useful when using SB for pointing instead of center of CB
-        # ToDo: SB rotation is not equal to the angle calculated here, but a combination of
-        # parallactic angle and baseline projection angle
+        # calculate SB orientation
         t = Time(trigger['utc'])
-        # IERS server is down, avoid using it
-        t.delta_ut1_utc = 0
         ha, dec = util.radec_to_hadec(coord.ra, coord.dec, t)
         trigger['posang'] = util.hadec_to_rot(ha, dec).to(u.deg).value
 
@@ -279,8 +275,7 @@ class VOEventGenerator(mp.Process):
         except subprocess.CalledProcessError as e:
             self.logger.error("Failed to send VOEvent: {}".format(e.output))
         else:
-            self.logger.info("VOEvent sent - disabling future LOFAR triggering")
-            self.send_events = False
+            self.logger.info("VOEvent sent")
 
     @staticmethod
     def _select_trigger(triggers):
@@ -308,7 +303,7 @@ class VOEventGenerator(mp.Process):
     def _NewVOEvent(self, dm, dm_err, width, snr, flux, ra, dec, semiMaj, semiMin,
                     ymw16, name, importance, utc, gl, gb, gain,
                     dt=TSAMP.to(u.ms).value, delta_nu_MHz=(BANDWIDTH / NCHAN).to(u.MHz).value,
-                    nu_GHz=1.37, posang=0, test=False):
+                    nu_GHz=1.37, posang=0, test=None):
         """
         Create a VOEvent
 
@@ -352,11 +347,17 @@ class VOEventGenerator(mp.Process):
 
         ivorn = ''.join([name, str(utc_hh), str(utc_mm), '/', str(mjd)])
 
+        # use default value for test flag if not set
+        if test is None:
+            test = self.test
+
         # Set role to either test or real observation
         if test:
+            self.logger.info("Event type is test")
             v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
                            role=vp.definitions.roles.test)
         else:
+            self.logger.info("Event type is observation")
             v = vp.Voevent(stream='nl.astron.apertif/alert', stream_id=ivorn,
                            role=vp.definitions.roles.observation)
         # Author origin information

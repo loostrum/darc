@@ -3,7 +3,7 @@ Real-time data processing
 
 Introduction
 ------------
-The ARTS transient search pipeline, `AMBER <https://www.github.com/AA-ALERT/AMBER>`_, produces a file with
+The ARTS transient search pipeline, `AMBER <https://www.github.com/TRASAL/AMBER>`_, produces a file with
 metadata of each candidate. The goal of the real-time processing part of DARC is to extract the data of these candidates,
 determine whether or not there are likely to be real, visualize the good candidates, and send an overview of each observation
 including figures of the candidates to the astronomers.
