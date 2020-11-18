@@ -39,7 +39,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The ARTS GPU cluster receives both a Stokes I and Stokes IQUV data stream from the
 beamformer, and searches the Stokes I data for transients in real-time using a GPU pipeline,
-<a class="reference external" href="https://www.github.com/AA-ALERT/AMBER">AMBER</a>. The real-time triggering part of DARC takes
+<a class="reference external" href="https://www.github.com/TRASAL/AMBER">AMBER</a>. The real-time triggering part of DARC takes
 the candidate metadata produced by AMBER, and decides whether or not to send a trigger to store
 IQUV data, observe with the LOFAR transient buffer boards (TBBs), or send a VOEvent to the outside world.</p>
 <p>Each of the 40 worker nodes of the GPU cluster processes the data from one Compound Beam (CB). Each CB
@@ -64,7 +64,7 @@ are detected by AMBER at different times, the candidates as output by
 send triggers to different parts of the system. It first parses the triggers based on the header (which is also
 sent by the <a class="reference internal" href="#reading-amber-candidates"><span class="std std-ref">AMBER listener module</span></a>). At a configurable interval,
 all triggers that arrived during that interval are clustered together. The clustering algorithm was originally developed
-by Liam Connor as part of <a class="reference external" href="https://github.com/AA-ALERT/arts-analysis">arts-analysis</a>. It clusters candidates in time
+by Liam Connor as part of <a class="reference external" href="https://github.com/TRASAL/arts-analysis">arts-analysis</a>. It clusters candidates in time
 and DM, automatically selecting the optimal width and Synthesized Beam (SB) index. In addition, it has an SB periodicity
 filter developed by Dany Vohl, which can be enabled in the DARC config file.
 If a known source is being observed, the clustering and following triggering runs twice: once for triggers with a DM
@@ -94,7 +94,7 @@ to which <cite>dada_dbdisk</cite> is connected, which then writes the data to di
 <p class="admonition-title">Note</p>
 <p>The data as written by <cite>dada_dbdisk</cite> are not in a nicely
 readable format. A tool is available to convert the data
-to PSRFITS: <a class="reference external" href="https://github.com/AA-ALERT/dadafits">dadafits</a>.
+to PSRFITS: <a class="reference external" href="https://github.com/TRASAL/dadafits">dadafits</a>.
 <cite>dadafits</cite> reads data from a ringbuffer, so the
 data on disk must be put into a ringbuffer with
 <cite>dada_diskdb</cite>. <cite>dadafits</cite> cannot run in real-time
