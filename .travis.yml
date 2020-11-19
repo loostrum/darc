@@ -8,9 +8,10 @@ before_install:
     - sudo apt-get -y install libfftw3-dev
 install:
     # testing environment
-    - pip install pycodestyle pytest pytest-cov sphinx
+    - pip install pycodestyle pytest pytest-cov sphinx sphinx_rtd_theme
     # requirements that are not part of setup.py
-    - pip install tensorflow git+https://github.com/FRBs/sigpyproc3
+    - pip install tensorflow 
+    - pip install git+https://github.com/FRBs/sigpyproc3
     - pip install .
 script:
     - pytest
@@ -21,8 +22,9 @@ jobs:
     - stage: deploy
       python: "3.8"
       install:
-        - pip install sphinx
-        - pip install tensorflow git+https://github.com/FRBs/sigpyproc3
+        - pip install sphinx sphinx_rtd_theme
+        - pip install tensorflow
+        - git+https://github.com/FRBs/sigpyproc3
         - pip install .
       script:
         - make -C docs/ html
