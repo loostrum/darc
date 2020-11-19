@@ -31,7 +31,7 @@ Clustering and thresholding
 send triggers to different parts of the system. It first parses the triggers based on the header (which is also
 sent by the :ref:`AMBER listener module <_modules/triggers:Reading AMBER candidates>`). At a configurable interval,
 all triggers that arrived during that interval are clustered together. The clustering algorithm was originally developed
-by Liam Connor as part of `arts-analysis <https://github.com/TRASAL/arts-analysis>`_. It clusters candidates in time
+by Liam Connor as part of `arts-analysis <https://github.com/liamconnor/arts-analysis>`_. It clusters candidates in time
 and DM, automatically selecting the optimal width and Synthesized Beam (SB) index. In addition, it has an SB periodicity
 filter developed by Dany Vohl, which can be enabled in the DARC config file.
 If a known source is being observed, the clustering and following triggering runs twice: once for triggers with a DM

@@ -68,8 +68,9 @@ DARC comes with several scripts to make control of the pipeline easier:
   stop command.
 
 In addition, the following two commands are available on the ARTS cluster:
+
 * :command:`start_full_pipeline`: Starts all DARC services on all nodes
-* :command:`stop_full_piepline`: Stops DARC services, including master service, on all nodes.
+* :command:`stop_full_pipeline`: Stops DARC services, including master service, on all nodes.
 
 Monitoring
 ----------
