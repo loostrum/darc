@@ -196,6 +196,7 @@ def get_flux(snr, width, ndish=NDISH, npol=2, coherent=True):
 def radec_to_hadec(ra, dec, t):
     """
     Convert RA, Dec to apparent WSRT HA, Dec
+
     :param Quantity ra: Right ascension
     :param Quantity dec: Declination
     :param Time/str t: Observing time
@@ -217,6 +218,7 @@ def radec_to_hadec(ra, dec, t):
 def hadec_to_radec(ha, dec, t):
     """
     Convert apparent HA, Dec to J2000 RA, Dec
+
     :param ha: hour angle with unit
     :param dec: declination with unit
     :param Time/str t: Observing time
