@@ -14,7 +14,7 @@ install:
     - pip install git+https://github.com/FRBs/sigpyproc3
     - pip install .
 script:
-    - pytest
+    - pytest -v
     - find . -name "*.py" -exec pycodestyle --ignore E501,E402,W503 {} +
 
 jobs:
