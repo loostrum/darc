@@ -173,7 +173,7 @@
 <span id="base-class"></span><h2>Base class<a class="headerlink" href="#module-darc.base" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.base.DARCBase">
-<em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="n">target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">second_target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="n">target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">second_target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>DARC Base class</p>
 <p>Provides common methods to services</p>
@@ -338,7 +338,7 @@ observation stop</p>
 
 <dl class="py data">
 <dt id="darc.definitions.CONFIG_FILE">
-<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = '/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">darc.definitions.</code><code class="sig-name descname">CONFIG_FILE</code><em class="property"> = '/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package</p>
 </dd></dl>
 
@@ -428,7 +428,7 @@ observation stop</p>
 <span id="synthesized-beam-generator"></span><h2>Synthesized Beam Generator<a class="headerlink" href="#module-darc.sb_generator" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.sb_generator.SBGenerator">
-<em class="property">class </em><code class="sig-prename descclassname">darc.sb_generator.</code><code class="sig-name descname">SBGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">science_case</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.sb_generator.</code><code class="sig-name descname">SBGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">science_case</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Synthesized beam generator</p>
 <p>__init__ should be called by cls.from_science_case or cls.from_table</p>
@@ -449,7 +449,7 @@ observation stop</p>
 
 <dl class="py method">
 <dt id="darc.sb_generator.SBGenerator.from_science_case">
-<em class="property">classmethod </em><code class="sig-name descname">from_science_case</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">science_case</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_science_case</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">science_case</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initalize default table for given science case</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -466,7 +466,7 @@ observation stop</p>
 
 <dl class="py method">
 <dt id="darc.sb_generator.SBGenerator.from_table">
-<em class="property">classmethod </em><code class="sig-name descname">from_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/home/travis/virtualenv/python3.8.0/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initalize with provided SB table</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -684,11 +684,19 @@ The result is scaled by 1.048 to account for the removed values</p>
 <dl class="py function">
 <dt id="darc.util.hadec_to_radec">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">hadec_to_radec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ha</span></em>, <em class="sig-param"><span class="n">dec</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.hadec_to_radec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert apparent HA, Dec to J2000 RA, Dec
-:param ha: hour angle with unit
-:param dec: declination with unit
-:param Time/str t: Observing time
-:return: SkyCoord object of J2000 coordinates</p>
+<dd><p>Convert apparent HA, Dec to J2000 RA, Dec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ha</strong> – hour angle with unit</p></li>
+<li><p><strong>dec</strong> – declination with unit</p></li>
+<li><p><strong>t</strong> (<em>Time/str</em>) – Observing time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SkyCoord object of J2000 coordinates</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -733,11 +741,19 @@ The result is scaled by 1.048 to account for the removed values</p>
 <dl class="py function">
 <dt id="darc.util.radec_to_hadec">
 <code class="sig-prename descclassname">darc.util.</code><code class="sig-name descname">radec_to_hadec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ra</span></em>, <em class="sig-param"><span class="n">dec</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.radec_to_hadec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert RA, Dec to apparent WSRT HA, Dec
-:param Quantity ra: Right ascension
-:param Quantity dec: Declination
-:param Time/str t: Observing time
-:return: HA (Quantity), Dec (Quantity)</p>
+<dd><p>Convert RA, Dec to apparent WSRT HA, Dec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>Quantity</em>) – Right ascension</p></li>
+<li><p><strong>dec</strong> (<em>Quantity</em>) – Declination</p></li>
+<li><p><strong>t</strong> (<em>Time/str</em>) – Observing time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HA (Quantity), Dec (Quantity)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
