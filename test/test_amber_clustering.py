@@ -115,7 +115,6 @@ class TestAMBERClustering(unittest.TestCase):
             cluster = output[ind]
             # remove utc_start because that cannot be controlled yet
             del cluster['utc_start']
-            cluster['bla'] = 2
             # do not fail the test if exact cluster is not equal
             # sometimes values are slightly different, but we do not
             # want the entire CI to fail because of this
