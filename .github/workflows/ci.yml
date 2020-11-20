@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,4 +36,33 @@ jobs:
       - name: Tests
         run: pytest -v
     
-
+  docs:
+    runs-on: ubuntu-latest
+    # only run when tests succeed on the master branch
+    needs: test
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          architecture: x64
+      - name: Install
+        run: |
+          sudo apt-get -y install libfftw3-dev
+          pip install pycodestyle pytest pytest-cov sphinx sphinx_rtd_theme
+          # install pybind11 before sigpyproc
+          pip install tensorflow pybind11
+          pip install git+https://github.com/FRBs/sigpyproc3@v0.5.0
+          pip install .
+      - name: Build
+        run: |
+          cd docs
+          make html
+      - name: Deploy
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: docs/_build/html
