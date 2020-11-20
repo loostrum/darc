@@ -1,0 +1,37 @@
+name: CI
+
+# run on all pushes, pull requests to master, and allow manual runs
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Install
+        run: |
+          sudo apt-get -y install libfftw3-dev
+          pip install pycodestyle pytest pytest-cov sphinx sphinx_rtd_theme
+          pip install tensorflow
+          pip install git+https://github.com/FRBs/sigpyproc3
+          pip install .
+      - name: Style check
+        run: find . -name "*.py" -exec pycodestyle --ignore E501,E402,W503 {} +
+      - name: Tests
+        run: pytest -v
+    
+
