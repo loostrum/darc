@@ -27,7 +27,8 @@ jobs:
         run: |
           sudo apt-get -y install libfftw3-dev
           pip install pycodestyle pytest pytest-cov sphinx sphinx_rtd_theme
-          pip install tensorflow
+          # install pybind11 before sigpyproc so it is found during install of sigpyproc
+          pip install tensorflow pybind11
           pip install git+https://github.com/FRBs/sigpyproc3
           pip install .
       - name: Style check
