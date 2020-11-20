@@ -9,6 +9,7 @@ import logging
 import socket
 import subprocess
 
+import darc
 from darc.definitions import CONFIG_FILE
 
 
@@ -110,11 +111,17 @@ def main():
                         "(Default: determine from DARC config file)")
     parser.add_argument('--parset', type=str, help="Observation parset (takes precedence over --config)")
     parser.add_argument('--config', type=str, help="Node observation config")
+    parser.add_argument('--version', action="store_true", help="Print version info")
 
-    parser.add_argument('cmd', type=str, nargs='+', help="Command to execute. When using get_attr, add space "
+    parser.add_argument('cmd', type=str, nargs='*', help="Command to execute. When using get_attr, add space "
                                                          "followed by attribute. Available commands: "
                                                          "{}".format(', '.join(commands)))
     args = parser.parse_args()
+
+    # Print version and exit
+    if args.version:
+        logger.info(f"{darc.__version__}")
+        sys.exit(0)
 
     # Check arguments
     if not args.cmd:
