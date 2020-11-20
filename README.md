@@ -1,5 +1,5 @@
 # DARC
-[![DOI](https://zenodo.org/badge/165673299.svg)](https://zenodo.org/badge/latestdoi/165673299)[![Build Status](https://travis-ci.com/loostrum/darc.svg?branch=master)](https://travis-ci.com/loostrum/darc)
+[![DOI](https://zenodo.org/badge/165673299.svg)](https://zenodo.org/badge/latestdoi/165673299)![CI](https://github.com/loostrum/darc/workflows/CI/badge.svg?branch=master)
 
 Data Analysis of Real-time Candidates from the Apertif Radio Transient System
 
