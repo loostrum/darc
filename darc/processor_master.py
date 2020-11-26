@@ -677,7 +677,7 @@ class ProcessorMaster(DARCBase):
                 if parset['task.directionReferenceFrame'] == 'HADEC':
                     # get convert HADEC to J2000 RADEC at midpoint of observation
                     midpoint = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
-                    pointing = util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint)
+                    pointing = SkyCoord(*util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint))
                 else:
                     pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
