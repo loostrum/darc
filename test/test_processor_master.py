@@ -31,13 +31,13 @@ class TestProcessorMaster(unittest.TestCase):
         tstart = Time.now()
         duration = TimeDelta(5, format='sec')
 
-        parset = {'task.duration': duration.sec,
+        parset = {'task.duration': str(duration.sec),
                   'task.startTime': tstart.isot,
                   'task.stopTime': (tstart + duration).isot,
                   'task.source.name': 'FAKE',
                   'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
-                  'task.directionReferenceFrame': 'J2000',
+                  'task.directionReferenceFrame': 'HADEC',
                   'task.telescopes': '[RT2, RT3, RT4, RT5, RT6, RT7, RT8, RT9]'}
 
         self.obs_config = {'beams': [0],

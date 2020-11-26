@@ -675,7 +675,7 @@ class ProcessorMaster(DARCBase):
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
                 if parset['task.directionReferenceFrame'] == 'HADEC':
-                    # get convert HADEC to J2000 RADEC at midpoint of observation
+                    # convert HADEC to J2000 RADEC at midpoint of observation
                     midpoint = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
                     pointing = SkyCoord(*util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint))
                 else:
