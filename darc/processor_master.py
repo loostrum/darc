@@ -177,7 +177,7 @@ class ProcessorMaster(DARCBase):
 
     def start_observation(self, obs_config, reload=True):
         """
-        Parse obs config and start listening for amber triggers on queue
+        Parse obs config and start observation processing after end time has passed
 
         :param dict obs_config: Observation configuration
         :param bool reload: reload service settings (default: True)
@@ -228,6 +228,11 @@ class ProcessorMaster(DARCBase):
             self.status = 'Done'
         except Exception as e:
             self.logger.error(f"Failed to process observation. Status = {self.status}: {type(e)}: {e}")
+        else:
+            self.logger.info(f"Finished processing observation: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+        # stop this processor instance
+        self.stop_event.set()
 
     def stop_observation(self, abort=False):
         """
@@ -595,7 +600,8 @@ class ProcessorMaster(DARCBase):
         Publish email content as local website
         """
         # create output folder
-        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(webdir=self.webdir,
+        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(home=os.path.expanduser('~'),
+                                                                                       webdir=self.webdir,
                                                                                        **self.obs_config)
         util.makedirs(web_folder)
         # save the email body, ensuring it is at the top of the list in a browser
