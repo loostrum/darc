@@ -600,8 +600,7 @@ class ProcessorMaster(DARCBase):
         Publish email content as local website
         """
         # create output folder
-        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(home=os.path.expanduser('~'),
-                                                                                       webdir=self.webdir,
+        web_folder = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(webdir=self.webdir,
                                                                                        **self.obs_config)
         util.makedirs(web_folder)
         # save the email body, ensuring it is at the top of the list in a browser

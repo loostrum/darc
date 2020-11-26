@@ -41,6 +41,7 @@ class TestProcessorMaster(unittest.TestCase):
                   'task.telescopes': '[RT2, RT3, RT4, RT5, RT6, RT7, RT8, RT9]'}
 
         self.obs_config = {'beams': [0],
+                           'home': os.path.expanduser('~'),
                            'freq': 1370,
                            'startpacket': int(tstart.unix * TIME_UNIT),
                            'date': '20200101',
