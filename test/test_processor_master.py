@@ -52,8 +52,7 @@ class TestProcessorMaster(unittest.TestCase):
         # output directory
         output_dir = os.path.join(self.result_dir, self.obs_config['date'], self.obs_config['datetimesource'])
         # web directory
-        webdir = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(home=os.path.expanduser('~'),
-                                                                                   webdir=self.processor.webdir,
+        webdir = '{home}/public_html/darc/{webdir}/{date}/{datetimesource}'.format(webdir=self.processor.webdir,
                                                                                    **self.obs_config)
         # remove existing output
         for d in (output_dir, webdir):

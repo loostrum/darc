@@ -416,7 +416,10 @@ class ProcessorMaster(DARCBase):
         :return: email (str), attachments (list)
         """
         self.logger.info(f"Processing results of {self.obs_config['datetimesource']}")
-        warnings = ""  # TODO: implement warnings field in email
+        notes = ""
+
+        if self.obs_config['parset']['task.directionReferenceFrame'].upper() == 'HADEC':
+            notes += "Reference frame is HADEC: RA/Dec coordinates are given for midpoint of observation.\n"
 
         # initialize email fields: trigger statistics, beam info, attachments
         beaminfo = ""
@@ -462,7 +465,7 @@ class ProcessorMaster(DARCBase):
                     attachments.append({'path': fname, 'name': f'CB{beam:02d}.pdf', 'type': 'pdf'})
 
         if missing_attachments:
-            warnings += f"Missing PDF files for {', '.join(missing_attachments)}\n"
+            notes += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
         # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
         if len(triggers) > 0:
@@ -499,10 +502,18 @@ class ProcessorMaster(DARCBase):
             coordinfo += "<tr><td>{:02d}</td><td>{}</td><td>{}</td>" \
                          "<td>{}</td><td>{}</td>".format(beam, *coordinates[beam])
 
+        # format the notes
+        if notes:
+            notesinfo = '<th style="text-align:left" colspan="2">Notes</th>' \
+                        '<td colspan="4">{}</td></tr>'.format(notes)
+        else:
+            notesinfo = ""
+
         # add info strings to overall info
         info['beaminfo'] = beaminfo
         info['coordinfo'] = coordinfo
         info['triggerinfo'] = triggerinfo
+        info['notes'] = notesinfo
 
         # generate the full email html
         # using a second level dict here because str.format does not support keys containing a dot
@@ -545,7 +556,7 @@ class ProcessorMaster(DARCBase):
             </tr><tr>
                 <th style="text-align:left" colspan="2">Trigger web link</th>
                     <td colspan="4">{d[web_link]}</td>
-            </tr>
+            </tr>{d[notes]}
             </table>
             </p>
             <hr align="left" width="50%" />
