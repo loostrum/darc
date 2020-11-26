@@ -148,11 +148,11 @@ class TestProcessor(unittest.TestCase):
         self.header['startpacket'] = int(self.tstart.unix * TIME_UNIT)
 
         # add parset
-        parset = {'task.duration': self.header['SCANLEN'],
+        parset = {'task.duration': str(self.header['SCANLEN']),
                   'task.startTime': self.tstart.isot,
                   'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
-                  'task.directionReferenceFrame': 'J2000'}
+                  'task.directionReferenceFrame': 'HADEC'}
         self.header['parset'] = parset
 
         # create ringbuffer
@@ -413,7 +413,9 @@ class TestVisualizer(unittest.TestCase):
 
         parset = {'task.taskID': '001122',
                   'task.beamSet.0.compoundBeam.0.phaseCenter': '[293.94876deg, 16.27778deg]',
-                  'task.directionReferenceFrame': 'J2000'}
+                  'task.directionReferenceFrame': 'HADEC',
+                  'task.duration': '600',
+                  'task.startTime': '2020-01-01 00:00:00'}
         obs_config = {'date': '20200101',
                       'datetimesource': '2020-01-01-00:00:00.FAKE',
                       'min_freq': 1220.7,

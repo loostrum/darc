@@ -602,7 +602,7 @@ class AMBERClustering(DARCBase):
         # convert HA to RA if HADEC is used
         if parset['task.directionReferenceFrame'].upper() == 'HADEC':
             # Get RA at the mid point of the observation
-            timestamp = Time(parset['task.startTime']) + .5 * parset['task.duration'] * u.s
+            timestamp = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
             c1, c2 = util.radec_to_hadec(c1, c2, timestamp)
         # create SkyCoord object
         pointing = SkyCoord(c1, c2)

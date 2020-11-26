@@ -177,7 +177,7 @@ class ProcessorMaster(DARCBase):
 
     def start_observation(self, obs_config, reload=True):
         """
-        Parse obs config and start listening for amber triggers on queue
+        Parse obs config and start observation processing after end time has passed
 
         :param dict obs_config: Observation configuration
         :param bool reload: reload service settings (default: True)
@@ -228,6 +228,11 @@ class ProcessorMaster(DARCBase):
             self.status = 'Done'
         except Exception as e:
             self.logger.error(f"Failed to process observation. Status = {self.status}: {type(e)}: {e}")
+        else:
+            self.logger.info(f"Finished processing observation: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+        # stop this processor instance
+        self.stop_event.set()
 
     def stop_observation(self, abort=False):
         """
@@ -411,7 +416,10 @@ class ProcessorMaster(DARCBase):
         :return: email (str), attachments (list)
         """
         self.logger.info(f"Processing results of {self.obs_config['datetimesource']}")
-        warnings = ""  # TODO: implement warnings field in email
+        notes = ""
+
+        if self.obs_config['parset']['task.directionReferenceFrame'].upper() == 'HADEC':
+            notes += "Reference frame is HADEC: RA/Dec coordinates are given for midpoint of observation.\n"
 
         # initialize email fields: trigger statistics, beam info, attachments
         beaminfo = ""
@@ -457,7 +465,7 @@ class ProcessorMaster(DARCBase):
                     attachments.append({'path': fname, 'name': f'CB{beam:02d}.pdf', 'type': 'pdf'})
 
         if missing_attachments:
-            warnings += f"Missing PDF files for {', '.join(missing_attachments)}\n"
+            notes += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
         # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
         if len(triggers) > 0:
@@ -494,10 +502,18 @@ class ProcessorMaster(DARCBase):
             coordinfo += "<tr><td>{:02d}</td><td>{}</td><td>{}</td>" \
                          "<td>{}</td><td>{}</td>".format(beam, *coordinates[beam])
 
+        # format the notes
+        if notes:
+            notesinfo = '<th style="text-align:left" colspan="2">Notes</th>' \
+                        '<td colspan="4">{}</td></tr>'.format(notes)
+        else:
+            notesinfo = ""
+
         # add info strings to overall info
         info['beaminfo'] = beaminfo
         info['coordinfo'] = coordinfo
         info['triggerinfo'] = triggerinfo
+        info['notes'] = notesinfo
 
         # generate the full email html
         # using a second level dict here because str.format does not support keys containing a dot
@@ -540,7 +556,7 @@ class ProcessorMaster(DARCBase):
             </tr><tr>
                 <th style="text-align:left" colspan="2">Trigger web link</th>
                     <td colspan="4">{d[web_link]}</td>
-            </tr>
+            </tr>{d[notes]}
             </table>
             </p>
             <hr align="left" width="50%" />
@@ -669,9 +685,9 @@ class ProcessorMaster(DARCBase):
                 key = "task.beamSet.0.compoundBeam.{}.phaseCenter".format(beam)
                 c1, c2 = ast.literal_eval(parset[key].replace('deg', ''))
                 if parset['task.directionReferenceFrame'] == 'HADEC':
-                    # get convert HADEC to J2000 RADEC at midpoint of observation
+                    # convert HADEC to J2000 RADEC at midpoint of observation
                     midpoint = Time(parset['task.startTime']) + .5 * float(parset['task.duration']) * u.s
-                    pointing = util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint)
+                    pointing = SkyCoord(*util.hadec_to_radec(c1 * u.deg, c2 * u.deg, midpoint))
                 else:
                     pointing = SkyCoord(c1, c2, unit=(u.deg, u.deg))
             except Exception as e:
