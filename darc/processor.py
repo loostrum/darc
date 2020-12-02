@@ -295,7 +295,7 @@ class Processor(DARCBase):
 
         :param bool abort: Whether or not to abort the observation
         """
-        if not self.observation_running:
+        if (not self.observation_running) and (not abort):
             # nothing to do
             return
 
