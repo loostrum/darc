@@ -323,7 +323,7 @@ class ProcessorMaster(DARCBase):
         # get list of running observations from node
         self.logger.debug(f"{node} is online, checking for observations")
         try:
-            output = send_command(self.node_timeout, 'processor', 'get_attr observations')['message']['processor']
+            output = send_command(self.node_timeout, 'processor', 'get_attr observations', host=node)['message']['processor']
             # parse the observation list
             # the list contains reference to processes, which should be put in quotes first
             output = ast.literal_eval(output.replace('<', '\'<').replace('>', '>\''))
