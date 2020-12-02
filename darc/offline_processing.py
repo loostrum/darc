@@ -107,11 +107,17 @@ class OfflineProcessing(mp.Process):
                 data = self.observation_queue.get(timeout=1)
             except Empty:
                 continue
-            if isinstance(data, str) and data == 'stop':
+            if isinstance(data, str) and data in ('stop', 'abort'):
                 self.stop()
                 continue
             elif data['command'] == 'get_attr':
                 self._get_attribute(data)
+                continue
+            elif data['command'] == 'stop_observation':
+                self.logger.info("Ignoring stop observation for offline processing")
+                continue
+            elif data['command'] != 'start_observation':
+                self.logger.error(f"Ignoring unknown command: {data['command']}")
                 continue
 
             # load observation config
