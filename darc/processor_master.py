@@ -468,9 +468,9 @@ class ProcessorMaster(DARCBase):
         if missing_attachments:
             notes += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
-        # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
+        # combine triggers from different CBs and sort by p, then by S/N
         if len(triggers) > 0:
-            triggers = np.sort(np.concatenate(triggers), order=('p', 'snr', 'time'))
+            triggers = np.sort(np.concatenate(triggers), order=('p', 'snr'))[::-1]
         # save total number of triggers
         info['total_triggers'] = len(triggers)
         # create string of trigger info
@@ -623,7 +623,11 @@ class ProcessorMaster(DARCBase):
         # are owned by the same user
         for src in files:
             dest = os.path.join(web_folder, os.path.basename(src['path']))
-            os.symlink(src['path'], dest)
+            try:
+                os.symlink(src['path'], dest)
+            except FileExistsError:
+                os.remove(dest)
+                os.symlink(src['path'], dest)
         self.logger.info(f"Published results of {self.obs_config['datetimesource']}")
 
     def _send_email(self, email, attachments):
