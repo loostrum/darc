@@ -5,7 +5,7 @@
 import os
 import threading
 import multiprocessing as mp
-from time import sleep
+from time import time, sleep
 import numpy as np
 import yaml
 import h5py
@@ -331,7 +331,15 @@ class Processor(DARCBase):
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
             self.extractor_queue.put(f'stop_extractor_{i}')
-            self.threads[f'extractor_{i}'].join()
+            start = time.now()
+            while time.now() - start < self.extractor_stop_timeout:
+                if self.threads[f'extractor_{i}'].is_alive():
+                    self.stop_event.wait(1)
+                else:
+                    self.threads[f'extractor_{i}'].join()
+            # if still alive, kill the extractor
+            self.threads[f'extractor_{i}'].terminate()
+            
         # signal classifier to stop
         self.classifier_queue.put('stop')
         # read the output of the classifier
