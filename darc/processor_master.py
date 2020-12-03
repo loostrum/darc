@@ -390,7 +390,7 @@ class ProcessorMaster(DARCBase):
                         If DARC is offline, do the following:
                         <ul>
                             <li>Restart DARC on {node}: <code>ssh arts@{node} '. darc/venv/bin/activate && darc_kill_all; darc_start_all_services'</code>
-                            <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}.yaml</code>
+                            <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}_summary.yaml</code>
                         </p>
                         </body>
                         </html>
