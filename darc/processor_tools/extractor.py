@@ -277,12 +277,11 @@ class Extractor(mp.Process):
 
         # if max S/N is below local threshold, skip this trigger
         if snrmax < self.config.snr_min_local:
-            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
-                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
-                             f"{(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                                f"Extracted in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # calculate DM range to try
@@ -345,7 +344,7 @@ class Extractor(mp.Process):
 
         # log time taken
         timer_end = Time.now()
-        self.logger.info(f"Successfully extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+        self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
                          f"{(timer_end - timer_start).to(u.s):.0f}")
 
     def _rficlean(self):
