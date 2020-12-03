@@ -207,6 +207,7 @@ processor:
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    full_processing_enabled: True
     delay: 10
     process_sb: True
     numthread: 2
