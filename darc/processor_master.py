@@ -427,6 +427,7 @@ class ProcessorMaster(DARCBase):
         triggers = []
         attachments = []
         missing_attachments = []
+        missing_beams = []
 
         for beam in self.obs_config['beams']:
             # load the summary file
@@ -441,6 +442,8 @@ class ProcessorMaster(DARCBase):
                             "<td>?</td>" \
                             "<td>?</td>" \
                             "<td>?</td></tr>".format(beam=beam)
+                # add warning message
+                missing_beams.append(f'CB{beam:02d}')
                 continue
 
             beaminfo += "<tr><td>{beam:02d}</td>" \
@@ -465,6 +468,8 @@ class ProcessorMaster(DARCBase):
                 else:
                     attachments.append({'path': fname, 'name': f'CB{beam:02d}.pdf', 'type': 'pdf'})
 
+        if missing_beams:
+            notes += f"Beams failed processing: {', '.join(missing_beams)}\n"
         if missing_attachments:
             notes += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
