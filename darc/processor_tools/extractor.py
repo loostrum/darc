@@ -304,14 +304,20 @@ class Extractor(mp.Process):
         # Dedisperse
         # initialize DM-time array
         self.data_dm_time = np.zeros((self.config.ndm, self.config.ntime))
+        # work on copy of global data as all these small sample
+        # shifts may introduce a few zeroes of padding
+        data = copy.deepcopy(self.data)
         for dm_ind, dm_val in enumerate(dms):
-            # copy the data and dedisperse
-            data = copy.deepcopy(self.data)
+            # dedisperse
             data.dedisperse(dm_val.to(u.pc / u.cm**3).value)
+            ts = data.data.sum(axis=0)
             # apply any remaining downsampling
-            data.downsample(postdownsamp)
+            # note: do not do this in-place on self.data as
+            # next iteration needs full-resolution data
+            numsamp, remainder = divmod(len(ts), postdownsamp)
+            ts = ts[:-remainder].reshape(numsamp, -1).sum(axis=1)
             # cut of excess bins and store
-            self.data_dm_time[dm_ind] = data.data.sum(axis=0)[:self.config.ntime]
+            self.data_dm_time[dm_ind] = ts[:self.config.ntime]
 
         # apply downsampling in time and freq to global freq-time data
         self.data.downsample(postdownsamp)
