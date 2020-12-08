@@ -3,7 +3,6 @@
 import os
 import glob
 import logging
-import ctypes
 import unittest
 import ast
 from time import sleep
@@ -56,6 +55,7 @@ class TestProcessorManager(unittest.TestCase):
         # add the thread to the manager observation list
         # ToDo: fix this in Process setup
         manager.observations['0'] = thread
+        manager.observation_queues['0'] = None
 
         manager.start()
         # give it some time to start
