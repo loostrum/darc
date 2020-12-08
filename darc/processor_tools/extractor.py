@@ -15,7 +15,7 @@ import h5py
 
 from darc import util
 from darc.processor_tools import ARTSFilterbankReader
-from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT
+from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT, NTAB
 
 
 class Extractor(mp.Process):
@@ -197,7 +197,7 @@ class Extractor(mp.Process):
 
         # Wait if the filterbank does not have enough samples yet
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header()
+        self.filterbank_reader.get_header(NTAB-1)
         tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         # wait until this much of the filterbank should be present on disk
         # start time, plus last bin to load, plus extra delay
@@ -215,7 +215,7 @@ class Extractor(mp.Process):
                 # data should be there, but is not. Wait just a short time, then check again
                 self.stop_event.wait(.5)
             # re-read the number of samples to check if the data are available now
-            self.filterbank_reader.get_header()
+            self.filterbank_reader.get_header(NTAB-1)
             # if we are past the end time of the observation, we give up and try shifting the end bin instead
             tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
             if Time.now() > tend:
@@ -223,16 +223,14 @@ class Extractor(mp.Process):
 
         # if start time before start of file, or end time beyond end of file, shift the start/end time
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header()
+        self.filterbank_reader.get_header(NTAB-1)
         if end_bin >= self.filterbank_reader.header.nsamples:
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
             if start_bin >= self.filterbank_reader.header.nsamples:
-                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping"
-                                  f" ToA={toa.value:.4f}, DM={dm.value:.2f}")
-                # log time taken
                 timer_end = Time.now()
-                self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
-                                 f"in {(timer_end - timer_start).to(u.s):.0f}")
+                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping "
+                                  f"ToA={toa.value:.4f}, DM={dm.value:.2f}. Processed in "
+                                  f"{(timer_end - timer_start).to(u.s):.0f}")
                 return
             self.logger.warning(f"End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             diff = end_bin - self.filterbank_reader.header.nsamples + 1
@@ -243,11 +241,9 @@ class Extractor(mp.Process):
         try:
             self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
         except ValueError as e:
-            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}")
-            # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} "
-                             f"in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # apply AMBER RFI mask
@@ -281,7 +277,7 @@ class Extractor(mp.Process):
             timer_end = Time.now()
             self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
                                 f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
-                                f"Extracted in {(timer_end - timer_start).to(u.s):.0f}")
+                                f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # calculate DM range to try
