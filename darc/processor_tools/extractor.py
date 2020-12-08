@@ -197,7 +197,7 @@ class Extractor(mp.Process):
 
         # Wait if the filterbank does not have enough samples yet
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header(NTAB-1)
+        self.filterbank_reader.get_header(NTAB - 1)
         tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         # wait until this much of the filterbank should be present on disk
         # start time, plus last bin to load, plus extra delay
@@ -215,7 +215,7 @@ class Extractor(mp.Process):
                 # data should be there, but is not. Wait just a short time, then check again
                 self.stop_event.wait(.5)
             # re-read the number of samples to check if the data are available now
-            self.filterbank_reader.get_header(NTAB-1)
+            self.filterbank_reader.get_header(NTAB - 1)
             # if we are past the end time of the observation, we give up and try shifting the end bin instead
             tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
             if Time.now() > tend:
@@ -223,7 +223,7 @@ class Extractor(mp.Process):
 
         # if start time before start of file, or end time beyond end of file, shift the start/end time
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header(NTAB-1)
+        self.filterbank_reader.get_header(NTAB - 1)
         if end_bin >= self.filterbank_reader.header.nsamples:
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
             if start_bin >= self.filterbank_reader.header.nsamples:
