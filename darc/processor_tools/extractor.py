@@ -267,6 +267,12 @@ class Extractor(mp.Process):
         # range of widths for S/N determination. Never go above 250 samples,
         # which is typically RFI even without pre-downsampling
         widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
+        if len(widths) == 0:
+            timer_end = Time.now()
+            self.logger.error(f"Downsampling out of range; valid range: 1 to 250. "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            return
         snrmax, width_best = util.calc_snr_matched_filter(timeseries, widths=widths)
         # correct for already applied downsampling
         width_best *= predownsamp
