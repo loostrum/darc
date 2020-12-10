@@ -263,14 +263,12 @@ class Processor(DARCBase):
 
         # start processing
         thread = threading.Thread(target=self._read_and_process_data, name='processing')
-        thread.start()
         self.threads['processing'] = thread
 
         # start clustering
         thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue,
                             self.ncluster, self.config_file)
         thread.name = 'clustering'
-        thread.start()
         self.threads['clustering'] = thread
 
         # start extractor(s)
@@ -278,14 +276,16 @@ class Processor(DARCBase):
             thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue,
                                self.ncand_above_threshold, self.config_file)
             thread.name = f'extractor_{i}'
-            thread.start()
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
         thread = Classifier(self.logger, self.classifier_queue, self.classifier_child_conn, self.config_file)
         thread.name = 'classifier'
-        thread.start()
         self.threads['classifier'] = thread
+
+        # start all threads/processes
+        for thread in self.threads.values():
+            thread.start()
 
         self.logger.info("Observation started")
 
