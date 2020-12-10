@@ -1,0 +1,13 @@
+version: "3"
+services:
+  arts041:
+    image: darc
+    networks:
+      - arts_docker
+  arts001:
+    image: darc
+    networks:
+      - arts_docker
+
+networks:
+  arts_docker:
