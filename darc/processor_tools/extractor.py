@@ -348,7 +348,8 @@ class Extractor(mp.Process):
         # put path to file on output queue to be picked up by classifier
         self.output_queue.put(output_file)
 
-        self.ncand_above_threshold.value += 1
+        with self.ncand_above_threshold.get_lock():
+            self.ncand_above_threshold.value += 1
 
         # log time taken
         timer_end = Time.now()

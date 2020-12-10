@@ -149,7 +149,8 @@ class Clustering(mp.Process):
         ncluster = len(cluster_snr)
 
         self.logger.info(f"Clustered {len(triggers)} triggers into {ncluster} clusters")
-        self.ncluster.value += ncluster
+        with self.ncluster.get_lock():
+            self.ncluster.value += ncluster
 
         # put the clusters on the output queue for further analysis
         # note the for-loop is effectively skipped if ncluster is zero
