@@ -2,12 +2,24 @@ version: "3"
 services:
   arts041:
     image: darc
+    hostname: arts041
+    expose:
+      - 51000
     networks:
-      - arts_docker
+      - arts
+    volumes:
+        - $HOME/darc_docker:/home/arts/darc
+
   arts001:
     image: darc
+    hostname: arts001
+    expose: 
+      - 51000
     networks:
-      - arts_docker
+      - arts
+    volumes:
+        - $HOME/darc_docker:/home/arts/darc
+        - $HOME/.controller:/home/arts/.controller
 
 networks:
-  arts_docker:
+  arts:

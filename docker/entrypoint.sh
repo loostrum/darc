@@ -5,7 +5,5 @@ set -e
 service ssh start
 # start web server
 service apache2 start
-# start darc master service
-darc_service
-# start shell
-#/bin/bash
+# run input command as arts
+su arts -c "$@"
