@@ -1,0 +1,28 @@
+version: "3"
+services:
+  arts041:
+    image: darc
+    hostname: arts041
+    expose:
+      - 51000
+    networks:
+      - arts
+    volumes:
+        - $HOME/darc/integration_test/controller:/home/arts/.controller
+        - $HOME/darc/integration_test:/home/arts/darc
+        - /tank/data:/data
+
+  arts001:
+    image: darc
+    hostname: arts001
+    expose: 
+      - 51000
+    networks:
+      - arts
+    volumes:
+        - $HOME/darc/integration_test/controller:/home/arts/.controller
+        - $HOME/darc/integration_test:/home/arts/darc
+        - /tank/data:/data
+
+networks:
+  arts:
