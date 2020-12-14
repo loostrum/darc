@@ -46,8 +46,8 @@ WORKDIR /opt/dadafilterbank/_build
 RUN cmake .. && make && make install
 
 # create local user
-#RUN useradd -u 1006 -ms /bin/bash arts
-RUN useradd -u 1000 -ms /bin/bash arts
+RUN useradd -u 1006 -ms /bin/bash arts
+#RUN useradd -u 1000 -ms /bin/bash arts
 ENV HOME=/home/arts
 USER arts
 WORKDIR $HOME
@@ -64,10 +64,17 @@ RUN pip3 install --upgrade pip && pip3 install pybind11 && \
     pip3 install git+https://github.com/FRBs/sigpyproc3 tensorflow-gpu==1.12
 
 # Copy files and install ssh keys
+# run mkdir as local user to avoid root ownership
 COPY . /opt/darc/
 RUN mkdir $HOME/.ssh &&  cp /opt/darc/docker/authorized_keys $HOME/.ssh/ &&  cp /opt/darc/docker/id_rsa $HOME/.ssh && chmod go-rwx $HOME/.ssh/id_rsa
 
 # Install darc
+# change ownership of /opt/darc to local user
+USER root
+RUN chown -R arts:arts /opt/darc
+USER arts
+# First ensure only arts001 is listed as worker node
+RUN echo 'WORKERS = ["arts001"]' >> /opt/darc/darc/definitions.py
 RUN pip3 install /opt/darc
 
 # Add pyenv and cuda libs to arts bashrc
