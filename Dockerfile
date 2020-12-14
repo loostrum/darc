@@ -20,7 +20,7 @@ WORKDIR /usr/src/gtest/build
 RUN cmake .. && make -j 8 && cp *.a /usr/lib
 
 # Install psrdada
-RUN git clone git://git.code.sf.net/p/psrdada/code /opt/psrdada
+RUN git clone https://git.code.sf.net/p/psrdada/code /opt/psrdada
 WORKDIR /opt/psrdada
 RUN autoreconf --install --force && ./configure --enable-shared && make -j 8 && make install
 
