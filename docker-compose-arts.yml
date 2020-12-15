@@ -8,9 +8,10 @@ services:
     networks:
       - arts
     volumes:
-        - $HOME/darc/integration_test_docker/controller:/home/arts/.controller
-        - $HOME/darc/integration_test_docker:/home/arts/darc/
-        - /tank/data:/data
+      - $HOME/darc/integration_test_docker/controller:/home/arts/.controller
+      - $HOME/darc/integration_test_docker/controller:/opt/amber
+      - $HOME/darc/integration_test_docker:/home/arts/darc/
+      - /tank/data:/data
 
   arts001:
     image: darc
@@ -20,9 +21,10 @@ services:
     networks:
       - arts
     volumes:
-        - $HOME/darc/integration_test_docker/controller:/home/arts/.controller
-        - $HOME/darc/integration_test_docker:/home/arts/darc/
-        - /tank/data:/data
+      - $HOME/darc/integration_test_docker/controller:/home/arts/.controller
+      - $HOME/darc/integration_test_docker/controller:/opt/amber
+      - $HOME/darc/integration_test_docker:/home/arts/darc/
+      - /tank/data:/data
 
 networks:
   arts:
