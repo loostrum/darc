@@ -17,6 +17,7 @@ from darc import DARCBase
 from darc import util
 from darc.control import send_command
 from darc.definitions import WORKERS, TSAMP
+from darc.logger import get_queue_logger, get_queue_logger_listener
 
 
 class ProcessorMasterManager(DARCBase):
@@ -30,6 +31,14 @@ class ProcessorMasterManager(DARCBase):
         # init DARCBase without logger, as we need a non-default logger
         super(ProcessorMasterManager, self).__init__(*args, no_logger=True, **kwargs)
 
+        # initialize queue logger listener
+        self.log_queue = mp.Queue()
+        self.log_listener = get_queue_logger_listener(self.log_queue, self.log_file)
+        self.log_listener.start()
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, self.log_q)
+
         self.observations = {}
         self.observation_queues = {}
         self.current_observation_queue = None
@@ -38,6 +47,8 @@ class ProcessorMasterManager(DARCBase):
 
         # reduce logging from status check commands
         logging.getLogger('darc.control').setLevel(logging.ERROR)
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def run(self):
         """
@@ -72,6 +83,8 @@ class ProcessorMasterManager(DARCBase):
                 self.logger.info(f"Aborting observation with taskid {taskid}")
                 self.observation_queues[taskid].put('abort')
             obs.join()
+        # stop the log listener
+        self.log_listener.stop()
 
     def start_observation(self, obs_config, reload=True):
         """

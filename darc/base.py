@@ -50,8 +50,6 @@ class DARCBase(mp.Process):
             # setup logger
             self.logger = get_logger(self.module_name, self.log_file)
             self.logger.info("{} initialized".format(self.log_name))
-        else:
-            self.logger = None
 
         # set host type
         hostname = socket.gethostname()
