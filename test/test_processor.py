@@ -3,6 +3,7 @@
 import os
 import glob
 import logging
+import logging.handlers
 import unittest
 import ast
 from time import sleep
@@ -182,7 +183,7 @@ class TestProcessor(unittest.TestCase):
         self.amber_listener.start()
 
         # initialize Processor, connect input queue to output of AMBERListener
-        self.processor = Processor(log_queue=log_queue, input_queue=self.processor_queue)
+        self.processor = Processor(log_queue=log_queue, source_queue=self.processor_queue)
 
     def tearDown(self):
         # remove ringbuffers
