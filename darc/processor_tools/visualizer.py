@@ -138,25 +138,27 @@ class Visualizer:
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         freqs = np.linspace(0, BANDWIDTH.to(u.MHz).value, nfreq) + self.obs_config['min_freq']
                         X, Y = np.meshgrid(times, freqs)
-                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_freqtime, shading='nearest')
+                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_freqtime, shading='nearest',
+                                      rasterized=True)
                         # Add DM 0 curve
                         delays = util.dm_to_delay(params['dm'] * u.pc / u.cm ** 3,
                                                   freqs[0] * u.MHz, freqs * u.MHz).to(u.ms).value
-                        ax.plot(times[0] + delays, freqs, c='r', alpha=.5)
+                        ax.plot(times[0] + delays, freqs, c='r', alpha=.5, rasterized=True)
                     elif plot_type == 'dm_time':
                         ylabel = r'DM (pc cm$^{-3}$)'
                         title = 'p:{prob_dmtime:.2f} DM:{dm:.2f} t:{toa:.2f}\n' \
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         X, Y = np.meshgrid(times, params['dms'])
-                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest')
+                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest',
+                                      rasterized=True)
                         # add line if DM 0 is in plot range
                         if min(params['dms']) <= 0 <= max(params['dms']):
-                            ax.axhline(0, c='r', alpha=.5)
+                            ax.axhline(0, c='r', alpha=.5, rasterized=True)
                     elif plot_type == '1d_time':
                         ylabel = 'Power (norm.)'
                         title = 'DM:{dm:.2f} t:{toa:.2f}\n' \
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
-                        ax.plot(times, data, c=self.config.colour_1dtime)
+                        ax.plot(times, data, c=self.config.colour_1dtime, rasterized=True)
                     else:
                         raise ProcessorException(f"Unknown plot type: {plot_type}, should not be able to get here!")
 
