@@ -15,6 +15,7 @@ from PyPDF4 import PdfFileMerger
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH
 from darc import util
+from darc.logger import get_queue_logger
 
 
 # disable debug log messages from matplotlib
@@ -31,18 +32,19 @@ class Visualizer:
     Visualize candidates
     """
 
-    def __init__(self, output_dir, result_dir, logger, obs_config, files, config_file=CONFIG_FILE):
+    def __init__(self, output_dir, result_dir, log_queue, obs_config, files, config_file=CONFIG_FILE):
         """
         :param str output_dir: Output directory for data products
         :param str result_dir: central directory to copy output PDF to
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param dict obs_config: Observations settings
         :param list files: HDF5 files to visualize
         :param str config_file: Path to config file
         """
+        module_name = type(self).__module__.split('.')[-1]
         self.output_dir = output_dir
         self.result_dir = result_dir
-        self.logger = logger
+        self.logger = get_queue_logger(module_name, log_queue)
         self.obs_config = obs_config
         self.files = np.array(files)
 

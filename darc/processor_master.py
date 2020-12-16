@@ -17,6 +17,7 @@ from darc import DARCBase
 from darc import util
 from darc.control import send_command
 from darc.definitions import WORKERS, TSAMP
+from darc.logger import get_queue_logger, get_queue_logger_listener
 
 
 class ProcessorMasterManager(DARCBase):
@@ -27,7 +28,16 @@ class ProcessorMasterManager(DARCBase):
     def __init__(self, *args, **kwargs):
         """
         """
-        super(ProcessorMasterManager, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMasterManager, self).__init__(*args, no_logger=True, **kwargs)
+
+        # initialize queue logger listener
+        self.log_queue = mp.Queue()
+        self.log_listener = get_queue_logger_listener(self.log_queue, self.log_file)
+        self.log_listener.start()
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, self.log_queue)
 
         self.observations = {}
         self.observation_queues = {}
@@ -37,6 +47,8 @@ class ProcessorMasterManager(DARCBase):
 
         # reduce logging from status check commands
         logging.getLogger('darc.control').setLevel(logging.ERROR)
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def run(self):
         """
@@ -71,6 +83,8 @@ class ProcessorMasterManager(DARCBase):
                 self.logger.info(f"Aborting observation with taskid {taskid}")
                 self.observation_queues[taskid].put('abort')
             obs.join()
+        # stop the log listener
+        self.log_listener.stop()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -93,7 +107,7 @@ class ProcessorMasterManager(DARCBase):
 
         # initialize a Processor for this observation
         queue = mp.Queue()
-        proc = ProcessorMaster(source_queue=queue, config_file=self.config_file)
+        proc = ProcessorMaster(source_queue=queue, log_queue=self.log_queue, config_file=self.config_file)
         proc.name = taskid
         proc.start()
         # start the observation and store thread
@@ -161,11 +175,15 @@ class ProcessorMaster(DARCBase):
     """
     Combine results from worker node processors
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, log_queue, *args, **kwargs):
         """
-        :param str config_file: Path to config file
+        :param Queue log_queue: Queue to use for logging
         """
-        super(ProcessorMaster, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMaster, self).__init__(*args, no_logger=True, **kwargs)
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, log_queue)
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()
@@ -175,6 +193,8 @@ class ProcessorMaster(DARCBase):
         self.status = None
         self.process = None
         self.central_result_dir = None
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def start_observation(self, obs_config, reload=True):
         """

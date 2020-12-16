@@ -16,6 +16,7 @@ import h5py
 from darc import util
 from darc.processor_tools import ARTSFilterbankReader
 from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT, NTAB
+from darc.logger import get_queue_logger
 
 
 class Extractor(mp.Process):
@@ -23,19 +24,20 @@ class Extractor(mp.Process):
     Extract data from filterbank files
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, ncand_above_threshold,
+    def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncand_above_threshold,
                  config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param Queue input_queue: Input queue for clusters
         :param Queue output_queue: Output queue for classifier
         :param mp.Value ncand_above_threshold: 0
         :param str config_file: Path to config file
         """
         super(Extractor, self).__init__()
-        self.logger = logger
+        module_name = type(self).__module__.split('.')[-1]
+        self.logger = get_queue_logger(module_name, log_queue)
         self.output_dir = os.path.join(output_dir, 'data')
         self.obs_config = obs_config
         self.input_queue = input_queue
