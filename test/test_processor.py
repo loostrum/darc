@@ -117,6 +117,14 @@ class TestProcessor(unittest.TestCase):
         for d in (output_dir, log_dir, amber_dir, filterbank_dir):
             util.makedirs(d)
 
+        # create log handler
+        log_queue = mp.Queue()
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+
         self.processes = {}
 
         # extract PSRDADA header
@@ -174,13 +182,15 @@ class TestProcessor(unittest.TestCase):
         self.amber_listener.start()
 
         # initialize Processor, connect input queue to output of AMBERListener
-        self.processor = Processor(self.processor_queue)
+        self.processor = Processor(log_queue=log_queue, input_queue=self.processor_queue)
 
     def tearDown(self):
         # remove ringbuffers
         for key in ('key_i', ):
             cmd = f'dada_db -d -k {self.header[key]}'
             os.system(cmd)
+        # stop the logger
+        self.ql.stop()
 
     @staticmethod
     def get_psrdada_header(fname):
@@ -308,15 +318,17 @@ class TestExtractor(unittest.TestCase):
         startpacket = Time.now().unix // TIME_UNIT
         obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
                       'output_dir': self.output_dir, 'beam': 0}
-        logger = logging.getLogger('test_extractor')
+        # create log handler
+        log_queue = mp.Queue()
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
         handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+
         self.ncand = mp.Value('i', 0)
-        self.extractor = Extractor(obs_config, self.output_dir + '/triggers_realtime', logger, mp.Queue(), mp.Queue(),
-                                   self.ncand)
+        self.extractor = Extractor(obs_config, self.output_dir + '/triggers_realtime', log_queue, mp.Queue(),
+                                   mp.Queue(), self.ncand)
         # set filterbank reader (normally done in run method)
         self.extractor.filterbank_reader = self.extractor.init_filterbank_reader()
         # ensure we start clean
@@ -343,6 +355,10 @@ class TestExtractor(unittest.TestCase):
         self.assertTrue(os.path.isfile(fname))
         self.assertTrue(self.ncand.value == 1)
 
+    def tearDown(self):
+        # stop the logger
+        self.ql.stop()
+
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
 class TestClassifier(unittest.TestCase):
@@ -354,15 +370,16 @@ class TestClassifier(unittest.TestCase):
         # copy over for testing as not to overwrite the original
         copyfile(fname_in, self.fname)
 
-        # initialize the classifier
-        logger = logging.getLogger('test_classifier')
+        # create log handler
+        log_queue = mp.Queue()
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
         handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+        # initialize the classifier
         self.conn, child_conn = mp.Pipe()
-        self.classifier = Classifier(logger, mp.Queue(), child_conn)
+        self.classifier = Classifier(log_queue, mp.Queue(), child_conn)
 
     def test_classify(self):
         # start the classifier
@@ -385,6 +402,8 @@ class TestClassifier(unittest.TestCase):
     def tearDown(self):
         # remove the test file
         os.remove(self.fname)
+        # stop logger
+        self.ql.stop()
 
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")
@@ -401,6 +420,15 @@ class TestVisualizer(unittest.TestCase):
         util.makedirs(self.result_dir)
         for fname in glob.glob(os.path.join(self.output_dir, '*.pdf')):
             os.remove(fname)
+
+        # create log handler
+        log_queue = mp.Queue()
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+        self.log_queue = log_queue
 
     def test_visualize(self):
         files = glob.glob('/data/arts/darc/output/triggers_realtime/data/*.hdf5')
@@ -421,11 +449,15 @@ class TestVisualizer(unittest.TestCase):
                       'min_freq': 1220.7,
                       'beam': 0,
                       'parset': parset}
-        Visualizer(self.output_dir, self.result_dir, logger, obs_config, files)
+        Visualizer(self.output_dir, self.result_dir, self.log_queue, obs_config, files)
         # verify the output files are present
         for key in ('freq_time', 'dm_time', '1d_time'):
             self.assertTrue(len(glob.glob(f'{self.output_dir}/*{key}*.pdf')) > 0)
         self.assertTrue(os.path.isfile(f'{self.result_dir}/CB{obs_config["beam"]:02d}.pdf'))
+
+    def tearDown(self):
+        # stop the logger
+        self.ql.stop()
 
 
 if __name__ == '__main__':

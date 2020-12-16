@@ -30,7 +30,8 @@ class Classifier(mp.Process):
         :param str config_file: Path to config file
         """
         super(Classifier, self).__init__()
-        self.logger = get_queue_logger(self.module_name, log_queue)
+        module_name = type(self).__module__.split('.')[-1]
+        self.logger = get_queue_logger(module_name, log_queue)
         self.input_queue = input_queue
         self.conn = conn
 

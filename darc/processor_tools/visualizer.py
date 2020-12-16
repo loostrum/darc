@@ -41,9 +41,10 @@ class Visualizer:
         :param list files: HDF5 files to visualize
         :param str config_file: Path to config file
         """
+        module_name = type(self).__module__.split('.')[-1]
         self.output_dir = output_dir
         self.result_dir = result_dir
-        self.logger = get_queue_logger(self.module_name, log_queue)
+        self.logger = get_queue_logger(module_name, log_queue)
         self.obs_config = obs_config
         self.files = np.array(files)
 

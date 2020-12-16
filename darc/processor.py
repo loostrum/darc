@@ -80,7 +80,6 @@ class ProcessorManager(DARCBase):
             obs.join()
         # stop the log listener
         self.log_listener.stop()
-        self.log_listener.join()
 
     def start_observation(self, obs_config, reload=True):
         """

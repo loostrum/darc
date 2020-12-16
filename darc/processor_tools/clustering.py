@@ -32,7 +32,8 @@ class Clustering(mp.Process):
         :param str config_file: Path to config file
         """
         super(Clustering, self).__init__()
-        self.logger = get_queue_logger(self.module_name, log_queue)
+        module_name = type(self).__module__.split('.')[-1]
+        self.logger = get_queue_logger(module_name, log_queue)
         self.output_dir = output_dir
         self.obs_config = obs_config
         self.input_queue = input_queue
