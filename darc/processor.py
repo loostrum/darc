@@ -353,7 +353,11 @@ class Processor(DARCBase):
         self.threads['clustering'].join()
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
-            self.extractor_queue.put(f'stop_extractor_{i}')
+            # only put stop message if extractor is still running (might have crashed)
+            if not self.threads[f'extractor_{i}'].is_alive():
+                self.logger.warning(f"extractor_{i} is already stopped, not sending stop message")
+            else:
+                self.extractor_queue.put(f'stop_extractor_{i}')
             self.threads[f'extractor_{i}'].join()
         # signal classifier to stop
         self.classifier_queue.put('stop')
