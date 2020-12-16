@@ -107,7 +107,7 @@ class ProcessorMasterManager(DARCBase):
 
         # initialize a Processor for this observation
         queue = mp.Queue()
-        proc = ProcessorMaster(source_queue=queue, config_file=self.config_file)
+        proc = ProcessorMaster(source_queue=queue, log_queue=self.log_queue, config_file=self.config_file)
         proc.name = taskid
         proc.start()
         # start the observation and store thread
@@ -175,12 +175,15 @@ class ProcessorMaster(DARCBase):
     """
     Combine results from worker node processors
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, log_queue, *args, **kwargs):
         """
-        :param str config_file: Path to config file
+        :param Queue log_queue: Queue to use for logging
         """
         # init DARCBase without logger, as we need a non-default logger
         super(ProcessorMaster, self).__init__(*args, no_logger=True, **kwargs)
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, log_queue)
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()
@@ -190,6 +193,8 @@ class ProcessorMaster(DARCBase):
         self.status = None
         self.process = None
         self.central_result_dir = None
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def start_observation(self, obs_config, reload=True):
         """
