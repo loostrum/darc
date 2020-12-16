@@ -302,7 +302,7 @@ class Extractor(mp.Process):
         # ensure DM does not go below zero by shifting the entire range if this happens
         mindm = min(dms)
         if mindm < 0:
-            dms += mindm
+            dms -= mindm
 
         # Dedisperse
         # initialize DM-time array
