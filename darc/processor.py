@@ -37,7 +37,7 @@ class ProcessorManager(DARCBase):
         self.log_listener.start()
 
         # create queue logger
-        self.logger = get_queue_logger(self.module_name, self.log_q)
+        self.logger = get_queue_logger(self.module_name, self.log_queue)
 
         self.observations = {}
         self.observation_queues = {}
@@ -102,7 +102,7 @@ class ProcessorManager(DARCBase):
 
         # initialize a Processor for this observation
         queue = mp.Queue()
-        proc = Processor(source_queue=queue, config_file=self.config_file)
+        proc = Processor(source_queue=queue, log_queue=self.log_queue, config_file=self.config_file)
         proc.name = taskid
         proc.start()
         # start the observation and store thread
@@ -192,11 +192,17 @@ class Processor(DARCBase):
     After observation finishes, results are gathered in a central location to be picked up by the master node
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, log_queue, *args, **kwargs):
         """
+        :param Queue log_queue:
         """
         # init DARCBase without logger, as we need a non-default logger
         super(Processor, self).__init__(*args, no_logger=True, **kwargs)
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, log_queue)
+        self.log_queue = log_queue
+
         self.observation_running = False
         self.threads = {}
         self.amber_triggers = []
@@ -225,6 +231,8 @@ class Processor(DARCBase):
 
         self.candidates_to_visualize = []
         self.classifier_parent_conn, self.classifier_child_conn = mp.Pipe()
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def process_command(self, command):
         """
