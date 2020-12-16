@@ -37,7 +37,7 @@ class ProcessorMasterManager(DARCBase):
         self.log_listener.start()
 
         # create queue logger
-        self.logger = get_queue_logger(self.module_name, self.log_q)
+        self.logger = get_queue_logger(self.module_name, self.log_queue)
 
         self.observations = {}
         self.observation_queues = {}
