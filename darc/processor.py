@@ -195,7 +195,7 @@ class Processor(DARCBase):
 
     def __init__(self, log_queue, *args, **kwargs):
         """
-        :param Queue log_queue:
+        :param Queue log_queue: Queue to use for logging
         """
         # init DARCBase without logger, as we need a non-default logger
         super(Processor, self).__init__(*args, no_logger=True, **kwargs)

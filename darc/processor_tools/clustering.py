@@ -13,6 +13,7 @@ import astropy.units as u
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH, TSAMP, NCHAN
 from darc.external import tools
+from darc.logger import get_queue_logger
 
 
 class Clustering(mp.Process):
@@ -20,18 +21,18 @@ class Clustering(mp.Process):
     Clustering and thresholding of AMBER triggers
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, ncluster, config_file=CONFIG_FILE):
+    def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncluster, config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param Queue input_queue: Input queue for triggers
         :param Queue output_queue: Output queue for clusters
         :param mp.Value ncluster: 0
         :param str config_file: Path to config file
         """
         super(Clustering, self).__init__()
-        self.logger = logger
+        self.logger = get_queue_logger(self.module_name, log_queue)
         self.output_dir = output_dir
         self.obs_config = obs_config
         self.input_queue = input_queue
