@@ -80,6 +80,7 @@ class ProcessorManager(DARCBase):
             obs.join()
         # stop the log listener
         self.log_listener.stop()
+        self.log_listener.join()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -289,20 +290,20 @@ class Processor(DARCBase):
         self.threads['processing'] = thread
 
         # start clustering
-        thread = Clustering(obs_config, output_dir, self.logger, self.clustering_queue, self.extractor_queue,
+        thread = Clustering(obs_config, output_dir, self.log_queue, self.clustering_queue, self.extractor_queue,
                             self.ncluster, self.config_file)
         thread.name = 'clustering'
         self.threads['clustering'] = thread
 
         # start extractor(s)
         for i in range(self.num_extractor):
-            thread = Extractor(obs_config, output_dir, self.logger, self.extractor_queue, self.classifier_queue,
+            thread = Extractor(obs_config, output_dir, self.log_queue, self.extractor_queue, self.classifier_queue,
                                self.ncand_above_threshold, self.config_file)
             thread.name = f'extractor_{i}'
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.logger, self.classifier_queue, self.classifier_child_conn, self.config_file)
+        thread = Classifier(self.log_queue, self.classifier_queue, self.classifier_child_conn, self.config_file)
         thread.name = 'classifier'
         self.threads['classifier'] = thread
 
@@ -378,7 +379,7 @@ class Processor(DARCBase):
 
         # Store the statistics and start the visualization
         if len(self.candidates_to_visualize) > 0:
-            Visualizer(self.output_dir, self.central_result_dir, self.logger, self.obs_config,
+            Visualizer(self.output_dir, self.central_result_dir, self.log_queue, self.obs_config,
                        self.candidates_to_visualize, self.config_file)
         else:
             self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
