@@ -27,7 +27,8 @@ class ProcessorManager(DARCBase):
     def __init__(self, *args, **kwargs):
         """
         """
-        super(ProcessorManager, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorManager, self).__init__(*args, no_logger=True, **kwargs)
 
         self.observations = {}
         self.observation_queues = {}
@@ -181,7 +182,8 @@ class Processor(DARCBase):
     def __init__(self, *args, **kwargs):
         """
         """
-        super(Processor, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(Processor, self).__init__(*args, no_logger=True, **kwargs)
         self.observation_running = False
         self.threads = {}
         self.amber_triggers = []

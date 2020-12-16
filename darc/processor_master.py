@@ -27,7 +27,8 @@ class ProcessorMasterManager(DARCBase):
     def __init__(self, *args, **kwargs):
         """
         """
-        super(ProcessorMasterManager, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMasterManager, self).__init__(*args, no_logger=True, **kwargs)
 
         self.observations = {}
         self.observation_queues = {}
@@ -165,7 +166,8 @@ class ProcessorMaster(DARCBase):
         """
         :param str config_file: Path to config file
         """
-        super(ProcessorMaster, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMaster, self).__init__(*args, no_logger=True, **kwargs)
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()
