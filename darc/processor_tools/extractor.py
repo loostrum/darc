@@ -373,7 +373,7 @@ class Extractor(mp.Process):
                 stdevf = np.std(dfmean)
                 medf = np.median(dfmean)
                 maskf = np.where(np.abs(dfmean - medf) > self.config.rfi_threshold_time * stdevf)[0]
-                # if there is nothing to mask, no we are done
+                # if there is nothing to mask, we are done
                 if not np.any(maskf):
                     break
                 # replace with mean spectrum
@@ -403,7 +403,7 @@ class Extractor(mp.Process):
                 stdevt = np.std(dtmean_nobandpass)
                 medt = np.median(dtmean_nobandpass)
                 maskt = np.abs(dtmean_nobandpass - medt) > self.config.rfi_threshold_frequency * stdevt
-                # if there is nothing to mask, no we are done
+                # if there is nothing to mask, we are done
                 if not np.any(maskt):
                     break
                 self.data.data[maskt] = np.median(dtmean)
