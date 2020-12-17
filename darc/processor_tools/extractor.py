@@ -373,17 +373,26 @@ class Extractor(mp.Process):
                 stdevf = np.std(dfmean)
                 medf = np.median(dfmean)
                 maskf = np.where(np.abs(dfmean - medf) > self.config.rfi_threshold_time * stdevf)[0]
+                # if there is nothing to mask, no we are done
+                if not np.any(maskf):
+                    break
                 # replace with mean spectrum
                 self.data.data[:, maskf] = dtmean * np.ones(len(maskf))[None]
 
         if self.config.rfi_clean_type == 'perchannel':
             for i in range(self.config.rfi_n_iter_time):
                 dtsig = np.std(self.data.data, axis=1)
+                done = True
                 for nu in range(nfreq):
                     d = dtmean[nu]
                     sig = dtsig[nu]
                     maskpc = np.where(np.abs(self.data.data[nu] - d) > self.config.rfi_threshold_time * sig)[0]
+                    # do another iteration only if any channel was changed
+                    if np.any(maskpc):
+                        done = False
                     self.data.data[nu][maskpc] = d
+                if done:
+                    break
 
         # Clean in frequency
         # remove bandpass by averaging over bin_size adjacent channels
@@ -394,6 +403,9 @@ class Extractor(mp.Process):
                 stdevt = np.std(dtmean_nobandpass)
                 medt = np.median(dtmean_nobandpass)
                 maskt = np.abs(dtmean_nobandpass - medt) > self.config.rfi_threshold_frequency * stdevt
+                # if there is nothing to mask, no we are done
+                if not np.any(maskt):
+                    break
                 self.data.data[maskt] = np.median(dtmean)
 
     def _store_data(self, fname, sb, tsamp, dms, params_amber, params_opt):
