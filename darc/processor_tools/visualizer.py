@@ -190,7 +190,9 @@ class Visualizer:
                             for ax in axes[-remainder:]:
                                 ax.axis('off')
 
-                fig.set_tight_layout(True)
+                fig.suptitle(f"Task ID {self.obs_config['parset']['task.taskID']} - "
+                             f"{self.obs_config['datetimesource']} - CB{self.obs_config['beam']:02d}")
+                fig.set_tight_layout({'rect': [0, 0.03, 1, 0.97]})
                 # ensure the number of digits used for the page index is always the same, and large enough
                 # then sorting works as expected
                 page_str = str(page).zfill(len(str(npage)))
