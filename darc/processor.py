@@ -257,20 +257,20 @@ class Processor(DARCBase):
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
-    def stop(self, abort=False):
+    def stop(self, abort=None):
         """
         Stop this service
 
-        :param bool abort: Whether to abort running observation
+        :param bool abort: Ignored, a stop of the service always equals abort
         """
         if hasattr(self, 'obs_config'):
-            self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']} "
-                             f"received stop, abort={abort}")
+            self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']} received stop")
         else:
-            self.logger.info(f"Processor received stop, abort={abort}")
+            self.logger.info(f"Processor received stop")
 
-        # stop running observation (this stops the processor too)
-        self.stop_observation(abort=abort)
+        # abort running observation (this stops the processor too)
+        self.stop_observation(abort=True)
 
     def start_observation(self, obs_config, reload=True):
         """
