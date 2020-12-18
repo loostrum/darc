@@ -41,7 +41,6 @@ class ProcessorMasterManager(DARCBase):
 
         self.observations = {}
         self.observation_queues = {}
-        self.current_observation_queue = None
 
         self.scavenger = None
 
@@ -73,10 +72,14 @@ class ProcessorMasterManager(DARCBase):
 
             self.stop_event.wait(self.scavenger_interval)
 
-    def cleanup(self):
+    def stop(self, abort=False):
         """
-        Upon stop of the manager, abort any remaining observations
+        Stop this service
+
+        :param bool abort: Ignored; a stop of the manager always equals an abort
         """
+        self.logger.info("Stopping {}".format(self.log_name))
+        # Abort any existing observations
         # loop over dictionary items. Use copy to avoid changing dict in loop
         for taskid, obs in self.observations.copy().items():
             if obs.is_alive():
@@ -85,6 +88,8 @@ class ProcessorMasterManager(DARCBase):
             obs.join()
         # stop the log listener
         self.log_listener.stop()
+        # stop the manager
+        self.stop_event.set()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -114,7 +119,6 @@ class ProcessorMasterManager(DARCBase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
-        self.current_observation_queue = queue
         return
 
     def stop_observation(self, obs_config):
@@ -213,8 +217,9 @@ class ProcessorMaster(DARCBase):
 
         self.obs_config = obs_config
 
-        # process the observation in a separate Process
-        self.process = mp.Process(target=self._process_observation)
+        # process the observation in a separate thread (not a process, as then we can't stop it directly
+        # through the stop event of ProcessorMaster; and no other processing happens anyway)
+        self.process = threading.Thread(target=self._process_observation)
         self.process.start()
 
     def _process_observation(self):
@@ -227,19 +232,27 @@ class ProcessorMaster(DARCBase):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
+        if self.stop_event.is_set():
+            return
 
         try:
             # generate observation info files
             self.status = 'Generating observation info files'
             info, coordinates = self._generate_info_file()
+            if self.stop_event.is_set():
+                return
 
             # wait for all result files to be present
             self.status = 'Waiting for nodes to finish processing'
             self._wait_for_workers()
+            if self.stop_event.is_set():
+                return
 
             # combine results, copy to website and generate email
             self.status = 'Combining node results'
             email, attachments = self._process_results(info, coordinates)
+            if self.stop_event.is_set():
+                return
 
             # publish results on web link and send email
             self.status = 'Sending results to website'
@@ -262,24 +275,30 @@ class ProcessorMaster(DARCBase):
         :param bool abort: Whether or not to abort the observation
         """
         # nothing to stop unless we are aborting
-        if abort:
-            # terminate the processing
-            if self.process is not None:
-                self.process.terminate()
-                self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
-                                 f"{self.obs_config['datetimesource']}")
-            # A stop observation should also stop this processor, as there is only one per observation
+        if abort and self.process is not None:
+            # terminate the processing by setting the stop event (this will also stop the ProcessorMaster)
             self.stop_event.set()
-        else:
-            # wait until the processing is done, then stop this Process itself
-            self.process.join()
-            self.stop_event.set()
+            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+        elif self.process is not None:
+            # processing is running, nothing to do (processing will set stop event)
             return
+        else:
+            # no processing is running, only stop the processor
+            self.stop_event.set()
 
-    def cleanup(self):
+    def stop(self, abort=None):
         """
-        Abort observation when stopping service
+        Stop this service
+
+        :param bool abort: Ignored, a stop of the service always equals abort
         """
+        if hasattr(self, 'obs_config'):
+            self.logger.info(f"ProcessorMaster for {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']} received stop")
+        else:
+            self.logger.info(f"ProcessorMaster received stop")
+        # abort observation, this also stops the ProcessorMaster
         self.stop_observation(abort=True)
 
     def _get_result_dir(self):
@@ -317,6 +336,9 @@ class ProcessorMaster(DARCBase):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
+                # abort if processing is stopped
+                if self.stop_event.is_set():
+                    return
 
     def _check_node_online(self, node):
         """

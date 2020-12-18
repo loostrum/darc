@@ -68,10 +68,14 @@ class ProcessorManager(DARCBase):
                     self.observation_queues.pop(taskid)
             self.stop_event.wait(self.scavenger_interval)
 
-    def cleanup(self):
+    def stop(self, abort=False):
         """
-        Upon stop of the manager, abort any remaining observations
+        Stop this service
+
+        :param bool abort: Ignored; a stop of the manager always equals an abort
         """
+        self.logger.info("Stopping {}".format(self.log_name))
+        # Abort any exisiting observations
         # loop over dictionary items. Use copy to avoid changing dict in loop
         for taskid, obs in self.observations.copy().items():
             if obs.is_alive():
@@ -80,6 +84,8 @@ class ProcessorManager(DARCBase):
             obs.join()
         # stop the log listener
         self.log_listener.stop()
+        # stop the manager
+        self.stop_event.set()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -251,6 +257,21 @@ class Processor(DARCBase):
         else:
             self.logger.error("Unknown command received: {}".format(command['command']))
 
+    def stop(self, abort=None):
+        """
+        Stop this service
+
+        :param bool abort: Ignored, a stop of the service always equals abort
+        """
+        if hasattr(self, 'obs_config'):
+            self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']} received stop")
+        else:
+            self.logger.info(f"Processor received stop")
+
+        # abort running observation (this stops the processor too)
+        self.stop_observation(abort=True)
+
     def start_observation(self, obs_config, reload=True):
         """
         Parse obs config and start listening for amber triggers on queue
@@ -340,7 +361,7 @@ class Processor(DARCBase):
             for i in range(self.num_extractor):
                 self.threads[f'extractor_{i}'].terminate()
             self.threads['classifier'].terminate()
-            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+            self.logger.info(f"Processor aborted for observation {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']}")
             # A stop observation should also stop this processor, as there is only one per observation
             self.stop_event.set()
@@ -387,11 +408,13 @@ class Processor(DARCBase):
         else:
             self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
                              f"{self.obs_config['parset']['task.taskID']}")
+
         # Store statistics after visualization, as master will start combining results once all stats are present
         self._store_obs_stats()
 
         self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
                          f"{self.obs_config['datetimesource']}")
+
         # stop this processor
         self.stop_event.set()
 
@@ -453,7 +476,7 @@ class Processor(DARCBase):
 
                 # put triggers on clustering queue
                 self.clustering_queue.put(triggers_for_clustering)
-            sleep(self.interval)
+            self.stop_event.wait(self.interval)
 
     def _store_obs_stats(self):
         """
