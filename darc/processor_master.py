@@ -41,7 +41,6 @@ class ProcessorMasterManager(DARCBase):
 
         self.observations = {}
         self.observation_queues = {}
-        self.current_observation_queue = None
 
         self.scavenger = None
 
@@ -120,7 +119,6 @@ class ProcessorMasterManager(DARCBase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
-        self.current_observation_queue = queue
         return
 
     def stop_observation(self, obs_config):
