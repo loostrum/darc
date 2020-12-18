@@ -13,6 +13,7 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
   
   
@@ -1248,7 +1249,7 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <span id="real-time-data-processing-worker-node"></span><h2>Real-time data processing (worker node)<a class="headerlink" href="#module-darc.processor" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.processor.Processor">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Real-time processing of candidates</p>
 <ol class="arabic simple">
@@ -1258,6 +1259,17 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <li><p>Visualize candidates</p></li>
 </ol>
 <p>After observation finishes, results are gathered in a central location to be picked up by the master node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>log_queue</strong> (<em>Queue</em>) – Queue to use for logging</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="darc.processor.Processor._finish_processing">
+<code class="sig-name descname">_finish_processing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._finish_processing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for real-time processing to finish and visualize results</p>
+</dd></dl>
+
 <dl class="py method">
 <dt id="darc.processor.Processor._read_and_process_data">
 <code class="sig-name descname">_read_and_process_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_and_process_data" title="Permalink to this definition">¶</a></dt>
@@ -1291,6 +1303,17 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <li><p><strong>obs_config</strong> (<em>dict</em>) – Observation configuration</p></li>
 <li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor.Processor.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Ignored, a stop of the service always equals abort</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1334,12 +1357,6 @@ Executed commands depend on whether this is a worker node or the master node.</p
 </dd></dl>
 
 <dl class="py method">
-<dt id="darc.processor.ProcessorManager.cleanup">
-<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.cleanup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Upon stop of the manager, abort any remaining observations</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="darc.processor.ProcessorManager.process_command">
 <code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward any data from the input queue to the running observation</p>
@@ -1355,6 +1372,17 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <dt id="darc.processor.ProcessorManager.start_observation">
 <code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Processor and call its start_observation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor.ProcessorManager.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Ignored; a stop of the manager always equals an abort</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1381,12 +1409,12 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <span id="real-time-data-processing-master-node"></span><h2>Real-time data processing (master node)<a class="headerlink" href="#module-darc.processor_master" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.processor_master.ProcessorMaster">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor_master.</code><code class="sig-name descname">ProcessorMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.processor_master.</code><code class="sig-name descname">ProcessorMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Combine results from worker node processors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p>
+<dd class="field-odd"><p><strong>log_queue</strong> (<em>Queue</em>) – Queue to use for logging</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -1481,12 +1509,6 @@ Executed commands depend on whether this is a worker node or the master node.</p
 </dd></dl>
 
 <dl class="py method">
-<dt id="darc.processor_master.ProcessorMaster.cleanup">
-<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.cleanup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abort observation when stopping service</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster.start_observation">
 <code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse obs config and start observation processing after end time has passed</p>
@@ -1496,6 +1518,17 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <li><p><strong>obs_config</strong> (<em>dict</em>) – Observation configuration</p></li>
 <li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_master.ProcessorMaster.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Ignored, a stop of the service always equals abort</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1533,12 +1566,6 @@ Executed commands depend on whether this is a worker node or the master node.</p
 </dd></dl>
 
 <dl class="py method">
-<dt id="darc.processor_master.ProcessorMasterManager.cleanup">
-<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.cleanup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Upon stop of the manager, abort any remaining observations</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop. Create thread scavenger, then run parent class run method</p>
@@ -1548,6 +1575,17 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <dt id="darc.processor_master.ProcessorMasterManager.start_observation">
 <code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a ProcessorMaster and call its start_observation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor_master.ProcessorMasterManager.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop this service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Ignored; a stop of the manager always equals an abort</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

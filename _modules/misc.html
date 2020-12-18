@@ -13,6 +13,7 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
   
   
@@ -173,7 +174,7 @@
 <span id="base-class"></span><h2>Base class<a class="headerlink" href="#module-darc.base" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.base.DARCBase">
-<em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="n">target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">second_target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">darc.base.</code><code class="sig-name descname">DARCBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="n">target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">second_target_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em>, <em class="sig-param"><span class="n">no_logger</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>DARC Base class</p>
 <p>Provides common methods to services</p>
@@ -185,6 +186,7 @@
 <li><p><strong>second_target_queue</strong> (<em>Queue</em>) – second output queue</p></li>
 <li><p><strong>control_queue</strong> (<em>Queue</em>) – Control queue</p></li>
 <li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
+<li><p><strong>no_logger</strong> (<em>bool</em>) – Skip logger initialization</p></li>
 </ul>
 </dd>
 </dl>
@@ -421,6 +423,25 @@ observation stop</p>
 <dd class="field-even"><p>logger</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="darc.logger.get_queue_logger">
+<code class="sig-prename descclassname">darc.logger.</code><code class="sig-name descname">get_queue_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">queue</span></em>, <em class="sig-param"><span class="n">level</span><span class="o">=</span><span class="default_value">20</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create logger that puts messages on a queue to be handled by a separate listener
+:param str name: name to use in log prints
+:param Queue queue: Log queue
+:param int level: log level (default: logging.INFO)
+:return: logger</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="darc.logger.get_queue_logger_listener">
+<code class="sig-prename descclassname">darc.logger.</code><code class="sig-name descname">get_queue_logger_listener</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">queue</span></em>, <em class="sig-param"><span class="n">log_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create thread that logs message from a queue
+:param Queue queue: Log queue
+:param str log_file: Path to log file
+:return: QueueListener thread</p>
 </dd></dl>
 
 </div>
