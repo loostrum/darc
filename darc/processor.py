@@ -82,7 +82,6 @@ class ProcessorManager(DARCBase):
                 self.logger.info(f"Aborting observation with taskid {taskid}")
                 self.observation_queues[taskid].put('abort')
             obs.join()
-            self.logger.info(f"{taskid} aborted")
         # stop the log listener
         self.log_listener.stop()
         # stop the manager
@@ -265,7 +264,7 @@ class Processor(DARCBase):
         :param bool abort: Whether to abort running observation
         """
         if hasattr(self, 'obs_config'):
-            self.logger.info(f"Processor for {self.obs_config['task.taskID']}: {self.obs_config['datetimesource']} "
+            self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']} "
                              f"received stop, abort={abort}")
         else:
             self.logger.info(f"Processor received stop, abort={abort}")
