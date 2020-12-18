@@ -232,19 +232,27 @@ class ProcessorMaster(DARCBase):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
+        if self.stop_event.is_set():
+            return
 
         try:
             # generate observation info files
             self.status = 'Generating observation info files'
             info, coordinates = self._generate_info_file()
+            if self.stop_event.is_set():
+                return
 
             # wait for all result files to be present
             self.status = 'Waiting for nodes to finish processing'
             self._wait_for_workers()
+            if self.stop_event.is_set():
+                return
 
             # combine results, copy to website and generate email
             self.status = 'Combining node results'
             email, attachments = self._process_results(info, coordinates)
+            if self.stop_event.is_set():
+                return
 
             # publish results on web link and send email
             self.status = 'Sending results to website'
@@ -328,6 +336,9 @@ class ProcessorMaster(DARCBase):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
+                # abort if processing is stopped
+                if self.stop_event.is_set():
+                    return
 
     def _check_node_online(self, node):
         """
