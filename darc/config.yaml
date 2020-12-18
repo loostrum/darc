@@ -142,6 +142,7 @@ processor_master:
     max_wait_time: 600  # After how much processing time we should check if a node is still online
     ntrig_email_max: 100  # Maximum number of triggers to show in email
     webdir: "triggers_realtime"  # subdir of public_html/darc to use for trigger website
+    node_timeout: 10  # when contacting nodes regarding processing status (s)
     email_settings:
         to: "test@localhost"
 
@@ -206,6 +207,7 @@ processor:
 # Offline processing
 offline_processing:
     log_file: "{home}/darc/log/offline_processing.{hostname}.log"
+    full_processing_enabled: True
     delay: 10
     process_sb: True
     numthread: 2

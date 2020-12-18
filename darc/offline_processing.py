@@ -107,11 +107,17 @@ class OfflineProcessing(mp.Process):
                 data = self.observation_queue.get(timeout=1)
             except Empty:
                 continue
-            if isinstance(data, str) and data == 'stop':
+            if isinstance(data, str) and data in ('stop', 'abort'):
                 self.stop()
                 continue
             elif data['command'] == 'get_attr':
                 self._get_attribute(data)
+                continue
+            elif data['command'] == 'stop_observation':
+                self.logger.info("Ignoring stop observation for offline processing")
+                continue
+            elif data['command'] != 'start_observation':
+                self.logger.error(f"Ignoring unknown command: {data['command']}")
                 continue
 
             # load observation config
@@ -188,6 +194,10 @@ class OfflineProcessing(mp.Process):
         :param dict obs_config: Observation config
         :param bool reload: reload service settings (default: True)
         """
+        if not self.full_processing_enabled:
+            self.logger.info("Full processing disabled - not running offline processing")
+            return
+
         self.logger.info("Starting observation on master node")
 
         # reload config
@@ -243,20 +253,21 @@ class OfflineProcessing(mp.Process):
         if reload:
             self.load_config()
 
-        # create result dir
-        try:
-            util.makedirs(obs_config['result_dir'])
-        except Exception as e:
-            self.logger.error("Failed to create results directory")
-            raise OfflineProcessingException("Failed to create result directory: {}".format(e))
+        # create result dir if full processing is enabled
+        if self.full_processing_enabled:
+            try:
+                util.makedirs(obs_config['result_dir'])
+            except Exception as e:
+                self.logger.error("Failed to create results directory")
+                raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
-        # TAB or IAB mode
-        if obs_config['ntabs'] == 1:
-            obs_config['mode'] = 'IAB'
-            trigger_output_file = "{output_dir}/triggers/data/data_00_full.hdf5".format(**obs_config)
-        else:
-            obs_config['mode'] = 'TAB'
-            trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
+            # TAB or IAB mode
+            if obs_config['ntabs'] == 1:
+                obs_config['mode'] = 'IAB'
+                trigger_output_file = "{output_dir}/triggers/data/data_00_full.hdf5".format(**obs_config)
+            else:
+                obs_config['mode'] = 'TAB'
+                trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + delay
         start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
@@ -300,6 +311,11 @@ class OfflineProcessing(mp.Process):
                     self._run_calibration_tools(name, obs_config)
         except Exception as e:
             self.logger.error("Calibration tools failed: {}".format(e))
+
+        # if full processing is disabled, there is nothing more to do
+        if not self.full_processing_enabled:
+            self.logger.info("Full processing disabled - not running further offline processing")
+            return
 
         # create trigger directory
         trigger_dir = "{output_dir}/triggers".format(**obs_config)

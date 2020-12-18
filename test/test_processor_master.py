@@ -2,6 +2,7 @@
 
 import os
 import logging
+import logging.handlers
 import unittest
 import multiprocessing as mp
 import shutil
@@ -25,8 +26,16 @@ class TestProcessorMaster(unittest.TestCase):
         else:
             self.result_dir = '/tank/users/arts/darc_automated_testing/processor_master'
 
+        # create log handler
+        log_queue = mp.Queue()
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+
         self.processor_queue = mp.Queue()
-        self.processor = ProcessorMaster(self.processor_queue)
+        self.processor = ProcessorMaster(log_queue, self.processor_queue)
 
         tstart = Time.now()
         duration = TimeDelta(5, format='sec')
@@ -92,6 +101,8 @@ class TestProcessorMaster(unittest.TestCase):
 
         # wait until processor is done
         self.processor.join()
+        # stop queue logger
+        self.ql.stop()
 
 
 if __name__ == '__main__':

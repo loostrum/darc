@@ -20,13 +20,15 @@ class DARCBase(mp.Process):
     """
 
     def __init__(self, source_queue, target_queue=None, second_target_queue=None,
-                 control_queue=None, config_file=CONFIG_FILE):
+                 control_queue=None, config_file=CONFIG_FILE,
+                 no_logger=False):
         """
         :param Queue source_queue: Input queue
         :param Queue target_queue: Output queue
         :param Queue second_target_queue: second output queue
         :param Queue control_queue: Control queue
         :param str config_file: Path to config file
+        :param bool no_logger: Skip logger initialization
         """
         super(DARCBase, self).__init__()
         self.stop_event = mp.Event()
@@ -44,9 +46,10 @@ class DARCBase(mp.Process):
         self.config_file = config_file
         self.load_config()
 
-        # setup logger
-        self.logger = get_logger(self.module_name, self.log_file)
-        self.logger.info("{} initialized".format(self.log_name))
+        if not no_logger:
+            # setup logger
+            self.logger = get_logger(self.module_name, self.log_file)
+            self.logger.info("{} initialized".format(self.log_name))
 
         # set host type
         hostname = socket.gethostname()
@@ -55,7 +58,8 @@ class DARCBase(mp.Process):
         elif hostname in WORKERS:
             self.host_type = 'worker'
         else:
-            self.logger.warning("Running on unknown host")
+            if not no_logger:
+                self.logger.warning("Running on unknown host")
             self.host_type = None
 
     def load_config(self):

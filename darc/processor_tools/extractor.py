@@ -15,7 +15,8 @@ import h5py
 
 from darc import util
 from darc.processor_tools import ARTSFilterbankReader
-from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT
+from darc.definitions import CONFIG_FILE, BANDWIDTH, NCHAN, TIME_UNIT, NTAB
+from darc.logger import get_queue_logger
 
 
 class Extractor(mp.Process):
@@ -23,19 +24,20 @@ class Extractor(mp.Process):
     Extract data from filterbank files
     """
 
-    def __init__(self, obs_config, output_dir, logger, input_queue, output_queue, ncand_above_threshold,
+    def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncand_above_threshold,
                  config_file=CONFIG_FILE):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param Queue input_queue: Input queue for clusters
         :param Queue output_queue: Output queue for classifier
         :param mp.Value ncand_above_threshold: 0
         :param str config_file: Path to config file
         """
         super(Extractor, self).__init__()
-        self.logger = logger
+        module_name = type(self).__module__.split('.')[-1]
+        self.logger = get_queue_logger(module_name, log_queue)
         self.output_dir = os.path.join(output_dir, 'data')
         self.obs_config = obs_config
         self.input_queue = input_queue
@@ -197,7 +199,7 @@ class Extractor(mp.Process):
 
         # Wait if the filterbank does not have enough samples yet
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header()
+        self.filterbank_reader.get_header(NTAB - 1)
         tstart = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix')
         # wait until this much of the filterbank should be present on disk
         # start time, plus last bin to load, plus extra delay
@@ -215,7 +217,7 @@ class Extractor(mp.Process):
                 # data should be there, but is not. Wait just a short time, then check again
                 self.stop_event.wait(.5)
             # re-read the number of samples to check if the data are available now
-            self.filterbank_reader.get_header()
+            self.filterbank_reader.get_header(NTAB - 1)
             # if we are past the end time of the observation, we give up and try shifting the end bin instead
             tend = tstart + self.obs_config['duration'] * u.s + self.config.delay * u.s
             if Time.now() > tend:
@@ -223,16 +225,14 @@ class Extractor(mp.Process):
 
         # if start time before start of file, or end time beyond end of file, shift the start/end time
         # first update filterbank parameters to have correct nsamp
-        self.filterbank_reader.get_header()
+        self.filterbank_reader.get_header(NTAB - 1)
         if end_bin >= self.filterbank_reader.header.nsamples:
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
             if start_bin >= self.filterbank_reader.header.nsamples:
-                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping"
-                                  f" ToA={toa.value:.4f}, DM={dm.value:.2f}")
-                # log time taken
                 timer_end = Time.now()
-                self.logger.info(f"Processed ToA={toa.value:.4f}, DM={dm.value:.2f} "
-                                 f"in {(timer_end - timer_start).to(u.s):.0f}")
+                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping "
+                                  f"ToA={toa.value:.4f}, DM={dm.value:.2f}. Processed in "
+                                  f"{(timer_end - timer_start).to(u.s):.0f}")
                 return
             self.logger.warning(f"End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
             diff = end_bin - self.filterbank_reader.header.nsamples + 1
@@ -243,11 +243,9 @@ class Extractor(mp.Process):
         try:
             self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
         except ValueError as e:
-            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}")
-            # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} "
-                             f"in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # apply AMBER RFI mask
@@ -271,18 +269,23 @@ class Extractor(mp.Process):
         # range of widths for S/N determination. Never go above 250 samples,
         # which is typically RFI even without pre-downsampling
         widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
+        if len(widths) == 0:
+            timer_end = Time.now()
+            self.logger.error(f"Downsampling out of range; valid range: 1 to 250. "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            return
         snrmax, width_best = util.calc_snr_matched_filter(timeseries, widths=widths)
         # correct for already applied downsampling
         width_best *= predownsamp
 
         # if max S/N is below local threshold, skip this trigger
         if snrmax < self.config.snr_min_local:
-            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
-                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             # log time taken
             timer_end = Time.now()
-            self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
-                             f"{(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                                f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # calculate DM range to try
@@ -299,19 +302,25 @@ class Extractor(mp.Process):
         # ensure DM does not go below zero by shifting the entire range if this happens
         mindm = min(dms)
         if mindm < 0:
-            dms += mindm
+            dms -= mindm
 
         # Dedisperse
         # initialize DM-time array
         self.data_dm_time = np.zeros((self.config.ndm, self.config.ntime))
+        # work on copy of global data as all these small sample
+        # shifts may introduce a few zeroes of padding
+        data = copy.deepcopy(self.data)
         for dm_ind, dm_val in enumerate(dms):
-            # copy the data and dedisperse
-            data = copy.deepcopy(self.data)
+            # dedisperse
             data.dedisperse(dm_val.to(u.pc / u.cm**3).value)
+            ts = data.data.sum(axis=0)
             # apply any remaining downsampling
-            data.downsample(postdownsamp)
+            # note: do not do this in-place on self.data as
+            # next iteration needs full-resolution data
+            numsamp, remainder = divmod(len(ts), postdownsamp)
+            ts = ts[:-remainder].reshape(numsamp, -1).sum(axis=1)
             # cut of excess bins and store
-            self.data_dm_time[dm_ind] = data.data.sum(axis=0)[:self.config.ntime]
+            self.data_dm_time[dm_ind] = ts[:self.config.ntime]
 
         # apply downsampling in time and freq to global freq-time data
         self.data.downsample(postdownsamp)
@@ -341,11 +350,12 @@ class Extractor(mp.Process):
         # put path to file on output queue to be picked up by classifier
         self.output_queue.put(output_file)
 
-        self.ncand_above_threshold.value += 1
+        with self.ncand_above_threshold.get_lock():
+            self.ncand_above_threshold.value += 1
 
         # log time taken
         timer_end = Time.now()
-        self.logger.info(f"Successfully extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+        self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
                          f"{(timer_end - timer_start).to(u.s):.0f}")
 
     def _rficlean(self):
@@ -363,17 +373,26 @@ class Extractor(mp.Process):
                 stdevf = np.std(dfmean)
                 medf = np.median(dfmean)
                 maskf = np.where(np.abs(dfmean - medf) > self.config.rfi_threshold_time * stdevf)[0]
+                # if there is nothing to mask, we are done
+                if not np.any(maskf):
+                    break
                 # replace with mean spectrum
                 self.data.data[:, maskf] = dtmean * np.ones(len(maskf))[None]
 
         if self.config.rfi_clean_type == 'perchannel':
             for i in range(self.config.rfi_n_iter_time):
                 dtsig = np.std(self.data.data, axis=1)
+                done = True
                 for nu in range(nfreq):
                     d = dtmean[nu]
                     sig = dtsig[nu]
                     maskpc = np.where(np.abs(self.data.data[nu] - d) > self.config.rfi_threshold_time * sig)[0]
+                    # do another iteration only if any channel was changed
+                    if np.any(maskpc):
+                        done = False
                     self.data.data[nu][maskpc] = d
+                if done:
+                    break
 
         # Clean in frequency
         # remove bandpass by averaging over bin_size adjacent channels
@@ -384,6 +403,9 @@ class Extractor(mp.Process):
                 stdevt = np.std(dtmean_nobandpass)
                 medt = np.median(dtmean_nobandpass)
                 maskt = np.abs(dtmean_nobandpass - medt) > self.config.rfi_threshold_frequency * stdevt
+                # if there is nothing to mask, we are done
+                if not np.any(maskt):
+                    break
                 self.data.data[maskt] = np.median(dtmean)
 
     def _store_data(self, fname, sb, tsamp, dms, params_amber, params_opt):

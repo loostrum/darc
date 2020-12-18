@@ -15,6 +15,7 @@ from PyPDF4 import PdfFileMerger
 
 from darc.definitions import CONFIG_FILE, BANDWIDTH
 from darc import util
+from darc.logger import get_queue_logger
 
 
 # disable debug log messages from matplotlib
@@ -31,18 +32,19 @@ class Visualizer:
     Visualize candidates
     """
 
-    def __init__(self, output_dir, result_dir, logger, obs_config, files, config_file=CONFIG_FILE):
+    def __init__(self, output_dir, result_dir, log_queue, obs_config, files, config_file=CONFIG_FILE):
         """
         :param str output_dir: Output directory for data products
         :param str result_dir: central directory to copy output PDF to
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param dict obs_config: Observations settings
         :param list files: HDF5 files to visualize
         :param str config_file: Path to config file
         """
+        module_name = type(self).__module__.split('.')[-1]
         self.output_dir = output_dir
         self.result_dir = result_dir
-        self.logger = logger
+        self.logger = get_queue_logger(module_name, log_queue)
         self.obs_config = obs_config
         self.files = np.array(files)
 
@@ -138,25 +140,27 @@ class Visualizer:
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         freqs = np.linspace(0, BANDWIDTH.to(u.MHz).value, nfreq) + self.obs_config['min_freq']
                         X, Y = np.meshgrid(times, freqs)
-                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_freqtime, shading='nearest')
+                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_freqtime, shading='nearest',
+                                      rasterized=True)
                         # Add DM 0 curve
                         delays = util.dm_to_delay(params['dm'] * u.pc / u.cm ** 3,
                                                   freqs[0] * u.MHz, freqs * u.MHz).to(u.ms).value
-                        ax.plot(times[0] + delays, freqs, c='r', alpha=.5)
+                        ax.plot(times[0] + delays, freqs, c='r', alpha=.5, rasterized=True)
                     elif plot_type == 'dm_time':
                         ylabel = r'DM (pc cm$^{-3}$)'
                         title = 'p:{prob_dmtime:.2f} DM:{dm:.2f} t:{toa:.2f}\n' \
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         X, Y = np.meshgrid(times, params['dms'])
-                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest')
+                        ax.pcolormesh(X, Y, data, cmap=self.config.cmap_dmtime, shading='nearest',
+                                      rasterized=True)
                         # add line if DM 0 is in plot range
                         if min(params['dms']) <= 0 <= max(params['dms']):
-                            ax.axhline(0, c='r', alpha=.5)
+                            ax.axhline(0, c='r', alpha=.5, rasterized=True)
                     elif plot_type == '1d_time':
                         ylabel = 'Power (norm.)'
                         title = 'DM:{dm:.2f} t:{toa:.2f}\n' \
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
-                        ax.plot(times, data, c=self.config.colour_1dtime)
+                        ax.plot(times, data, c=self.config.colour_1dtime, rasterized=True)
                     else:
                         raise ProcessorException(f"Unknown plot type: {plot_type}, should not be able to get here!")
 
@@ -186,7 +190,9 @@ class Visualizer:
                             for ax in axes[-remainder:]:
                                 ax.axis('off')
 
-                fig.set_tight_layout(True)
+                fig.suptitle(f"Task ID {self.obs_config['parset']['task.taskID']} - "
+                             f"{self.obs_config['datetimesource']} - CB{self.obs_config['beam']:02d}")
+                fig.set_tight_layout({'rect': [0, 0.03, 1, 0.97]})
                 # ensure the number of digits used for the page index is always the same, and large enough
                 # then sorting works as expected
                 page_str = str(page).zfill(len(str(npage)))

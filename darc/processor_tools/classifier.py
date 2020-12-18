@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import ctypes
 import socket
 from argparse import Namespace
 from time import sleep
@@ -12,6 +11,7 @@ import numpy as np
 import h5py
 
 from darc.definitions import CONFIG_FILE
+from darc.logger import get_queue_logger
 
 # silence the tensorflow logger
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -22,15 +22,16 @@ class Classifier(mp.Process):
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, logger, input_queue, conn, config_file=CONFIG_FILE):
+    def __init__(self, log_queue, input_queue, conn, config_file=CONFIG_FILE):
         """
-        :param Logger logger: Processor logger object
+        :param Queue log_queue: Queue to use for logging
         :param Queue input_queue: Input queue for triggers
         :param Connection conn: Pipe connection to send output to
         :param str config_file: Path to config file
         """
         super(Classifier, self).__init__()
-        self.logger = logger
+        module_name = type(self).__module__.split('.')[-1]
+        self.logger = get_queue_logger(module_name, log_queue)
         self.input_queue = input_queue
         self.conn = conn
 

@@ -72,6 +72,7 @@ class Spectra:
         self.dt = dt
         self.starttime = starttime
         self.dm = 0
+        self.shifts = np.zeros(len(freqs), dtype=int)
 
     def __str__(self):
         return str(self.data)
@@ -261,13 +262,18 @@ class Spectra:
                                  of Spectra.shift_channels. (Default: 0)
         """
         assert dm >= 0
-        ref_delay = delay_from_DM(dm - self.dm, np.max(self.freqs))
-        delays = delay_from_DM(dm - self.dm, self.freqs)
-        rel_delays = delays - ref_delay  # Relative delay
-        rel_bindelays = np.round(rel_delays / self.dt).astype('int')
+        # Delay at each frequency
+        delays = delay_from_DM(dm, self.freqs)
+        # Subtract delay at max freq
+        delays -= delays[np.argmax(self.freqs)]
+        # Convert to bins
+        bindelays = np.round(delays / self.dt).astype('int')
+        # Subtract already applied shift
+        rel_bindelays = bindelays - self.shifts
         # Shift channels
         self.shift_channels(rel_bindelays, padval)
-
+        # Store total shift and dm
+        self.shifts = bindelays
         self.dm = dm
 
     def smooth(self, width=1, padval=0):

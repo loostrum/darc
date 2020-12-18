@@ -17,6 +17,7 @@ from darc import DARCBase
 from darc import util
 from darc.control import send_command
 from darc.definitions import WORKERS, TSAMP
+from darc.logger import get_queue_logger, get_queue_logger_listener
 
 
 class ProcessorMasterManager(DARCBase):
@@ -27,16 +28,26 @@ class ProcessorMasterManager(DARCBase):
     def __init__(self, *args, **kwargs):
         """
         """
-        super(ProcessorMasterManager, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMasterManager, self).__init__(*args, no_logger=True, **kwargs)
+
+        # initialize queue logger listener
+        self.log_queue = mp.Queue()
+        self.log_listener = get_queue_logger_listener(self.log_queue, self.log_file)
+        self.log_listener.start()
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, self.log_queue)
 
         self.observations = {}
         self.observation_queues = {}
-        self.current_observation_queue = None
 
         self.scavenger = None
 
         # reduce logging from status check commands
         logging.getLogger('darc.control').setLevel(logging.ERROR)
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def run(self):
         """
@@ -61,16 +72,24 @@ class ProcessorMasterManager(DARCBase):
 
             self.stop_event.wait(self.scavenger_interval)
 
-    def cleanup(self):
+    def stop(self, abort=False):
         """
-        Upon stop of the manager, abort any remaining observations
+        Stop this service
+
+        :param bool abort: Ignored; a stop of the manager always equals an abort
         """
+        self.logger.info("Stopping {}".format(self.log_name))
+        # Abort any existing observations
         # loop over dictionary items. Use copy to avoid changing dict in loop
         for taskid, obs in self.observations.copy().items():
             if obs.is_alive():
                 self.logger.info(f"Aborting observation with taskid {taskid}")
                 self.observation_queues[taskid].put('abort')
             obs.join()
+        # stop the log listener
+        self.log_listener.stop()
+        # stop the manager
+        self.stop_event.set()
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -93,14 +112,13 @@ class ProcessorMasterManager(DARCBase):
 
         # initialize a Processor for this observation
         queue = mp.Queue()
-        proc = ProcessorMaster(source_queue=queue, config_file=self.config_file)
+        proc = ProcessorMaster(source_queue=queue, log_queue=self.log_queue, config_file=self.config_file)
         proc.name = taskid
         proc.start()
         # start the observation and store thread
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
-        self.current_observation_queue = queue
         return
 
     def stop_observation(self, obs_config):
@@ -116,6 +134,7 @@ class ProcessorMasterManager(DARCBase):
         # check if an observation with this task ID exists
         if taskid not in self.observations.keys():
             self.logger.error(f"Failed to stop observation: no such task ID {taskid}")
+            return
 
         # signal the processor of this observation to stop the observation
         # when processing is finished, this also stops the Process
@@ -160,11 +179,15 @@ class ProcessorMaster(DARCBase):
     """
     Combine results from worker node processors
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, log_queue, *args, **kwargs):
         """
-        :param str config_file: Path to config file
+        :param Queue log_queue: Queue to use for logging
         """
-        super(ProcessorMaster, self).__init__(*args, **kwargs)
+        # init DARCBase without logger, as we need a non-default logger
+        super(ProcessorMaster, self).__init__(*args, no_logger=True, **kwargs)
+
+        # create queue logger
+        self.logger = get_queue_logger(self.module_name, log_queue)
 
         # read result dir from worker processor config
         self.result_dir = self._get_result_dir()
@@ -174,6 +197,8 @@ class ProcessorMaster(DARCBase):
         self.status = None
         self.process = None
         self.central_result_dir = None
+
+        self.logger.info("{} initialized".format(self.log_name))
 
     def start_observation(self, obs_config, reload=True):
         """
@@ -192,8 +217,9 @@ class ProcessorMaster(DARCBase):
 
         self.obs_config = obs_config
 
-        # process the observation in a separate Process
-        self.process = mp.Process(target=self._process_observation)
+        # process the observation in a separate thread (not a process, as then we can't stop it directly
+        # through the stop event of ProcessorMaster; and no other processing happens anyway)
+        self.process = threading.Thread(target=self._process_observation)
         self.process.start()
 
     def _process_observation(self):
@@ -206,19 +232,27 @@ class ProcessorMaster(DARCBase):
         self.logger.info("Sleeping until {}".format(start_processing_time.iso))
         self.status = 'Observation in progress'
         util.sleepuntil_utc(start_processing_time, event=self.stop_event)
+        if self.stop_event.is_set():
+            return
 
         try:
             # generate observation info files
             self.status = 'Generating observation info files'
             info, coordinates = self._generate_info_file()
+            if self.stop_event.is_set():
+                return
 
             # wait for all result files to be present
             self.status = 'Waiting for nodes to finish processing'
             self._wait_for_workers()
+            if self.stop_event.is_set():
+                return
 
             # combine results, copy to website and generate email
             self.status = 'Combining node results'
             email, attachments = self._process_results(info, coordinates)
+            if self.stop_event.is_set():
+                return
 
             # publish results on web link and send email
             self.status = 'Sending results to website'
@@ -241,24 +275,30 @@ class ProcessorMaster(DARCBase):
         :param bool abort: Whether or not to abort the observation
         """
         # nothing to stop unless we are aborting
-        if abort:
-            # terminate the processing
-            if self.process is not None:
-                self.process.terminate()
-                self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
-                                 f"{self.obs_config['datetimesource']}")
-            # A stop observation should also stop this processor, as there is only one per observation
+        if abort and self.process is not None:
+            # terminate the processing by setting the stop event (this will also stop the ProcessorMaster)
             self.stop_event.set()
-        else:
-            # wait until the processing is done, then stop this Process itself
-            self.process.join()
-            self.stop_event.set()
+            self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']}")
+        elif self.process is not None:
+            # processing is running, nothing to do (processing will set stop event)
             return
+        else:
+            # no processing is running, only stop the processor
+            self.stop_event.set()
 
-    def cleanup(self):
+    def stop(self, abort=None):
         """
-        Abort observation when stopping service
+        Stop this service
+
+        :param bool abort: Ignored, a stop of the service always equals abort
         """
+        if hasattr(self, 'obs_config'):
+            self.logger.info(f"ProcessorMaster for {self.obs_config['parset']['task.taskID']}: "
+                             f"{self.obs_config['datetimesource']} received stop")
+        else:
+            self.logger.info(f"ProcessorMaster received stop")
+        # abort observation, this also stops the ProcessorMaster
         self.stop_observation(abort=True)
 
     def _get_result_dir(self):
@@ -296,6 +336,9 @@ class ProcessorMaster(DARCBase):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
+                # abort if processing is stopped
+                if self.stop_event.is_set():
+                    return
 
     def _check_node_online(self, node):
         """
@@ -322,7 +365,7 @@ class ProcessorMaster(DARCBase):
         # get list of running observations from node
         self.logger.debug(f"{node} is online, checking for observations")
         try:
-            output = send_command(self.node_timeout, 'processor', 'get_attr observations')['message']['processor']
+            output = send_command(self.node_timeout, 'processor', 'get_attr observations', host=node)['message']['processor']
             # parse the observation list
             # the list contains reference to processes, which should be put in quotes first
             output = ast.literal_eval(output.replace('<', '\'<').replace('>', '>\''))
@@ -388,8 +431,8 @@ class ProcessorMaster(DARCBase):
                         <p>
                         If DARC is offline, do the following:
                         <ul>
-                            <li>Restart DARC on {node}: <code>ssh arts@{node} . darc/venv/bin/activate; darc_start_all_services</code>
-                            <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}.yaml</code>"
+                            <li>Restart DARC on {node}: <code>ssh arts@{node} '. darc/venv/bin/activate && darc_kill_all; darc_start_all_services'</code>
+                            <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}_summary.yaml</code>
                         </p>
                         </body>
                         </html>
@@ -426,6 +469,7 @@ class ProcessorMaster(DARCBase):
         triggers = []
         attachments = []
         missing_attachments = []
+        missing_beams = []
 
         for beam in self.obs_config['beams']:
             # load the summary file
@@ -440,6 +484,8 @@ class ProcessorMaster(DARCBase):
                             "<td>?</td>" \
                             "<td>?</td>" \
                             "<td>?</td></tr>".format(beam=beam)
+                # add warning message
+                missing_beams.append(f'CB{beam:02d}')
                 continue
 
             beaminfo += "<tr><td>{beam:02d}</td>" \
@@ -464,12 +510,14 @@ class ProcessorMaster(DARCBase):
                 else:
                     attachments.append({'path': fname, 'name': f'CB{beam:02d}.pdf', 'type': 'pdf'})
 
+        if missing_beams:
+            notes += f"Beams failed processing: {', '.join(missing_beams)}\n"
         if missing_attachments:
             notes += f"Missing PDF files for {', '.join(missing_attachments)}\n"
 
-        # combine triggers from different CBs and sort by p, then by S/N, then by arrival time
+        # combine triggers from different CBs and sort by p, then by S/N
         if len(triggers) > 0:
-            triggers = np.sort(np.concatenate(triggers), order=('p', 'snr', 'time'))
+            triggers = np.sort(np.concatenate(triggers), order=('p', 'snr'))[::-1]
         # save total number of triggers
         info['total_triggers'] = len(triggers)
         # create string of trigger info
@@ -622,7 +670,11 @@ class ProcessorMaster(DARCBase):
         # are owned by the same user
         for src in files:
             dest = os.path.join(web_folder, os.path.basename(src['path']))
-            os.symlink(src['path'], dest)
+            try:
+                os.symlink(src['path'], dest)
+            except FileExistsError:
+                os.remove(dest)
+                os.symlink(src['path'], dest)
         self.logger.info(f"Published results of {self.obs_config['datetimesource']}")
 
     def _send_email(self, email, attachments):
