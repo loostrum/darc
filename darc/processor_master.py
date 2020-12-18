@@ -281,13 +281,10 @@ class ProcessorMaster(DARCBase):
             self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']}")
         elif self.process is not None:
-            # wait until the processing is done, then stop this Process itself
-            self.process.join()
-            # A stop observation should also stop this processor, as there is only one per observation
-            # The stop event is also set by the processing, but set it again in case the processing crashed
-            self.stop_event.set()
+            # processing is running, nothing to do (processing will set stop event)
+            return
         else:
-            # only stop the processor
+            # no processing is running, only stop the processor
             self.stop_event.set()
 
     def stop(self, abort=None):
