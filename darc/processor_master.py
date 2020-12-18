@@ -286,6 +286,9 @@ class ProcessorMaster(DARCBase):
             # A stop observation should also stop this processor, as there is only one per observation
             # The stop event is also set by the processing, but set it again in case the processing crashed
             self.stop_event.set()
+        else:
+            # only stop the processor
+            self.stop_event.set()
 
     def stop(self, abort=None):
         """
