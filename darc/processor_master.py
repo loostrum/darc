@@ -217,8 +217,9 @@ class ProcessorMaster(DARCBase):
 
         self.obs_config = obs_config
 
-        # process the observation in a separate Process
-        self.process = mp.Process(target=self._process_observation)
+        # process the observation in a separate thread (not a process, as then we can't stop it directly
+        # through the stop event of ProcessorMaster; and no other processing happens anyway)
+        self.process = threading.Thread(target=self._process_observation)
         self.process.start()
 
     def _process_observation(self):
@@ -267,17 +268,16 @@ class ProcessorMaster(DARCBase):
         """
         # nothing to stop unless we are aborting
         if abort and self.process is not None:
-            # terminate the processing
-            self.process.terminate()
+            # terminate the processing by setting the stop event (this will also stop the ProcessorMaster)
+            self.stop_event.set()
             self.logger.info(f"Observation aborted: {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']}")
         elif self.process is not None:
             # wait until the processing is done, then stop this Process itself
             self.process.join()
-        # A stop observation should also stop this processor, as there is only one per observation
-        # The stop event is also set by the processing, but set it again in case there was not processing running,
-        # or it crashed
-        self.stop_event.set()
+            # A stop observation should also stop this processor, as there is only one per observation
+            # The stop event is also set by the processing, but set it again in case the processing crashed
+            self.stop_event.set()
 
     def stop(self, abort=None):
         """
