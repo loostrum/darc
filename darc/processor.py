@@ -367,6 +367,15 @@ class Processor(DARCBase):
             self.stop_event.set()
             return
 
+        # no abort, finish processing in thread (because stop_observation must be non-blocking)
+        thread = threading.Thread(target=self._finish_processing)
+        thread.daemon = True
+        thread.start()
+
+    def _finish_processing(self):
+        """
+        Wait for real-time processing to finish and visualize results
+        """
         # clear processing thread
         self.threads['processing'].join()
         # signal clustering to stop
