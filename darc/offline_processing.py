@@ -229,10 +229,14 @@ class OfflineProcessing(mp.Process):
 
         # fetch known FRB candidates
         # do this _after_ email is sent, as then we are sure the grouped_pulses file exists for all beams
-        if coord_cb00 is not None:
-            self._plot_known_frb_cands(obs_config, coord_cb00)
-        else:
-            self.logger.warning("Skipping plotting of known FRB candidates: CB00 coordinates not available")
+        # NOTE: disabled because:
+        # 1) the (external) plotting script does not work without an active X session (should be fixable)
+        # 2) the script re-uses the same temporary directory, and can run only one copy at a time
+        # While these issues are not fixed, the plotting is not run automatically
+        # if coord_cb00 is not None:
+        #     self._plot_known_frb_cands(obs_config, coord_cb00)
+        # else:
+        #     self.logger.warning("Skipping plotting of known FRB candidates: CB00 coordinates not available")
 
         self.logger.info("Finished processing of observation {output_dir}".format(**obs_config))
 
@@ -957,7 +961,7 @@ class OfflineProcessing(mp.Process):
         """
         Call external script that plots candidates of known FRBs
 
-        :param dict obs_confog: Observation config
+        :param dict obs_config: Observation config
         :param list coord_cb00: [ra, dec] of CB00 in decimal degrees
         """
 
