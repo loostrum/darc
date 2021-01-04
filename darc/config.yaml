@@ -143,6 +143,7 @@ processor_master:
     ntrig_email_max: 100  # Maximum number of triggers to show in email
     webdir: "triggers_realtime"  # subdir of public_html/darc to use for trigger website
     node_timeout: 10  # when contacting nodes regarding processing status (s)
+    plot_script: "fetch_after_obs.py"
     email_settings:
         to: "test@localhost"
 

@@ -328,17 +328,17 @@ class ProcessorMaster(DARCBase):
             while not os.path.isfile(result_file):
                 # wait until the next check time
                 self.stop_event.wait(self.check_interval)
+                # abort if processing is stopped
+                if self.stop_event.is_set():
+                    return
                 twait += self.check_interval
                 # if we waited a long time, check if a warning should be sent if the node is offline
                 node = WORKERS[beam]
                 if (twait > self.max_wait_time) and (not self._check_node_online(node)) and \
-                   (node not in self.warnings_sent):
+                   (node not in self.warnings_sent) and (not os.path.isfile(result_file)):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
-                # abort if processing is stopped
-                if self.stop_event.is_set():
-                    return
 
     def _check_node_online(self, node):
         """
@@ -557,11 +557,25 @@ class ProcessorMaster(DARCBase):
         else:
             notesinfo = ""
 
+        # format deep search plot command
+        try:
+            # extract CB00 pointing in decimal degrees
+            ra_hms, dec_dms = coordinates[0][:2]
+            pointing = SkyCoord(ra_hms, dec_dms, unit=(u.hourangle, u.deg))
+            date = ''.join(self.obs_config['datetimesource'].split('-')[:3])
+            plot_cmd = f'python2 {self.plot_script} --ra {pointing.ra.deg:.6f} --dec {pointing.dec.deg:.6f} ' \
+                       f'--date {date} --root {self.obs_config["datetimesource"]}'
+        except KeyError:
+            # no pointing found for CB00
+            plot_cmd = 'Error: no CB00 pointing found'
+            self.logger.error("Failed to generate deep search command: no CB00 pointing found")
+
         # add info strings to overall info
         info['beaminfo'] = beaminfo
         info['coordinfo'] = coordinfo
         info['triggerinfo'] = triggerinfo
         info['notes'] = notesinfo
+        info['plot_cmd'] = plot_cmd
 
         # generate the full email html
         # using a second level dict here because str.format does not support keys containing a dot
@@ -604,6 +618,9 @@ class ProcessorMaster(DARCBase):
             </tr><tr>
                 <th style="text-align:left" colspan="2">Trigger web link</th>
                     <td colspan="4">{d[web_link]}</td>
+            </tr><tr>
+                <th style="text-align:left" colspan="2">Deep search command</th>
+                    <td colspan="4">{d[plot_cmd]}</td>
             </tr>{d[notes]}
             </table>
             </p>
