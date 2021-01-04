@@ -303,11 +303,12 @@ class TestProcessor(unittest.TestCase):
         self.amber_queue.put({'command': 'stop_observation'})
         self.processor.source_queue.put({'command': 'stop_observation'})
 
+        # wait for processor to exit
+        self.processor.join()
+
         # stop services
         self.amber_listener.source_queue.put('stop')
         self.amber_listener.join()
-        self.processor.source_queue.put('stop')
-        self.processor.join()
 
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")

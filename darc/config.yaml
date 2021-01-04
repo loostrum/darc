@@ -152,6 +152,7 @@ processor_master:
 processor:
     log_file: "{home}/darc/log/processor.{hostname}.log"
     scavenger_interval: 60  # interval for thread scavenger to remove dead threads (seconds)
+    processing_status_generator_interval: 60
     interval: 1.1  # how often to process candidates (seconds)
     num_extractor: 2  # how many data extractors to run
     output_subdir: "triggers_realtime"  # output dir for triggers on each node
