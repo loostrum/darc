@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from datetime import datetime
 from darc import __version__
 sys.path.insert(0, os.path.abspath('..'))
 autodoc_mock_imports = ['tensorflow']
@@ -29,7 +30,8 @@ autosectionlabel_prefix_document = True
 # -- Project information -----------------------------------------------------
 
 project = 'DARC'
-copyright = '2020, Leon Oostrum'
+year = datetime.now().year
+copyright = f'{year}, Leon Oostrum'
 author = 'Leon Oostrum'
 
 # The full version, including alpha/beta/rc tags
