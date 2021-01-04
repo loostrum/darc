@@ -564,7 +564,7 @@ class ProcessorMaster(DARCBase):
             pointing = SkyCoord(ra_hms, dec_dms, unit=(u.hourangle, u.deg))
             date = ''.join(self.obs_config['datetimesource'].split('-')[:3])
             plot_cmd = f'python2 {self.plot_script} --ra {pointing.ra.deg:.6f} --dec {pointing.dec.deg:.6f} ' \
-                       f'--date {date} --datetimesource {self.obs_config["datetimesource"]}'
+                       f'--date {date} --root {self.obs_config["datetimesource"]}'
         except KeyError:
             # no pointing found for CB00
             plot_cmd = 'Error: no CB00 pointing found'
