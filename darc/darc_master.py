@@ -649,7 +649,7 @@ class DARCMaster:
         # wait until start time
         utc_start = Time(config['startpacket'] / TIME_UNIT, format='unix')
         utc_end = utc_start + TimeDelta(config['duration'], format='sec')
-        # if end time is in the past, only start offline processing
+        # if end time is in the past, only start offline processing and processor
         if utc_end < Time.now():
             self.logger.warning("End time in past! Only starting offline processing and processor")
             self.offline_queue.put(command)

@@ -3,9 +3,11 @@
 # real-time data processor
 
 import os
+import ast
 import threading
 import multiprocessing as mp
 from time import sleep
+from astropy.time import Time, TimeDelta
 import numpy as np
 import yaml
 import h5py
@@ -14,6 +16,7 @@ from darc import DARCBase
 from darc.processor_tools import Clustering, Extractor, Classifier, Visualizer
 from darc import util
 from darc.logger import get_queue_logger, get_queue_logger_listener
+from darc.definitions import TIME_UNIT
 
 
 class ProcessorException(Exception):
@@ -331,6 +334,16 @@ class Processor(DARCBase):
         for thread in self.threads.values():
             thread.start()
 
+        # If this is reprocessing instead of a new observation, read the AMBER triggers
+        # Reprocessing is assumed if the end time is in the past
+        utc_start = Time(obs_config['startpacket'] / TIME_UNIT, format='unix')
+        utc_end = utc_start + TimeDelta(obs_config['duration'], format='sec')
+        if utc_end < Time.now():
+            self.logger.info("End time is in the past, reading AMBER triggers for reprocessing")
+            thread = threading.Thread(target=self._read_amber_triggers, name='read_amber_triggers')
+            thread.daemon = True
+            thread.start()
+
         self.logger.info("Observation started")
 
     def stop_observation(self, abort=False):
@@ -509,3 +522,38 @@ class Processor(DARCBase):
                            "{downsamp:.0f} {sb:.0f} " \
                            "{prob_freqtime:.2f}\n".format(beam=self.obs_config['beam'], **h5.attrs)
                 f.write(line)
+
+    def _read_amber_triggers(self):
+        """
+        Read AMBER triggers for reprocessing of an observation.
+        Based on AMBERListener
+        """
+        # read AMBER settings
+        amber_conf_file = self.obs_config['amber_config']
+        with open(amber_conf_file, 'r') as f:
+            raw_amber_conf = f.read()
+        amber_conf = util.parse_parset(raw_amber_conf)
+        # get directory of amber trigger files
+        amber_dir = self.obs_config['amber_dir']
+        # get CB index and number of AMBER processes
+        beam = self.obs_config['beam']
+        num_amber = len(ast.literal_eval(amber_conf['opencl_device']))
+
+        self.logger.info(f"Reading {num_amber} AMBER files")
+        for step in range(1, num_amber + 1):
+            trigger_file = os.path.join(amber_dir, "CB{:02d}_step{}.trigger".format(beam, step))
+            # check if the file exists
+            if not os.path.isfile(trigger_file):
+                self.logger.error(f"AMBER file does not exist: {trigger_file}")
+                continue
+            # read the file and put each line on the processor input queue
+            with open(trigger_file, 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                self.source_queue.put({'command': 'trigger', 'trigger': line.strip()})
+
+        # sleep for twice the processing interval to ensure triggers were picked up
+        self.stop_event.wait(2 * self.interval)
+        # reprocessing means no stop observation will be sent, do this manually
+        self.logger.info("Sending manual stop_observation command for reprocessing")
+        self.source_queue.put({'command': 'stop_observation'})
