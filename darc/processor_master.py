@@ -332,7 +332,7 @@ class ProcessorMaster(DARCBase):
                 # if we waited a long time, check if a warning should be sent if the node is offline
                 node = WORKERS[beam]
                 if (twait > self.max_wait_time) and (not self._check_node_online(node)) and \
-                   (node not in self.warnings_sent):
+                   (node not in self.warnings_sent) and (not os.path.isfile(result_file)):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
