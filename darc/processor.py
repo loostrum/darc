@@ -528,9 +528,6 @@ class Processor(DARCBase):
         Read AMBER triggers for reprocessing of an observation.
         Based on AMBERListener
         """
-        # wait before starting to give other threads time to start up
-        self.stop_event.wait(self.reprocessing_delay)
-
         # read AMBER settings
         amber_conf_file = self.obs_config['amber_config']
         with open(amber_conf_file, 'r') as f:
