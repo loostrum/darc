@@ -30,7 +30,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -1164,7 +1163,7 @@ the VOEvent broker</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obs_confog</strong> (<em>dict</em>) – Observation config</p></li>
+<li><p><strong>obs_config</strong> (<em>dict</em>) – Observation config</p></li>
 <li><p><strong>coord_cb00</strong> (<em>list</em>) – [ra, dec] of CB00 in decimal degrees</p></li>
 </ul>
 </dd>
@@ -1268,6 +1267,13 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <dt id="darc.processor.Processor._finish_processing">
 <code class="sig-name descname">_finish_processing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._finish_processing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait for real-time processing to finish and visualize results</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor.Processor._read_amber_triggers">
+<code class="sig-name descname">_read_amber_triggers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_amber_triggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read AMBER triggers for reprocessing of an observation.
+Based on AMBERListener</p>
 </dd></dl>
 
 <dl class="py method">
