@@ -328,6 +328,9 @@ class ProcessorMaster(DARCBase):
             while not os.path.isfile(result_file):
                 # wait until the next check time
                 self.stop_event.wait(self.check_interval)
+                # abort if processing is stopped
+                if self.stop_event.is_set():
+                    return
                 twait += self.check_interval
                 # if we waited a long time, check if a warning should be sent if the node is offline
                 node = WORKERS[beam]
@@ -336,9 +339,6 @@ class ProcessorMaster(DARCBase):
                     self._send_warning(node)
                     # store that we sent a warning
                     self.warnings_sent.append(node)
-                # abort if processing is stopped
-                if self.stop_event.is_set():
-                    return
 
     def _check_node_online(self, node):
         """
