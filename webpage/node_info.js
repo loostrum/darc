@@ -18,7 +18,7 @@ function get_node_info(node_json, node_id) {
     // set content for node
     document.getElementById(node_id + "_name").innerHTML = obj.node_name;
     document.getElementById(node_id + "_status").innerHTML = obj.node_status;
-    document.getElementById(node_id + "_process").innerHTML = "Processing: " + obj.node_process;
+    document.getElementById(node_id + "_process").innerHTML = "Task IDs: " + obj.node_process;
     document.getElementById(node_id + "_time").innerHTML = "Elapsed time: " + obj.time;
 
     // set background color for node
