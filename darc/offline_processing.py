@@ -194,15 +194,15 @@ class OfflineProcessing(mp.Process):
         :param dict obs_config: Observation config
         :param bool reload: reload service settings (default: True)
         """
-        if not self.full_processing_enabled:
-            self.logger.info("Full processing disabled - not running offline processing")
-            return
-
-        self.logger.info("Starting observation on master node")
-
         # reload config
         if reload:
             self.load_config()
+
+        if not self.full_processing_enabled:
+            self.logger.info("Full processing disabled - nothing to run on master node")
+            return
+
+        self.logger.info("Starting observation on master node")
 
         # create result dir
         try:
@@ -265,13 +265,13 @@ class OfflineProcessing(mp.Process):
                 self.logger.error("Failed to create results directory")
                 raise OfflineProcessingException("Failed to create result directory: {}".format(e))
 
-            # TAB or IAB mode
-            if obs_config['ntabs'] == 1:
-                obs_config['mode'] = 'IAB'
-                trigger_output_file = "{output_dir}/triggers/data/data_00_full.hdf5".format(**obs_config)
-            else:
-                obs_config['mode'] = 'TAB'
-                trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
+        # TAB or IAB mode
+        if obs_config['ntabs'] == 1:
+            obs_config['mode'] = 'IAB'
+            trigger_output_file = "{output_dir}/triggers/data/data_00_full.hdf5".format(**obs_config)
+        else:
+            obs_config['mode'] = 'TAB'
+            trigger_output_file = "{output_dir}/triggers/data/data_full.hdf5".format(**obs_config)
 
         # wait until end time + delay
         start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')

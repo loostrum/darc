@@ -19,11 +19,3 @@ For more information about these different parts of DARC, consult one of the fol
     _modules/offline
     _modules/mac
     _modules/api
-
-
-
-Indices and tables
-==================
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
