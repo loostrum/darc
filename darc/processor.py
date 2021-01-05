@@ -69,6 +69,7 @@ class ProcessorManager(DARCBase):
         """
         Remove any finished threads at regular intervals
         """
+        self.logger.info("Starting thread scavenger")
         while not self.stop_event.is_set():
             for taskid, thread in self.observations.copy().items():
                 if not thread.is_alive():
@@ -83,16 +84,15 @@ class ProcessorManager(DARCBase):
         """
         At regular interval, create status file for processing website
         """
+        self.logger.info("Starting processing status file generator")
         # create the output directory if it does not exist
         util.makedirs(self.processing_status_path)
         hostname = socket.gethostname()
         out_file = os.path.join(self.processing_status_path, f"{hostname}.js")
-        print('outfile:', out_file)
         while not self.stop_event.is_set():
             # get list of taskids that are being processed
             taskids = sorted(self.observations.keys())
             times = []
-            print('taskids:', taskids)
             if not taskids:
                 # nothing is running
                 status = "idle"

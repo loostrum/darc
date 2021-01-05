@@ -62,6 +62,7 @@ class ProcessorMasterManager(DARCBase):
         """
         Remove any finished threads at regular intervals
         """
+        self.logger.info("Starting thread scavenger")
         while not self.stop_event.is_set():
             for taskid, thread in self.observations.copy().items():
                 if not thread.is_alive():
