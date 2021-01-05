@@ -194,15 +194,15 @@ class OfflineProcessing(mp.Process):
         :param dict obs_config: Observation config
         :param bool reload: reload service settings (default: True)
         """
-        if not self.full_processing_enabled:
-            self.logger.info("Full processing disabled - not running offline processing")
-            return
-
-        self.logger.info("Starting observation on master node")
-
         # reload config
         if reload:
             self.load_config()
+
+        if not self.full_processing_enabled:
+            self.logger.info("Full processing disabled - nothing to run on master node")
+            return
+
+        self.logger.info("Starting observation on master node")
 
         # create result dir
         try:
