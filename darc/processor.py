@@ -83,6 +83,8 @@ class ProcessorManager(DARCBase):
         """
         At regular interval, create status file for processing website
         """
+        # create the output directory if it does not exist
+        util.makedirs(self.processing_status_path)
         hostname = socket.gethostname()
         out_file = os.path.join(self.processing_status_path, f"{hostname}.js")
         print('outfile:', out_file)
@@ -105,9 +107,9 @@ class ProcessorManager(DARCBase):
                         times.append('observing')
                     else:
                         # format as hh:mm:ss
-                        full_min, seconds = divmod(processing_time.value, 60)
+                        full_min, seconds = divmod(processing_time.sec, 60)
                         hours, minutes = divmod(full_min, 60)
-                        times.append(f"{hours:02.0f}:{minutes:02.0f}:{seconds:02.0f}")
+                        times.append(f"{hours:02.0f}h{minutes:02.0f}m{seconds:02.0f}s")
 
             content = dedent(f"""
                               var {hostname} = {{
