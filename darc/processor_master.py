@@ -10,13 +10,13 @@ import yaml
 import multiprocessing as mp
 import astropy.units as u
 from astropy.coordinates import SkyCoord
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 import numpy as np
 
 from darc import DARCBase
 from darc import util
 from darc.control import send_command
-from darc.definitions import WORKERS, TSAMP
+from darc.definitions import WORKERS, TSAMP, TIME_UNIT
 from darc.logger import get_queue_logger, get_queue_logger_listener
 
 
@@ -40,9 +40,11 @@ class ProcessorMasterManager(DARCBase):
         self.logger = get_queue_logger(self.module_name, self.log_queue)
 
         self.observations = {}
+        self.observation_end_times = {}
         self.observation_queues = {}
 
         self.scavenger = None
+        self.status_generator = None
 
         # reduce logging from status check commands
         logging.getLogger('darc.control').setLevel(logging.ERROR)
@@ -56,6 +58,9 @@ class ProcessorMasterManager(DARCBase):
         # create a thread scavenger
         self.scavenger = threading.Thread(target=self.thread_scavenger, name='scavenger')
         self.scavenger.start()
+        # create a status generator for the processing website
+        self.status_generator = threading.Thread(target=self.processing_status_generator, name='status_generator')
+        self.status_generator.start()
         super(ProcessorMasterManager, self).run()
 
     def thread_scavenger(self):
@@ -72,6 +77,61 @@ class ProcessorMasterManager(DARCBase):
                     self.observation_queues.pop(taskid)
 
             self.stop_event.wait(self.scavenger_interval)
+
+    def processing_status_generator(self):
+        """
+        At regular interval, create status file for processing website
+        """
+        self.logger.info("Starting processing status file generator")
+        # create the output directory if it does not exist
+        util.makedirs(self.processing_status_path)
+        hostname = socket.gethostname()
+        out_file = os.path.join(self.processing_status_path, f"{hostname}.js")
+        while not self.stop_event.is_set():
+            # get list of taskids that are being processed
+            taskids = sorted(self.observations.keys())
+            times = []
+            if not taskids:
+                # nothing is running
+                status = "idle"
+            else:
+                status = "running"
+                now = Time.now()
+                for taskid in taskids:
+                    # check elapsed time
+                    processing_time = now - self.observation_end_times[taskid]
+                    # if negative, the observation is still running
+                    if processing_time.sec < 0:
+                        times.append('observing')
+                    else:
+                        # format as hh:mm:ss
+                        full_min, seconds = divmod(processing_time.sec, 60)
+                        hours, minutes = divmod(full_min, 60)
+                        times.append(f"{hours:02.0f}h{minutes:02.0f}m{seconds:02.0f}s")
+
+            content = dedent(f"""
+                              var {hostname} = {{
+                                  "node_name": "{hostname}",
+                                  "node_status": "{status}",
+                                  "node_process": "{','.join(taskids)}",
+                                  "time": "{','.join(times)}"
+                              }};
+                              """)
+            with open(out_file, 'w') as f:
+                f.write(content)
+            self.stop_event.wait(self.processing_status_generator_interval)
+
+        # upon exit, create file to indicate node is offline
+        content = dedent(f"""
+                          var {hostname} = {{
+                              "node_name": "{hostname}",
+                              "node_status": "offline",
+                              "node_process": "",
+                              "time": ""
+                          }};
+                          """)
+        with open(out_file, 'w') as f:
+            f.write(content)
 
     def stop(self, abort=False):
         """
@@ -120,6 +180,8 @@ class ProcessorMasterManager(DARCBase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
+        self.observation_end_times[taskid] = Time(obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+            TimeDelta(obs_config['duration'], format='sec')
         return
 
     def stop_observation(self, obs_config):

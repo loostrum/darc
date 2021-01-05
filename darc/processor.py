@@ -182,7 +182,7 @@ class ProcessorManager(DARCBase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
-        self.observation_end_time[taskid] = Time(obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+        self.observation_end_times[taskid] = Time(obs_config['startpacket'] / TIME_UNIT, format='unix') + \
             TimeDelta(obs_config['duration'], format='sec')
         self.current_observation_queue = queue
         return
