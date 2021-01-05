@@ -25,10 +25,10 @@ function get_node_info(node_json, node_id) {
     if (obj.node_status === 'running') {
         document.getElementById(node_id).className = 'w3-yellow';
     }
-    else if (obj.node_status === 'finished') {
+    else if (obj.node_status === 'idle') {
         document.getElementById(node_id).className = 'w3-green';
     }
-    else if (obj.node_status === 'failed') {
+    else if (obj.node_status === 'offline') {
         document.getElementById(node_id).className = 'w3-red';
     }
     else {
