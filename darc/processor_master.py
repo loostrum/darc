@@ -132,6 +132,7 @@ class ProcessorMasterManager(DARCBase):
                           """)
         with open(out_file, 'w') as f:
             f.write(content)
+            f.flush()
 
     def stop(self, abort=False):
         """
@@ -151,6 +152,11 @@ class ProcessorMasterManager(DARCBase):
         self.log_listener.stop()
         # stop the manager
         self.stop_event.set()
+        # wait for subprocesses to exit
+        if self.scavenger is not None:
+            self.scavenger.join()
+        if self.status_generator is not None:
+            self.status_generator.join()
 
     def start_observation(self, obs_config, reload=True):
         """
