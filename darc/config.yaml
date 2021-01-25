@@ -202,6 +202,9 @@ processor:
         model_dmtime: "heimdall_dm_time.hdf5"
     # Visualization settings:
     visualizer:
+        nfreq: 32  # must be a factor of shape in extractor output
+        ntime: 64  # must be a factor of shape in extractor output
+        ndm: 64  # must be a factor of shape in extractor output
         nplot_per_side: 5
         figsize: 15
         cmap_freqtime: "viridis"  # any matplotlib colour map

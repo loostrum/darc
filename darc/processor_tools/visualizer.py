@@ -259,6 +259,20 @@ class Visualizer:
             # load and scale the data
             if data_type == 'freq_time':
                 data = f['data_freq_time'][:]
+                # reshape if needed
+                nfreq, ntime = data.shape
+                # frequency axis
+                modulo, remainder = divmod(nfreq, self.config.nfreq)
+                if remainder != 0:
+                    self.logger.error(f"Failed to rescale freq axis of freq-time data, shapes do not match")
+                else:
+                    data = data.reshape(self.config.nfreq, modulo, -1).mean(axis=1)
+                # time axis
+                modulo, remainder = divmod(ntime, self.config.ntime)
+                if remainder != 0:
+                    self.logger.error(f"Failed to rescale time axis of freq-time data, shapes do not match")
+                else:
+                    data = data.reshape(self.config.nfreq, self.config.ntime, modulo).mean(axis=2)
                 data -= np.median(data, axis=1, keepdims=True)
                 # silence the potential runtime warning due to divide-by-zero
                 with np.errstate(invalid='ignore'):
@@ -266,9 +280,30 @@ class Visualizer:
                 data[~np.isfinite(data)] = np.nan
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
+                # reshape if needed
+                ndm, ntime = data.shape
+                # dm axis
+                modulo, remainder = divmod(ndm, self.config.ndm)
+                if remainder != 0:
+                    self.logger.error(f"Failed to rescale dm axis of dm-time data, shapes do not match")
+                else:
+                    data = data.reshape(self.config.ndm, modulo, -1).mean(axis=1)
+                # time axis
+                modulo, remainder = divmod(ntime, self.config.ntime)
+                if remainder != 0:
+                    self.logger.error(f"Failed to rescale time axis of dm-time data, shapes do not match")
+                else:
+                    data = data.reshape(self.config.ndm, self.config.ntime, modulo).mean(axis=2)
                 data -= np.median(data, axis=1, keepdims=True)
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
+                # reshape if needed
+                ntime = len(data)
+                modulo, remainder = divmod(ntime, self.config.ntime)
+                if remainder != 0:
+                    self.logger.error(f"Failed to rescale 1d time data, shapes do not match")
+                else:
+                    data = data.reshape(self.config.ntime, modulo).mean(axis=1)
                 data -= np.median(data)
                 data /= np.amax(data)
             else:
