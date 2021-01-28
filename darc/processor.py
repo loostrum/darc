@@ -472,7 +472,22 @@ class Processor(DARCBase):
                 self.logger.warning(f"extractor_{i} is already stopped, not sending stop message")
             else:
                 self.extractor_queue.put(f'stop_extractor_{i}')
-            self.threads[f'extractor_{i}'].join()
+            # set time limit if processing time limit is enabled
+            if self.processing_time_limit > 0:
+                # get time when processing should be finished
+                time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+                             TimeDelta(self.obs_config['duration'], format='sec') + \
+                             TimeDelta(self.processing_time_limit, format='sec')
+                # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
+                timeout = max((time_limit - Time.now()).sec, 0)
+            else:
+                timeout = None
+            self.threads[f'extractor_{i}'].join(timeout)
+            sleep(.1)
+            if self.threads[f'extractor_{i}'].is_alive():
+                # still alive after join, so timeout was reached. Abort remaining processing
+                self.logger.info(f"Processing time limit reached, terminating data extractor {i}")
+                self.threads[f'extractor_{i}'].terminate()
         # signal classifier to stop
         self.classifier_queue.put('stop')
         # read the output of the classifier
