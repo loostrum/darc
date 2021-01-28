@@ -189,6 +189,8 @@ processor:
         rfi_n_iter_freq: 3
         rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels in the filterbank data
         snr_min_local: 5  # skip any triggers with a local S/N below this value
+        snr_dm0_filter: True  # remove triggers with a S/N at DM=0 higher than at candidate DM
+        snr_dm0_diff_threshold: 3  # remove trigger if S/N at DM=0 is at least this much higher than at candidate DM
     # ML classifier settings
     classifier:
         gpu: 0
