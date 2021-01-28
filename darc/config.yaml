@@ -198,7 +198,7 @@ processor:
         ntime: 64  # fixed by model shape
         nfreq: 32  # fixed by model shape
         model_dir: "{home}/keras_models"
-        model_freqtime: "20190501freq_time.hdf5"
+        model_freqtime: "20190416freq_time.hdf5"
         model_dmtime: "heimdall_dm_time.hdf5"
     # Visualization settings:
     visualizer:
@@ -243,7 +243,7 @@ offline_processing:
     model_dir: "{home}/keras_models"
     model_1dtime: "heimdall_b0329_mix_147411d_time.hdf5"
     model_dmtime: "heimdall_dm_time.hdf5"
-    model_freqtime: "20190501freq_time.hdf5"
+    model_freqtime: "20190416freq_time.hdf5"
     calibration_dir: "{home}/darc/calibration"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"
