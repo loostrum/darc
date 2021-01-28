@@ -682,7 +682,7 @@ class DARCMaster:
             # an observation, do not clear the queues first
             queue = self.get_queue(service)
             queue.put(command)
-            return "Warning", "Only {} started".format(service)
+            return "Warning", "Only observation for {} started".format(service)
 
     def stop_observation(self, config_file, abort=False, service=None):
         """
@@ -719,7 +719,7 @@ class DARCMaster:
             reply = "Stopped observation"
         else:
             queue = self.get_queue(service)
-            self.logger.info("Only stopping {}".format(service))
+            self.logger.info("Only stopping observation for {}".format(service))
             queue.put({'command': 'stop_observation', 'obs_config': config})
             status = 'Warning'
             reply = "Only stopped observation for {}".format(service)
