@@ -588,6 +588,7 @@ class Processor(DARCBase):
         with open(trigger_file, 'w') as f:
             f.write('#cb snr dm time downsamp sb p\n')
             for fname in self.candidates_to_visualize:
+                fname = fname[0]
                 with h5py.File(fname, 'r') as h5:
                     line = "{beam:02d} {snr:.2f} {dm:.2f} {toa:.4f} " \
                            "{downsamp:.0f} {sb:.0f} " \

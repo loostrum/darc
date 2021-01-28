@@ -107,11 +107,14 @@ class Classifier(mp.Process):
                 continue
             else:
                 self.input_empty = False
-                if fname == 'stop':
+                if isinstance(fname, str) and fname == 'stop':
                     do_stop = True
                 else:
                     # do classification
-                    self._classify(fname)
+                    if isinstance(fname, list):
+                        self._classify(fname[0], snr_dm0_skip=fname[1])
+                    else:
+                        self._classify(fname)
         self.logger.info("Stopping classifier thread")
         # send list of candidates to visualize to parent process
         self.conn.send(self.candidates_to_visualize)
@@ -162,11 +165,12 @@ class Classifier(mp.Process):
         self.model_freqtime.predict(np.zeros([1, self.config.nfreq, self.config.ntime, 1]))
         self.model_dmtime.predict(np.zeros([1, self.config.ndm, self.config.ntime, 1]))
 
-    def _classify(self, fname):
+    def _classify(self, fname, snr_dm0_skip=False):
         """
         Classify a candidate
 
         :param str fname: Path to HDF5 file containing candidate data and metadata
+        :param bool snr_dm0_skip: Whether or not this candidate would have been skipped in snr_dm0 filter
         """
         # load data
         with h5py.File(fname, 'r') as f:
@@ -195,7 +199,7 @@ class Classifier(mp.Process):
 
         # if the probabilities are above threshold, store the file path
         if (prob_freqtime > self.config.thresh_freqtime) and (prob_dmtime > self.config.thresh_dmtime):
-            self.candidates_to_visualize.append(fname)
+            self.candidates_to_visualize.append([fname, snr_dm0_skip])
 
     def _prepare_data(self):
         """

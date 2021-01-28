@@ -294,6 +294,7 @@ class Extractor(mp.Process):
 
         # if S/N at DM=0 is higher than at candidate DM by some amount, skip this trigger
         # (only if this filter is enabled)
+        snr_dm0_skip = (snr_dm0 - snrmax >= self.config.snr_dm0_diff_threshold)
         if self.config.snr_dm0_filter and (snr_dm0 - snrmax >= self.config.snr_dm0_diff_threshold):
             # log time taken
             timer_end = Time.now()
@@ -362,7 +363,7 @@ class Extractor(mp.Process):
         self._store_data(output_file, sb, tsamp_effective, dms, params_amber, params_opt)
 
         # put path to file on output queue to be picked up by classifier
-        self.output_queue.put(output_file)
+        self.output_queue.put([output_file, snr_dm0_skip])
 
         with self.ncand_above_threshold.get_lock():
             self.ncand_above_threshold.value += 1

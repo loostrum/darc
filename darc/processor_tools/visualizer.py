@@ -38,7 +38,7 @@ class Visualizer:
         :param str result_dir: central directory to copy output PDF to
         :param Queue log_queue: Queue to use for logging
         :param dict obs_config: Observations settings
-        :param list files: HDF5 files to visualize
+        :param list files: HDF5 files to visualize (TEMP: list with fname, snr_dm0_skip values)
         :param str config_file: Path to config file
         """
         module_name = type(self).__module__.split('.')[-1]
@@ -123,6 +123,8 @@ class Visualizer:
                 axes = axes.flatten()
                 # loop over the files
                 for i, fname in enumerate(files_split[page]):
+                    fname, snr_dm0_skip = fname
+                    snr_dm0_skip = snr_dm0_skip == "True"
                     # load the data and parameters
                     data, params = self._load_data(fname, plot_type)
                     try:
@@ -182,6 +184,9 @@ class Visualizer:
                     # add red border if DM > DMgal
                     if params['dm'] > dmgal:
                         plt.setp(ax.spines.values(), color='red', linewidth=2, alpha=0.85)
+                    # make border green if candidate would have been filtered out by snr_dm0 filter
+                    if snr_dm0_skip:
+                        plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:
@@ -219,7 +224,7 @@ class Visualizer:
         :return: file order (np.ndarray)
         """
         params = []
-        for fname in self.files:
+        for fname in self.files[:, 0]:
             with h5py.File(fname, 'r') as f:
                 try:
                     prob = f.attrs['prob_freqtime']
