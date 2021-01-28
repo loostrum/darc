@@ -161,6 +161,8 @@ processor:
     output_subdir: "triggers_realtime"  # output dir for triggers on each node
     result_dir: "{home}/darc/results"  # central output dir for observation results
     stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
+    reprocessing_delay: 5  # delay before reading AMBER triggers for reprocessing
+    processing_time_limit: 10800  # processing time limit in seconds; set to -1 to disable
     # clustering settings
     clustering:
         output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers
