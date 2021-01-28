@@ -8,6 +8,7 @@ from textwrap import dedent
 import socket
 import threading
 import multiprocessing as mp
+from queue import Empty
 from time import sleep
 from astropy.time import Time, TimeDelta
 import numpy as np
@@ -465,6 +466,9 @@ class Processor(DARCBase):
         # signal clustering to stop
         self.clustering_queue.put('stop')
         self.threads['clustering'].join()
+        # reorder any remaining candidates so that highest S/N are processed first
+        self._reorder_clusters()
+
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
             # only put stop message if extractor is still running (might have crashed)
@@ -476,8 +480,8 @@ class Processor(DARCBase):
             if self.processing_time_limit > 0:
                 # get time when processing should be finished
                 time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
-                             TimeDelta(self.obs_config['duration'], format='sec') + \
-                             TimeDelta(self.processing_time_limit, format='sec')
+                    TimeDelta(self.obs_config['duration'], format='sec') + \
+                    TimeDelta(self.processing_time_limit, format='sec')
                 # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
                 timeout = max((time_limit - Time.now()).sec, 0)
             else:
@@ -585,6 +589,27 @@ class Processor(DARCBase):
                 # put triggers on clustering queue
                 self.clustering_queue.put(triggers_for_clustering)
             self.stop_event.wait(self.interval)
+
+    def _reorder_clusters(self):
+        """
+        Reorder clusters ready for data extraction to highest-S/N first. This is used such that bright candidates
+        are prioritized when there is a processing time limit
+        """
+        # get all clusters from the extractor queue
+        clusters = []
+        try:
+            while True:
+                clusters.append(self.extractor_queue.get_nowait())
+        except Empty:
+            pass
+        # sort by S/N
+        # parameters in each cluster are dm, snr, toa, downsamp, sb
+        snrs = [cluster[1] for cluster in clusters]
+        order = np.argsort(snrs)[::-1]
+        # put each cluster back on the queue, highest S/N first
+        for ind in order:
+            cluster = clusters[ind]
+            self.extractor_queue.put(cluster)
 
     def _store_obs_stats(self):
         """
