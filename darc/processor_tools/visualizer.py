@@ -181,9 +181,12 @@ class Visualizer:
                         if nplot_remaining < self.config.nplot_per_side:
                             ax.set_xlabel(xlabel)
                     ax.set_xlim(times[0], times[-1])
-                    # add red border if DM > DMgal
+                    # add green border if DM > DMgal
                     if params['dm'] > dmgal:
-                        plt.setp(ax.spines.values(), color='red', linewidth=2, alpha=0.85)
+                        plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
+                    # else make it orange
+                    else:
+                        plt.setp(ax.spines.values(), color='orange', linewidth=2, alpha=0.85)
                     # make border green if candidate would have been filtered out by snr_dm0 filter
                     if snr_dm0_skip:
                         plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
