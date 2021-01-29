@@ -604,6 +604,8 @@ class DARCMaster:
         :param str service: Which service to send start_observation to (default: all)
         :return: status, reply
         """
+        if service == "None":
+            service = None
 
         self.logger.info("Received start_observation command with config file {}".format(config_file))
         # check if config file exists
