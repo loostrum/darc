@@ -74,7 +74,7 @@ class Extractor(mp.Process):
         freq = self.obs_config['freq']
         try:
             # note that filterbank stores highest-freq first, but AMBER masks use lowest-freq first
-            self.rfi_mask = self.filterbank_reader.header.nchans - \
+            self.rfi_mask = self.filterbank_reader.header.nchans - 1 - \
                 np.loadtxt(self.config.rfi_mask.replace('FREQ', str(freq))).astype(int)
         except OSError:
             self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
