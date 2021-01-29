@@ -287,9 +287,9 @@ class Extractor(mp.Process):
         if snrmax < self.config.snr_min_local:
             # log time taken
             timer_end = Time.now()
-            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
-                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
-                                f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # if S/N at DM=0 is higher than at candidate DM by some amount, skip this trigger
@@ -298,9 +298,9 @@ class Extractor(mp.Process):
         if self.config.snr_dm0_filter and (snr_dm0 - snrmax >= self.config.snr_dm0_diff_threshold):
             # log time taken
             timer_end = Time.now()
-            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) lower than at DM=0 (S/N={snr_dm0:.2f}), "
-                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
-                                f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) lower than at DM=0 (S/N={snr_dm0:.2f}), "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # calculate DM range to try
