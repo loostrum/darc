@@ -229,6 +229,8 @@ class DARCMaster:
 
         service = message.get('service', None)
         payload = message.get('payload', None)
+        if service == "None":
+            service = None
         status, reply = self.process_message(service, command, payload)
 
         return status, reply
@@ -604,9 +606,6 @@ class DARCMaster:
         :param str service: Which service to send start_observation to (default: all)
         :return: status, reply
         """
-        if service == "None":
-            service = None
-
         self.logger.info("Received start_observation command with config file {}".format(config_file))
         # check if config file exists
         if not os.path.isfile(config_file):
