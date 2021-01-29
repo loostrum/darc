@@ -189,7 +189,7 @@ class Visualizer:
                         plt.setp(ax.spines.values(), color='orange', linewidth=2, alpha=0.85)
                     # make border green if candidate would have been filtered out by snr_dm0 filter
                     if snr_dm0_skip:
-                        plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
+                        plt.setp(ax.spines.values(), color='red', linewidth=2, alpha=0.85)
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:
