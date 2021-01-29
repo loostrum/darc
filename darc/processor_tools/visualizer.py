@@ -179,9 +179,9 @@ class Visualizer:
                         if nplot_remaining < self.config.nplot_per_side:
                             ax.set_xlabel(xlabel)
                     ax.set_xlim(times[0], times[-1])
-                    # add red border if DM > DMgal
+                    # add green border if DM > DMgal
                     if params['dm'] > dmgal:
-                        plt.setp(ax.spines.values(), color='red', linewidth=2, alpha=0.85)
+                        plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:
