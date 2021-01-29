@@ -271,7 +271,11 @@ class DARCMaster:
         # Abort observation
         # always stop if aborted
         elif command == 'abort_observation':
-            status, reply = self.stop_observation(abort=True)
+            if not payload:
+                self.logger.error('Payload is required when aborting observation')
+                status = 'Error'
+                reply = {'error': 'Payload missing'}
+            status, reply = self.stop_observation(payload, service=service, abort=True)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -632,7 +636,10 @@ class DARCMaster:
 
         # initialize observation
         # ensure services are running
-        for service in self.services:
+        if service is None:
+            for s in self.services:
+                self.start_service(s)
+        else:
             self.start_service(service)
 
         # check host type
