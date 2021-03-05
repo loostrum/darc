@@ -211,6 +211,8 @@ processor:
         ndm: 64  # must be a factor of shape in extractor output
         nplot_per_side: 5
         figsize: 15
+        colour_extragal: "red"
+        colour_gal: "orange"
         cmap_freqtime: "viridis"  # any matplotlib colour map
         cmap_dmtime: "viridis"  # any matplotlib colour map
         colour_1dtime: "black"  # any matplotlib colour

@@ -181,10 +181,10 @@ class Visualizer:
                     ax.set_xlim(times[0], times[-1])
                     # add green border if DM > DMgal
                     if params['dm'] > dmgal:
-                        plt.setp(ax.spines.values(), color='green', linewidth=2, alpha=0.85)
+                        plt.setp(ax.spines.values(), color=self.config.colour_extragal, linewidth=2, alpha=0.85)
                     # else make it orange
                     else:
-                        plt.setp(ax.spines.values(), color='orange', linewidth=2, alpha=0.85)
+                        plt.setp(ax.spines.values(), color=self.config.colour_gal, linewidth=2, alpha=0.85)
 
                     # on the last page, disable the remaining plots if there are any
                     if page == npage - 1:
