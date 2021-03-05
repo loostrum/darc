@@ -419,7 +419,6 @@ class Processor(DARCBase):
             self.reprocessing = True
         else:
             self.reprocessing = False
-            
 
         self.logger.info("Observation started")
 
@@ -494,7 +493,6 @@ class Processor(DARCBase):
                         TimeDelta(self.processing_time_limit, format='sec')
                     # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
                     timeout = max((time_limit - Time.now()).sec, 0)
-                
             else:
                 # no time limit
                 timeout = None
