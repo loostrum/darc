@@ -290,6 +290,7 @@ class Processor(DARCBase):
         self.hdr_mapping = {}
         self.obs_config = None
         self.output_dir = None
+        self.reprocessing = False
 
         # create queues
         self.clustering_queue = mp.Queue()
@@ -415,6 +416,10 @@ class Processor(DARCBase):
             thread = threading.Thread(target=self._read_amber_triggers, name='read_amber_triggers')
             thread.daemon = True
             thread.start()
+            self.reprocessing = True
+        else:
+            self.reprocessing = False
+            
 
         self.logger.info("Observation started")
 
@@ -479,12 +484,19 @@ class Processor(DARCBase):
             # set time limit if processing time limit is enabled
             if self.processing_time_limit > 0:
                 # get time when processing should be finished
-                time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
-                    TimeDelta(self.obs_config['duration'], format='sec') + \
-                    TimeDelta(self.processing_time_limit, format='sec')
-                # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
-                timeout = max((time_limit - Time.now()).sec, 0)
+                if self.reprocessing:
+                    # reprocessing: count time limit from now
+                    timeout = self.processing_time_limit
+                else:
+                    # normal observation: count time limit from observation end
+                    time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+                        TimeDelta(self.obs_config['duration'], format='sec') + \
+                        TimeDelta(self.processing_time_limit, format='sec')
+                    # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
+                    timeout = max((time_limit - Time.now()).sec, 0)
+                
             else:
+                # no time limit
                 timeout = None
             self.threads[f'extractor_{i}'].join(timeout)
             sleep(.1)
