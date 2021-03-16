@@ -341,8 +341,8 @@ class TestClustering(unittest.TestCase):
 
     def get_triggers(self):
         # read some AMBER triggers
-        fname = os.path.join(os.getcwd(), 'CB00_step1.trigger')
-        with open(fname, 'r') as f:
+        trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
+        with open(trigger_file, 'r') as f:
             triggers = f.readlines()
         triggers = [line.strip().split() for line in triggers]
         # extract header without comment char
