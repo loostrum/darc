@@ -366,7 +366,7 @@ class ProcessorMaster(DARCBase):
             self.logger.info(f"ProcessorMaster for {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']} received stop")
         else:
-            self.logger.info(f"ProcessorMaster received stop")
+            self.logger.info("ProcessorMaster received stop")
         # abort observation, this also stops the ProcessorMaster
         self.stop_observation(abort=True)
 
@@ -434,7 +434,8 @@ class ProcessorMaster(DARCBase):
         # get list of running observations from node
         self.logger.debug(f"{node} is online, checking for observations")
         try:
-            output = send_command(self.node_timeout, 'processor', 'get_attr observations', host=node)['message']['processor']
+            output = send_command(self.node_timeout, 'processor', 'get_attr observations',
+                                  host=node)['message']['processor']
             # parse the observation list
             # the list contains reference to processes, which should be put in quotes first
             output = ast.literal_eval(output.replace('<', '\'<').replace('>', '>\''))
@@ -506,7 +507,7 @@ class ProcessorMaster(DARCBase):
                         </p>
                         </body>
                         </html>
-                        """)
+                        """)  # noqa - ignore max line length
 
         # set email subject with trigger time
         subject = f"DARC Warning: {node}"

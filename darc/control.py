@@ -65,7 +65,7 @@ def send_command(timeout, service, command, payload=None, host='localhost', port
             try:
                 reply = ast.literal_eval(reply)
             except Exception as e:
-                logger.error("Failed to parse message (): {}".format(e, reply))
+                logger.error("Failed to parse message ({}): {}".format(reply, e))
             else:
                 if isinstance(reply, dict):
                     for key, value in reply.items():

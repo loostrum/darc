@@ -11,7 +11,7 @@ from astropy.time import Time, TimeDelta
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import TIME_UNIT, CONFIG_FILE
+from darc.definitions import TIME_UNIT
 
 
 class DADATriggerException(Exception):
@@ -227,7 +227,8 @@ class DADATrigger(DARCBase):
                 parset = util.parse_parset(raw_parset)
             except Exception as e:
                 self.logger.warning(
-                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
+                    "Failed to load parset from master config file {}, "
+                    "setting parset to None: {}".format(master_config_file, e))
                 parset = None
 
         return parset

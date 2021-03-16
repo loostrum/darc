@@ -2,6 +2,7 @@
 
 import os
 import glob
+import tempfile
 import logging
 import logging.handlers
 import unittest
@@ -57,6 +58,7 @@ class TestProcessorManager(unittest.TestCase):
         # ToDo: fix this in Process setup
         manager.observations['0'] = thread
         manager.observation_queues['0'] = None
+        manager.observation_end_times['0'] = None
 
         manager.start()
         # give it some time to start
@@ -309,6 +311,80 @@ class TestProcessor(unittest.TestCase):
         # stop services
         self.amber_listener.source_queue.put('stop')
         self.amber_listener.join()
+
+
+class TestClustering(unittest.TestCase):
+
+    def setUp(self):
+        # settings
+        self.ntrig_max = 100
+        self.expected_ncluster = 16
+
+        # temporary dir for output
+        self.output_dir = tempfile.TemporaryDirectory()
+
+        startpacket = Time.now().unix // TIME_UNIT
+        obs_config = {'freq': 1370, 'min_freq': 1220.7, 'startpacket': startpacket,
+                      'output_dir': self.output_dir, 'beam': 0}
+        # create log handler
+        log_queue = mp.Queue()
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s.%(levelname)s.%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        self.ql = logging.handlers.QueueListener(log_queue, handler)
+        self.ql.start()
+
+        self.ncluster = mp.Value('i', 0)
+        self.input_queue = mp.Queue()
+        self.output_queue = mp.Queue()
+        self.clustering = Clustering(obs_config, self.output_dir.name, log_queue, self.input_queue,
+                                     self.output_queue, self.ncluster)
+        # set S/N threshold to match value used to get truth ncluster
+        self.clustering.config.snr_min = 10
+
+    def get_triggers(self):
+        # read some AMBER triggers
+        trigger_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CB00_step1.trigger')
+        with open(trigger_file, 'r') as f:
+            triggers = f.readlines()
+        triggers = [line.strip().split() for line in triggers]
+        # extract header without comment char
+        header, triggers = triggers[0][1:], triggers[1:]
+        if len(triggers) > self.ntrig_max:
+            triggers = triggers[:self.ntrig_max]
+        # parse header
+        hdr_mapping = {}
+        for key in ['beam_id', 'integration_step', 'time', 'DM', 'SNR']:
+            hdr_mapping[key] = header.index(key)
+        # reorder triggers
+        triggers = np.array(triggers, dtype=float)
+        return triggers[:, (hdr_mapping['DM'], hdr_mapping['SNR'], hdr_mapping['time'], hdr_mapping['integration_step'],
+                        hdr_mapping['beam_id'])]
+
+    def test_cluster(self):
+        # start and run clustering
+        self.clustering.start()
+        triggers = self.get_triggers()
+        self.input_queue.put(triggers)
+        sleep(1)
+        self.input_queue.put('stop')
+        self.clustering.join()
+        # read output
+        output = []
+        while True:
+            try:
+                output.append(self.output_queue.get_nowait())
+            except Empty:
+                break
+        # ncluster and number of output files should match truth value
+        self.assertTrue(self.expected_ncluster == self.ncluster.value)
+        self.assertTrue(self.expected_ncluster == len(output))
+
+    def tearDown(self):
+        # remove temporary output dir
+        self.output_dir.cleanup()
+        # stop logger
+        self.ql.stop()
 
 
 @unittest.skipUnless(socket.gethostname() == 'zeus', "Test can only run on zeus")

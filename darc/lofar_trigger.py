@@ -371,7 +371,8 @@ class LOFARTrigger(mp.Process):
 
         # add plot command
         date = ''.join(trigger['datetimesource'].split('-')[:3])
-        filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(date, trigger['datetimesource'], trigger['cb'])
+        filterbank_prefix = '/data2/output/{}/{}/filterbank/CB{:02d}'.format(
+            date, trigger['datetimesource'], trigger['cb'])
         downsamp = int(trigger['width'] / TSAMP.to(u.ms).value)
         trigger['plot_cmd'] = 'python {} --cmap viridis --rficlean --sb {} --dm {:.2f} ' \
                               '--t {:.2f} --downsamp {} {}'.format(self.waterfall_sb, trigger['sb'],
@@ -396,7 +397,8 @@ class LOFARTrigger(mp.Process):
         for param, (name, formatting) in parameters.items():
             try:
                 value = formatting.format(trigger[param])
-                content += '<tr><th colspan="4" style="text-align:left">{}</th><td colspan="6">{}</td></tr>\n'.format(name, value)
+                content += '<tr><th colspan="4" style="text-align:left">{}</th>' \
+                    '<td colspan="6">{}</td></tr>\n'.format(name, value)
             except KeyError:
                 pass
 
