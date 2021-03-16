@@ -397,7 +397,7 @@ class Processor(DARCBase):
 
         # start clustering
         thread = Clustering(obs_config, output_dir, self.log_queue, self.clustering_queue, self.extractor_queue,
-                            self.ncluster, self.config_file)
+                            self.ncluster, self.config_file, self.obs_name)
         thread.name = 'clustering'
         self.threads['clustering'] = thread
 
