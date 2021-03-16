@@ -1279,6 +1279,31 @@ Executed commands depend on whether this is a worker node or the master node.</p
 </dd></dl>
 
 <dl class="py method">
+<dt id="darc.processor.Processor._get_timeout">
+<code class="sig-name descname"><span class="pre">_get_timeout</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._get_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get procesing time limit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>time limit in seconds (float) or None if no limit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="darc.processor.Processor._join_with_timeout">
+<code class="sig-name descname"><span class="pre">_join_with_timeout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._join_with_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal a process to stop. Terminate if timeout is reached</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – name of Process in self.threads dict to join</p></li>
+<li><p><strong>timeout</strong> (<em>float</em>) – timeout in seconds (None for no time limit)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="darc.processor.Processor._read_amber_triggers">
 <code class="sig-name descname"><span class="pre">_read_amber_triggers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_amber_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read AMBER triggers for reprocessing of an observation.
