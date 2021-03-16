@@ -594,6 +594,9 @@ class Processor(DARCBase):
                 if not self.hdr_mapping:
                     for trigger in triggers:
                         if trigger.startswith('#'):
+                            # remove header from trigger count
+                            with self.obs_stats_lock:
+                                self.obs_stats['ncand_raw'] -= 1
                             # read header, remove comment symbol
                             header = trigger.split()[1:]
                             self.logger.info("Received header: {}".format(header))
