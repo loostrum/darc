@@ -58,6 +58,7 @@ class TestProcessorManager(unittest.TestCase):
         # ToDo: fix this in Process setup
         manager.observations['0'] = thread
         manager.observation_queues['0'] = None
+        manager.observation_end_times['0'] = None
 
         manager.start()
         # give it some time to start
