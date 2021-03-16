@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-import logging
 import numpy as np
 from sigpyproc import FilReader
 
 from darc import SBGenerator
 from darc.processor_tools.spectra import Spectra
 from darc.definitions import NTAB, CONFIG_FILE
-
-# set blimpy to only log errors
-logging.getLogger("blimpy").setLevel(logging.ERROR)
 
 
 class ARTSFilterbankReaderError(Exception):
