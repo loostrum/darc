@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>DARC services &mdash; DARC 3.0 documentation</title>
+  <title>DARC services &mdash; DARC 3.1 documentation</title>
   
 
   
@@ -183,7 +183,7 @@
 <span id="master-service"></span><h2>Master service<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.darc_master.DARCMaster">
-<em class="property">class </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.darc_master.</span></code><code class="sig-name descname"><span class="pre">DARCMaster</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.8/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>DARC master service that controls all other services and queues</p>
 <p>Interact with this service through the ‘darc’ executable</p>
@@ -194,7 +194,7 @@
 </dl>
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster._get_attribute">
-<code class="sig-name descname">_get_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em>, <em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._get_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_attribute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._get_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get attribute of a service instance</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -208,13 +208,13 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster._load_config">
-<code class="sig-name descname">_load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load configuration file</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load parset file and convert to observation config</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -228,7 +228,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster._load_yaml">
-<code class="sig-name descname">_load_yaml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_yaml" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_yaml</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._load_yaml" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load yaml file and convert to observation config</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -242,7 +242,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster._switch_cmd">
-<code class="sig-name descname">_switch_cmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._switch_cmd" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_switch_cmd</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster._switch_cmd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check status of LOFAR trigger system / VOEvent generator, or enable/disable them</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -256,7 +256,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.check_status">
-<code class="sig-name descname">check_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.check_status" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">check_status</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.check_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check status of a service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -270,7 +270,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.create_thread">
-<code class="sig-name descname">create_thread</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.create_thread" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">create_thread</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.create_thread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialise a service thread</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -281,7 +281,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.get_queue">
-<code class="sig-name descname">get_queue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.get_queue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_queue</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.get_queue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get control queue corresponding to a service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -295,7 +295,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.parse_message">
-<code class="sig-name descname">parse_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw_message</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.parse_message" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">parse_message</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.parse_message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse raw received message</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,7 +309,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.process_message">
-<code class="sig-name descname">process_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em>, <em class="sig-param"><span class="n">command</span></em>, <em class="sig-param"><span class="n">payload</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.process_message" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_message</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.process_message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process received message</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -327,7 +327,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.restart_service">
-<code class="sig-name descname">restart_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.restart_service" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">restart_service</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.restart_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restart a service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -341,18 +341,21 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop</p>
 <p>Listen for messages on the command socket and process them</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start an observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – Path to observation config file</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – Path to observation config file</p></li>
+<li><p><strong>service</strong> (<em>str</em>) – Which service to send start_observation to (default: all)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>status, reply</p>
@@ -362,7 +365,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.start_service">
-<code class="sig-name descname">start_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_service" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_service</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.start_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start a service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -376,7 +379,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop all services and exit</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -387,13 +390,14 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em>, <em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop an observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_file</strong> (<em>str</em>) – path to observation config file</p></li>
 <li><p><strong>abort</strong> (<em>bool</em>) – whether to abort the observation</p></li>
+<li><p><strong>service</strong> (<em>str</em>) – Which service to send start_observation to (default: all)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -404,7 +408,7 @@
 
 <dl class="py method">
 <dt id="darc.darc_master.DARCMaster.stop_service">
-<code class="sig-name descname">stop_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">service</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_service" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_service</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster.stop_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop a service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -420,13 +424,13 @@
 
 <dl class="py exception">
 <dt id="darc.darc_master.DARCMasterException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">DARCMasterException</code><a class="headerlink" href="#darc.darc_master.DARCMasterException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.darc_master.</span></code><code class="sig-name descname"><span class="pre">DARCMasterException</span></code><a class="headerlink" href="#darc.darc_master.DARCMasterException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="darc.darc_master.main">
-<code class="sig-prename descclassname">darc.darc_master.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.main" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">darc.darc_master.</span></code><code class="sig-name descname"><span class="pre">main</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run DARC Master</p>
 </dd></dl>
 
@@ -435,13 +439,13 @@
 <span id="reading-amber-candidates"></span><h2>Reading AMBER candidates<a class="headerlink" href="#module-darc.amber_listener" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.amber_listener.AMBERListener">
-<em class="property">class </em><code class="sig-prename descclassname">darc.amber_listener.</code><code class="sig-name descname">AMBERListener</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.amber_listener.</span></code><code class="sig-name descname"><span class="pre">AMBERListener</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Continuously read AMBER candidate files from disk and put
 candidates on output queue.</p>
 <dl class="py method">
 <dt id="darc.amber_listener.AMBERListener._follow_file">
-<code class="sig-name descname">_follow_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener._follow_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_follow_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener._follow_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tail a file an put lines on queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -455,7 +459,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_listener.AMBERListener.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start an observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -469,7 +473,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_listener.AMBERListener.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation</p>
 </dd></dl>
 
@@ -477,7 +481,7 @@ candidates on output queue.</p>
 
 <dl class="py exception">
 <dt id="darc.amber_listener.AMBERListenerException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.amber_listener.</code><code class="sig-name descname">AMBERListenerException</code><a class="headerlink" href="#darc.amber_listener.AMBERListenerException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.amber_listener.</span></code><code class="sig-name descname"><span class="pre">AMBERListenerException</span></code><a class="headerlink" href="#darc.amber_listener.AMBERListenerException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
@@ -486,7 +490,7 @@ candidates on output queue.</p>
 <span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.amber_clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.amber_clustering.AMBERClustering">
-<em class="property">class </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClustering</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">connect_vo</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">connect_lofar</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.amber_clustering.</span></code><code class="sig-name descname"><span class="pre">AMBERClustering</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_vo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_lofar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Trigger IQUV / LOFAR / VOEvent system based on AMBER candidates</p>
 <ol class="arabic simple">
@@ -505,7 +509,7 @@ candidates on output queue.</p>
 </dl>
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._check_triggers">
-<code class="sig-name descname">_check_triggers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">triggers</span></em>, <em class="sig-param"><span class="n">sys_params</span></em>, <em class="sig-param"><span class="n">utc_start</span></em>, <em class="sig-param"><span class="n">datetimesource</span></em>, <em class="sig-param"><span class="n">dm_min</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">dm_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">dm_src</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">width_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">snr_min</span><span class="o">=</span><span class="default_value">8</span></em>, <em class="sig-param"><span class="n">src_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">src_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dmgal</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">pointing</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">skip_lofar</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._check_triggers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_check_triggers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utc_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datetimesource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snr_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmgal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pointing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_lofar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._check_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cluster triggers and run IQUV and/or LOFAR triggering</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -531,7 +535,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._get_pointing">
-<code class="sig-name descname">_get_pointing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_pointing" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_pointing</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_pointing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get pointing of this CB from parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -542,7 +546,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._get_source">
-<code class="sig-name descname">_get_source</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_source" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_source</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._get_source" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try to get DM for a known source</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -553,7 +557,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the observation parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -567,7 +571,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._load_source_list">
-<code class="sig-name descname">_load_source_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_source_list" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_source_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._load_source_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the list with known source DMs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -578,20 +582,20 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering._process_triggers">
-<code class="sig-name descname">_process_triggers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._process_triggers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_process_triggers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering._process_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read thresholds (DM, width, S/N) for clustering</p>
 <p>Continuously read AMBER triggers from queue and start processing for known and/or new sources</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering.lofar_connector">
-<code class="sig-name descname">lofar_connector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.lofar_connector" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">lofar_connector</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.lofar_connector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to the LOFAR triggering system on the master node</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering.process_command">
-<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.process_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process command received from queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -602,7 +606,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse obs config and start listening for amber triggers on queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -616,13 +620,13 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.amber_clustering.AMBERClustering.voevent_connector">
-<code class="sig-name descname">voevent_connector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.voevent_connector" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">voevent_connector</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering.voevent_connector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to the VOEvent generator on the master node</p>
 </dd></dl>
 
@@ -630,7 +634,7 @@ candidates on output queue.</p>
 
 <dl class="py exception">
 <dt id="darc.amber_clustering.AMBERClusteringException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.amber_clustering.</code><code class="sig-name descname">AMBERClusteringException</code><a class="headerlink" href="#darc.amber_clustering.AMBERClusteringException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.amber_clustering.</span></code><code class="sig-name descname"><span class="pre">AMBERClusteringException</span></code><a class="headerlink" href="#darc.amber_clustering.AMBERClusteringException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
@@ -639,12 +643,12 @@ candidates on output queue.</p>
 <span id="iquv-triggering"></span><h2>IQUV triggering<a class="headerlink" href="#module-darc.dada_trigger" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.dada_trigger.DADATrigger">
-<em class="property">class </em><code class="sig-prename descclassname">darc.dada_trigger.</code><code class="sig-name descname">DADATrigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.dada_trigger.</span></code><code class="sig-name descname"><span class="pre">DADATrigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Generate and send dada_dbevent triggers</p>
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the observation parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -658,13 +662,13 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.cleanup">
-<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.cleanup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">cleanup</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.cleanup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove all trigger-sending threads</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.polcal_dumps">
-<code class="sig-name descname">polcal_dumps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.polcal_dumps" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">polcal_dumps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.polcal_dumps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Automatically dump IQUV data at regular intervals for polcal calibrator observations</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -675,7 +679,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.process_command">
-<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.process_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process command received from queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -686,7 +690,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.send_event">
-<code class="sig-name descname">send_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">triggers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_event" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_event" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send trigger to dada_dbevent</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -697,7 +701,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.send_events">
-<code class="sig-name descname">send_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">stokes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_events" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_events</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stokes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.send_events" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send stokes I or IQUV events</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -714,7 +718,7 @@ candidates on output queue.</p>
 
 <dl class="py method">
 <dt id="darc.dada_trigger.DADATrigger.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation: run IQUV dumps automatically if source is polarisation calibrator.
 Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 <dl class="field-list simple">
@@ -731,7 +735,7 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 
 <dl class="py exception">
 <dt id="darc.dada_trigger.DADATriggerException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.dada_trigger.</code><code class="sig-name descname">DADATriggerException</code><a class="headerlink" href="#darc.dada_trigger.DADATriggerException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.dada_trigger.</span></code><code class="sig-name descname"><span class="pre">DADATriggerException</span></code><a class="headerlink" href="#darc.dada_trigger.DADATriggerException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
@@ -740,7 +744,7 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 <span id="lofar-triggering"></span><h2>LOFAR triggering<a class="headerlink" href="#module-darc.lofar_trigger" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.lofar_trigger.LOFARTrigger">
-<em class="property">class </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTrigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.lofar_trigger.</span></code><code class="sig-name descname"><span class="pre">LOFARTrigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.8/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering</p>
 <dl class="field-list simple">
@@ -754,7 +758,7 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 </dl>
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger._get_attribute">
-<code class="sig-name descname">_get_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._get_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_attribute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._get_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get attribute as given in input command</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -765,7 +769,7 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger._new_trigger">
-<code class="sig-name descname">_new_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dm</span></em>, <em class="sig-param"><span class="n">utc</span></em>, <em class="sig-param"><span class="n">nu_GHz</span><span class="o">=</span><span class="default_value">1.37</span></em>, <em class="sig-param"><span class="n">test</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._new_trigger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_new_trigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu_GHz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._new_trigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a LOFAR trigger struct</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -781,7 +785,7 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger._select_trigger">
-<em class="property">static </em><code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">triggers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._select_trigger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">_select_trigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._select_trigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select trigger with highest S/N from a list of triggers.
 If there are triggers from both known and new sources, select the known source</p>
 <dl class="field-list simple">
@@ -796,13 +800,13 @@ If there are triggers from both known and new sources, select the known source</
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger._switch_command">
-<code class="sig-name descname">_switch_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._switch_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_switch_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger._switch_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check status or enable/disable sending of events</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger.create_and_send">
-<code class="sig-name descname">create_and_send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trigger</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.create_and_send" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">create_and_send</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.create_and_send" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create LOFAR trigger struct</p>
 <p>Event is only sent if enabled in config</p>
 <dl class="field-list simple">
@@ -814,14 +818,14 @@ If there are triggers from both known and new sources, select the known source</
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop</p>
 <p>Read triggers from queue and process them</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger.send_email">
-<code class="sig-name descname">send_email</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trigger</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.send_email" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_email</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.send_email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send email upon LOFAR trigger</p>
 <p>Consider running this method in a try/except block, as sending emails might fail in case of network
 interrupts</p>
@@ -834,7 +838,7 @@ interrupts</p>
 
 <dl class="py method">
 <dt id="darc.lofar_trigger.LOFARTrigger.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 </dd></dl>
 
@@ -842,13 +846,13 @@ interrupts</p>
 
 <dl class="py exception">
 <dt id="darc.lofar_trigger.LOFARTriggerException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTriggerException</code><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.lofar_trigger.</span></code><code class="sig-name descname"><span class="pre">LOFARTriggerException</span></code><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="darc.lofar_trigger.LOFARTriggerQueueServer">
-<em class="property">class </em><code class="sig-prename descclassname">darc.lofar_trigger.</code><code class="sig-name descname">LOFARTriggerQueueServer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">address</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">authkey</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">serializer</span><span class="o">=</span><span class="default_value">'pickle'</span></em>, <em class="sig-param"><span class="n">ctx</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerQueueServer" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.lofar_trigger.</span></code><code class="sig-name descname"><span class="pre">LOFARTriggerQueueServer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serializer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pickle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerQueueServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
 <p>Server for LOFAR Trigger input queue</p>
 </dd></dl>
@@ -858,7 +862,7 @@ interrupts</p>
 <span id="sending-voevents"></span><h2>Sending VOEvents<a class="headerlink" href="#module-darc.voevent_generator" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.voevent_generator.VOEventGenerator">
-<em class="property">class </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.voevent_generator.</span></code><code class="sig-name descname"><span class="pre">VOEventGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.8/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>Convert incoming triggers to VOEvent and send to
 the VOEvent broker</p>
@@ -873,7 +877,7 @@ the VOEvent broker</p>
 </dl>
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator._NewVOEvent">
-<code class="sig-name descname">_NewVOEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dm</span></em>, <em class="sig-param"><span class="n">dm_err</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">snr</span></em>, <em class="sig-param"><span class="n">flux</span></em>, <em class="sig-param"><span class="n">ra</span></em>, <em class="sig-param"><span class="n">dec</span></em>, <em class="sig-param"><span class="n">semiMaj</span></em>, <em class="sig-param"><span class="n">semiMin</span></em>, <em class="sig-param"><span class="n">ymw16</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">importance</span></em>, <em class="sig-param"><span class="n">utc</span></em>, <em class="sig-param"><span class="n">gl</span></em>, <em class="sig-param"><span class="n">gb</span></em>, <em class="sig-param"><span class="n">gain</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.08192</span></em>, <em class="sig-param"><span class="n">delta_nu_MHz</span><span class="o">=</span><span class="default_value">0.1953125</span></em>, <em class="sig-param"><span class="n">nu_GHz</span><span class="o">=</span><span class="default_value">1.37</span></em>, <em class="sig-param"><span class="n">posang</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">test</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._NewVOEvent" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_NewVOEvent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_err</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semiMaj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semiMin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymw16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08192</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_nu_MHz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1953125</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu_GHz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posang</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._NewVOEvent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a VOEvent</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -906,7 +910,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator._get_attribute">
-<code class="sig-name descname">_get_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._get_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_attribute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._get_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get attribute as given in input command</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -917,7 +921,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator._select_trigger">
-<em class="property">static </em><code class="sig-name descname">_select_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">triggers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._select_trigger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">_select_trigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._select_trigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select trigger with highest S/N from a list of triggers</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -931,13 +935,13 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator._switch_command">
-<code class="sig-name descname">_switch_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._switch_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_switch_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator._switch_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check status or enable/disable sending of events</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator.create_and_send">
-<code class="sig-name descname">create_and_send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trigger</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.create_and_send" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">create_and_send</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.create_and_send" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create voevent</p>
 <p>Event is only sent if enabled in config</p>
 <dl class="field-list simple">
@@ -949,14 +953,14 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop</p>
 <p>Read triggers from queue and process them</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.voevent_generator.VOEventGenerator.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 </dd></dl>
 
@@ -964,13 +968,13 @@ the VOEvent broker</p>
 
 <dl class="py exception">
 <dt id="darc.voevent_generator.VOEventGeneratorException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventGeneratorException</code><a class="headerlink" href="#darc.voevent_generator.VOEventGeneratorException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.voevent_generator.</span></code><code class="sig-name descname"><span class="pre">VOEventGeneratorException</span></code><a class="headerlink" href="#darc.voevent_generator.VOEventGeneratorException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="darc.voevent_generator.VOEventQueueServer">
-<em class="property">class </em><code class="sig-prename descclassname">darc.voevent_generator.</code><code class="sig-name descname">VOEventQueueServer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">address</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">authkey</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">serializer</span><span class="o">=</span><span class="default_value">'pickle'</span></em>, <em class="sig-param"><span class="n">ctx</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventQueueServer" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.voevent_generator.</span></code><code class="sig-name descname"><span class="pre">VOEventQueueServer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serializer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pickle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventQueueServer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
 <p>Server for VOEvent input queue</p>
 </dd></dl>
@@ -980,7 +984,7 @@ the VOEvent broker</p>
 <span id="offline-data-processing"></span><h2>Offline data processing<a class="headerlink" href="#module-darc.offline_processing" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.offline_processing.OfflineProcessing">
-<em class="property">class </em><code class="sig-prename descclassname">darc.offline_processing.</code><code class="sig-name descname">OfflineProcessing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.offline_processing.</span></code><code class="sig-name descname"><span class="pre">OfflineProcessing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.8/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>Full offline processing pipeline:</p>
 <ol class="arabic simple">
@@ -1006,7 +1010,7 @@ the VOEvent broker</p>
 </dl>
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._classify">
-<code class="sig-name descname">_classify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">input_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._classify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_classify</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._classify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the ML classifier</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1023,7 +1027,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._cluster">
-<code class="sig-name descname">_cluster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">filterbank_name</span></em>, <em class="sig-param"><span class="n">tab</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ind</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sbmin</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sbmax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">out</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._cluster" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_cluster</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterbank_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sbmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sbmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run triggers.py, which takes care of clustering and extracting filterbank data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1045,7 +1049,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._fold_pulsar">
-<code class="sig-name descname">_fold_pulsar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._fold_pulsar" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_fold_pulsar</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._fold_pulsar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fold pulsar with PRESTO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1059,7 +1063,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._gather_results">
-<code class="sig-name descname">_gather_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._gather_results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_gather_results</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._gather_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gather output results and put in central location</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1073,7 +1077,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._get_attribute">
-<code class="sig-name descname">_get_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_attribute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get attribute as given in input command</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1084,7 +1088,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._get_coordinates">
-<code class="sig-name descname">_get_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_coordinates" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_coordinates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate coordinates file from the pointing directions</p>
 <p>File contains RA, Dec, gl, gb for each CB used in this observation</p>
 <dl class="field-list simple">
@@ -1099,7 +1103,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._get_overview">
-<code class="sig-name descname">_get_overview</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_overview" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_overview</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._get_overview" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate observation overview file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1110,7 +1114,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the observation parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1124,7 +1128,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._merge_hdf5">
-<code class="sig-name descname">_merge_hdf5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">output_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_hdf5" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_merge_hdf5</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge HDF5 files generated by clustering</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1141,7 +1145,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._merge_plots">
-<code class="sig-name descname">_merge_plots</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_plots" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_merge_plots</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_plots" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge classifier output plots into one pdf</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1152,7 +1156,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._merge_triggers">
-<code class="sig-name descname">_merge_triggers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_triggers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_merge_triggers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._merge_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge AMBER triggers into one file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1163,7 +1167,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._plot_known_frb_cands">
-<code class="sig-name descname">_plot_known_frb_cands</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">coord_cb00</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._plot_known_frb_cands" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_plot_known_frb_cands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord_cb00</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._plot_known_frb_cands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call external script that plots candidates of known FRBs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1177,7 +1181,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._run_calibration_tools">
-<code class="sig-name descname">_run_calibration_tools</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._run_calibration_tools" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_run_calibration_tools</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._run_calibration_tools" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1190,7 +1194,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._start_observation_master">
-<code class="sig-name descname">_start_observation_master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_master" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_start_observation_master</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation on master node</p>
 <p>Generated observation summary and send email once all workers are done</p>
 <dl class="field-list simple">
@@ -1205,7 +1209,7 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing._start_observation_worker">
-<code class="sig-name descname">_start_observation_worker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_worker" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_start_observation_worker</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing._start_observation_worker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start observation on worker node:</p>
 <ol class="arabic simple">
 <li><p>Candidate clustering</p></li>
@@ -1224,19 +1228,19 @@ the VOEvent broker</p>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing.load_config">
-<code class="sig-name descname">load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.load_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">load_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.load_config" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait for start_observation command, then run offline processing pipeline.
 Executed commands depend on whether this is a worker node or the master node.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.offline_processing.OfflineProcessing.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 </dd></dl>
 
@@ -1244,7 +1248,7 @@ Executed commands depend on whether this is a worker node or the master node.</p
 
 <dl class="py exception">
 <dt id="darc.offline_processing.OfflineProcessingException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.offline_processing.</code><code class="sig-name descname">OfflineProcessingException</code><a class="headerlink" href="#darc.offline_processing.OfflineProcessingException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.offline_processing.</span></code><code class="sig-name descname"><span class="pre">OfflineProcessingException</span></code><a class="headerlink" href="#darc.offline_processing.OfflineProcessingException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
@@ -1253,7 +1257,7 @@ Executed commands depend on whether this is a worker node or the master node.</p
 <span id="real-time-data-processing-worker-node"></span><h2>Real-time data processing (worker node)<a class="headerlink" href="#module-darc.processor" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.processor.Processor">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.processor.</span></code><code class="sig-name descname"><span class="pre">Processor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Real-time processing of candidates</p>
 <ol class="arabic simple">
@@ -1270,32 +1274,39 @@ Executed commands depend on whether this is a worker node or the master node.</p
 </dl>
 <dl class="py method">
 <dt id="darc.processor.Processor._finish_processing">
-<code class="sig-name descname">_finish_processing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._finish_processing" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_finish_processing</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._finish_processing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait for real-time processing to finish and visualize results</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.Processor._read_amber_triggers">
-<code class="sig-name descname">_read_amber_triggers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_amber_triggers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_read_amber_triggers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_amber_triggers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read AMBER triggers for reprocessing of an observation.
 Based on AMBERListener</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.Processor._read_and_process_data">
-<code class="sig-name descname">_read_and_process_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_and_process_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_read_and_process_data</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._read_and_process_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process incoming AMBER triggers</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="darc.processor.Processor._reorder_clusters">
+<code class="sig-name descname"><span class="pre">_reorder_clusters</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._reorder_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder clusters ready for data extraction to highest-S/N first. This is used such that bright candidates
+are prioritized when there is a processing time limit</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="darc.processor.Processor._store_obs_stats">
-<code class="sig-name descname">_store_obs_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._store_obs_stats" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_store_obs_stats</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor._store_obs_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store observation statistics to central result directory</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.Processor.process_command">
-<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.process_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process command received from queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1306,7 +1317,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.Processor.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse obs config and start listening for amber triggers on queue</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1320,7 +1331,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.Processor.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1331,7 +1342,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.Processor.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1344,18 +1355,18 @@ Based on AMBERListener</p>
 
 <dl class="py exception">
 <dt id="darc.processor.ProcessorException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">ProcessorException</code><a class="headerlink" href="#darc.processor.ProcessorException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.processor.</span></code><code class="sig-name descname"><span class="pre">ProcessorException</span></code><a class="headerlink" href="#darc.processor.ProcessorException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="darc.processor.ProcessorManager">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor.</code><code class="sig-name descname">ProcessorManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.processor.</span></code><code class="sig-name descname"><span class="pre">ProcessorManager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Control logic for running several Processor instances, one per observation</p>
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the observation parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1369,31 +1380,31 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.process_command">
-<code class="sig-name descname">process_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.process_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.process_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward any data from the input queue to the running observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.processing_status_generator">
-<code class="sig-name descname">processing_status_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.processing_status_generator" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">processing_status_generator</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.processing_status_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>At regular interval, create status file for processing website</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop. Create thread scavenger, then run parent class run method</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Processor and call its start_observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1404,7 +1415,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation with task ID as given in parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1415,7 +1426,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor.ProcessorManager.thread_scavenger">
-<code class="sig-name descname">thread_scavenger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.thread_scavenger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">thread_scavenger</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager.thread_scavenger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any finished threads at regular intervals</p>
 </dd></dl>
 
@@ -1426,7 +1437,7 @@ Based on AMBERListener</p>
 <span id="real-time-data-processing-master-node"></span><h2>Real-time data processing (master node)<a class="headerlink" href="#module-darc.processor_master" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.processor_master.ProcessorMaster">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor_master.</code><code class="sig-name descname">ProcessorMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.processor_master.</span></code><code class="sig-name descname"><span class="pre">ProcessorMaster</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Combine results from worker node processors</p>
 <dl class="field-list simple">
@@ -1436,7 +1447,7 @@ Based on AMBERListener</p>
 </dl>
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._check_node_online">
-<code class="sig-name descname">_check_node_online</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._check_node_online" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_check_node_online</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._check_node_online" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if the processor on a node is still online and processing the current observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1450,7 +1461,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._generate_info_file">
-<code class="sig-name descname">_generate_info_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._generate_info_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_generate_info_file</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._generate_info_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate observation info files</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -1461,19 +1472,19 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._get_result_dir">
-<code class="sig-name descname">_get_result_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._get_result_dir" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_result_dir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._get_result_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get result directory from worker processor config</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._process_observation">
-<code class="sig-name descname">_process_observation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._process_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_process_observation</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._process_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._process_results">
-<code class="sig-name descname">_process_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">info</span></em>, <em class="sig-param"><span class="n">coordinates</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._process_results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_process_results</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._process_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load statistics and plots from the nodes. Copy to website directory and return data to be sent as email</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1490,13 +1501,13 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._publish_results">
-<code class="sig-name descname">_publish_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span></em>, <em class="sig-param"><span class="n">files</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._publish_results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_publish_results</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._publish_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Publish email content as local website</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._send_email">
-<code class="sig-name descname">_send_email</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">email</span></em>, <em class="sig-param"><span class="n">attachments</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._send_email" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_send_email</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">email</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attachments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._send_email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send email with observation results</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1510,7 +1521,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._send_warning">
-<code class="sig-name descname">_send_warning</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._send_warning" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_send_warning</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._send_warning" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send a warning email about a node</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1521,13 +1532,13 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster._wait_for_workers">
-<code class="sig-name descname">_wait_for_workers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._wait_for_workers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_wait_for_workers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster._wait_for_workers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait for all worker nodes to finish processing this observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse obs config and start observation processing after end time has passed</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1541,7 +1552,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1552,7 +1563,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMaster.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1565,12 +1576,12 @@ Based on AMBERListener</p>
 
 <dl class="py class">
 <dt id="darc.processor_master.ProcessorMasterManager">
-<em class="property">class </em><code class="sig-prename descclassname">darc.processor_master.</code><code class="sig-name descname">ProcessorMasterManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.processor_master.</span></code><code class="sig-name descname"><span class="pre">ProcessorMasterManager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
 <p>Control logic for running several ProcessorMaster instances, one per observation</p>
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager._load_parset">
-<code class="sig-name descname">_load_parset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager._load_parset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_load_parset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager._load_parset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the observation parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1584,25 +1595,25 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.processing_status_generator">
-<code class="sig-name descname">processing_status_generator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.processing_status_generator" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">processing_status_generator</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.processing_status_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>At regular interval, create status file for processing website</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop. Create thread scavenger, then run parent class run method</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.start_observation">
-<code class="sig-name descname">start_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em>, <em class="sig-param"><span class="n">reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.start_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.start_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a ProcessorMaster and call its start_observation</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abort</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1613,7 +1624,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.stop_observation">
-<code class="sig-name descname">stop_observation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.stop_observation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop_observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.stop_observation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop observation with task ID as given in parset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1624,7 +1635,7 @@ Based on AMBERListener</p>
 
 <dl class="py method">
 <dt id="darc.processor_master.ProcessorMasterManager.thread_scavenger">
-<code class="sig-name descname">thread_scavenger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.thread_scavenger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">thread_scavenger</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager.thread_scavenger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any finished threads at regular intervals</p>
 </dd></dl>
 
@@ -1635,7 +1646,7 @@ Based on AMBERListener</p>
 <span id="monitoring"></span><h2>Monitoring<a class="headerlink" href="#module-darc.status_website" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="darc.status_website.StatusWebsite">
-<em class="property">class </em><code class="sig-prename descclassname">darc.status_website.</code><code class="sig-name descname">StatusWebsite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_queue</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">config_file</span><span class="o">=</span><span class="default_value">'/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em>, <em class="sig-param"><span class="n">control_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">darc.status_website.</span></code><code class="sig-name descname"><span class="pre">StatusWebsite</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.8/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>Generate a HTML page with the status of each service
 across the ARTS cluster at regular intervals</p>
@@ -1650,7 +1661,7 @@ across the ARTS cluster at regular intervals</p>
 </dl>
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite._get_attribute">
-<code class="sig-name descname">_get_attribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite._get_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">_get_attribute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite._get_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get attribute as given in input command</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1661,13 +1672,13 @@ across the ARTS cluster at regular intervals</p>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.check_command">
-<code class="sig-name descname">check_command</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.check_command" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">check_command</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.check_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if this service should execute a command</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.get_template">
-<em class="property">static </em><code class="sig-name descname">get_template</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.get_template" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_template</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return HTML template</p>
 <p>Split into header and footer</p>
 <dl class="field-list simple">
@@ -1679,13 +1690,13 @@ across the ARTS cluster at regular intervals</p>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.make_offline_page">
-<code class="sig-name descname">make_offline_page</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.make_offline_page" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">make_offline_page</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.make_offline_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create page for when status website is offline</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.publish_status">
-<code class="sig-name descname">publish_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">statuses</span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.publish_status" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">publish_status</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">statuses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.publish_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Publish status as simple html webpage</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1696,7 +1707,7 @@ across the ARTS cluster at regular intervals</p>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main loop:</p>
 <ol class="arabic simple">
 <li><p>Get status of all services across all nodes</p></li>
@@ -1707,7 +1718,7 @@ across the ARTS cluster at regular intervals</p>
 
 <dl class="py method">
 <dt id="darc.status_website.StatusWebsite.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.stop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop this service</p>
 </dd></dl>
 
@@ -1715,7 +1726,7 @@ across the ARTS cluster at regular intervals</p>
 
 <dl class="py exception">
 <dt id="darc.status_website.StatusWebsiteException">
-<em class="property">exception </em><code class="sig-prename descclassname">darc.status_website.</code><code class="sig-name descname">StatusWebsiteException</code><a class="headerlink" href="#darc.status_website.StatusWebsiteException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">darc.status_website.</span></code><code class="sig-name descname"><span class="pre">StatusWebsiteException</span></code><a class="headerlink" href="#darc.status_website.StatusWebsiteException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
