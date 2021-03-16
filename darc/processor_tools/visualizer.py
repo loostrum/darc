@@ -32,7 +32,8 @@ class Visualizer:
     Visualize candidates
     """
 
-    def __init__(self, output_dir, result_dir, log_queue, obs_config, files, config_file=CONFIG_FILE):
+    def __init__(self, output_dir, result_dir, log_queue, obs_config, files, config_file=CONFIG_FILE,
+                 obs_name=''):
         """
         :param str output_dir: Output directory for data products
         :param str result_dir: central directory to copy output PDF to
@@ -40,6 +41,7 @@ class Visualizer:
         :param dict obs_config: Observations settings
         :param list files: HDF5 files to visualize
         :param str config_file: Path to config file
+        :param str obs_name: Observation name to use in log messages
         """
         module_name = type(self).__module__.split('.')[-1]
         self.output_dir = output_dir
@@ -47,21 +49,20 @@ class Visualizer:
         self.logger = get_queue_logger(module_name, log_queue)
         self.obs_config = obs_config
         self.files = np.array(files)
+        self.obs_name = obs_name
 
         # load config
         self.config_file = config_file
         self.config = self._load_config()
 
-        self.logger.info(f"Starting visualization of task ID "
-                         f"{self.obs_config['parset']['task.taskID']}: {self.obs_config['datetimesource']}")
+        self.logger.info(f"{self.obs_name}Starting visualization")
         # switch the plot backend to pdf
         old_backend = plt.get_backend()
         plt.switch_backend('PDF')
         try:
             self._visualize()
         except Exception as e:
-            self.logger.error(f"Visualization of task ID {self.obs_config['parset']['task.taskID']} failed: "
-                              f"{type(e)}: {e}")
+            self.logger.error(f"{self.obs_name}Visualization failed: {type(e)}: {e}")
         # put back the old backend
         plt.switch_backend(old_backend)
 
@@ -87,7 +88,7 @@ class Visualizer:
         Run the visualization of candidates
         """
         ncand = len(self.files)
-        self.logger.debug(f"Visualizing {ncand} candidates")
+        self.logger.debug(f"{self.obs_name}Visualizing {ncand} candidates")
 
         # get max galactic DM
         dmgal = util.get_ymw16(self.obs_config['parset'], self.obs_config['beam'], self.logger)
@@ -105,7 +106,7 @@ class Visualizer:
         try:
             files = self.files[order]
         except IndexError:
-            self.logger.error("Failed to get plot order")
+            self.logger.error(f"{self.obs_name}Failed to get plot order")
             return
 
         num_full_page, nplot_last_incomplete_page = divmod(len(files), nplot_per_page)
@@ -162,7 +163,8 @@ class Visualizer:
                                 'S/N:{snr:.2f} width:{downsamp} SB:{sb}'.format(**params)
                         ax.plot(times, data, c=self.config.colour_1dtime, rasterized=True)
                     else:
-                        raise ProcessorException(f"Unknown plot type: {plot_type}, should not be able to get here!")
+                        raise ProcessorException(f"{self.obs_name}Unknown plot type: {plot_type}, "
+                                                 f"should not be able to get here!")
 
                     # add plot title
                     ax.set_title(title)
@@ -211,7 +213,7 @@ class Visualizer:
                 merger.append(fname)
         merger.write(output_file)
         # copy the file to the central output directory
-        self.logger.info(f"Saving plots to {self.result_dir}/{os.path.basename(output_file)}")
+        self.logger.info(f"{self.obs_name}Saving plots to {self.result_dir}/{os.path.basename(output_file)}")
         copy(output_file, self.result_dir)
 
     def _get_plot_order(self):
@@ -228,7 +230,7 @@ class Visualizer:
                     prob = f.attrs['prob_freqtime']
                     snr = f.attrs['snr']
                 except KeyError:
-                    self.logger.error(f"Failed to get probability or S/N from {fname}, skipping file")
+                    self.logger.error(f"{self.obs_name}Failed to get probability or S/N from {fname}, skipping file")
                     prob = np.nan
                     snr = np.nan
                 params.append((prob, snr))
@@ -258,7 +260,7 @@ class Visualizer:
                 try:
                     params[key] = f.attrs[key]
                 except KeyError:
-                    self.logger.error(r"Failed to load key {key} from {fname}")
+                    self.logger.error(f"{self.obs_name}Failed to load key {key} from {fname}")
             # load and scale the data
             if data_type == 'freq_time':
                 data = f['data_freq_time'][:]
@@ -267,13 +269,15 @@ class Visualizer:
                 # frequency axis
                 modulo, remainder = divmod(nfreq, self.config.nfreq)
                 if remainder != 0:
-                    self.logger.error("Failed to rescale freq axis of freq-time data, shapes do not match")
+                    self.logger.error(f"{self.obs_name}Failed to rescale freq axis of freq-time data, "
+                                      " shapes do not match")
                 else:
                     data = data.reshape(self.config.nfreq, modulo, -1).mean(axis=1)
                 # time axis
                 modulo, remainder = divmod(ntime, self.config.ntime)
                 if remainder != 0:
-                    self.logger.error("Failed to rescale time axis of freq-time data, shapes do not match")
+                    self.logger.error(f"{self.obs_name}Failed to rescale time axis of freq-time data, "
+                                      f"shapes do not match")
                 else:
                     data = data.reshape(self.config.nfreq, self.config.ntime, modulo).mean(axis=2)
                 data -= np.median(data, axis=1, keepdims=True)
@@ -288,13 +292,14 @@ class Visualizer:
                 # dm axis
                 modulo, remainder = divmod(ndm, self.config.ndm)
                 if remainder != 0:
-                    self.logger.error("Failed to rescale dm axis of dm-time data, shapes do not match")
+                    self.logger.error(f"{self.obs_name}Failed to rescale dm axis of dm-time data, shapes do not match")
                 else:
                     data = data.reshape(self.config.ndm, modulo, -1).mean(axis=1)
                 # time axis
                 modulo, remainder = divmod(ntime, self.config.ntime)
                 if remainder != 0:
-                    self.logger.error("Failed to rescale time axis of dm-time data, shapes do not match")
+                    self.logger.error(f"{self.obs_name}Failed to rescale time axis of dm-time data, "
+                                      f"shapes do not match")
                 else:
                     data = data.reshape(self.config.ndm, self.config.ntime, modulo).mean(axis=2)
                 data -= np.median(data, axis=1, keepdims=True)
@@ -304,12 +309,12 @@ class Visualizer:
                 ntime = len(data)
                 modulo, remainder = divmod(ntime, self.config.ntime)
                 if remainder != 0:
-                    self.logger.error("Failed to rescale 1d time data, shapes do not match")
+                    self.logger.error(f"{self.obs_name}Failed to rescale 1d time data, shapes do not match")
                 else:
                     data = data.reshape(self.config.ntime, modulo).mean(axis=1)
                 data -= np.median(data)
                 data /= np.amax(data)
             else:
-                self.logger.error(f"Unknown data type: {data_type}")
-                raise ProcessorException(f"Visualizer failed with unknown data type: {data_type}")
+                self.logger.error(f"{self.obs_name}Unknown data type: {data_type}")
+                raise ProcessorException(f"{self.obs_name}Visualizer failed with unknown data type: {data_type}")
         return data, params

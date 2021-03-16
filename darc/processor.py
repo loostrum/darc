@@ -564,7 +564,7 @@ class Processor(DARCBase):
         # Store the statistics and start the visualization
         if len(self.candidates_to_visualize) > 0:
             Visualizer(self.output_dir, self.central_result_dir, self.log_queue, self.obs_config,
-                       self.candidates_to_visualize, self.config_file)
+                       self.candidates_to_visualize, self.config_file, self.obs_name)
         else:
             self.logger.info(f"{self.obs_name}No post-classifier candidates found, skipping visualization")
 
