@@ -409,7 +409,8 @@ class Processor(DARCBase):
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.log_queue, self.classifier_queue, self.classifier_child_conn, self.config_file)
+        thread = Classifier(self.log_queue, self.classifier_queue, self.classifier_child_conn, self.config_file,
+                            self.obs_name)
         thread.name = 'classifier'
         self.threads['classifier'] = thread
 

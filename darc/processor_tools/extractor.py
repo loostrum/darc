@@ -194,7 +194,7 @@ class Extractor(mp.Process):
         # ensure start bin is not before start of observation
         if start_bin < 0:
             self.logger.warning(f"{self.obs_name}Start bin before start of file, shifting for "
-                                "ToA={toa.value:.4f}, DM={dm.value:.2f}")
+                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             start_bin = 0
         # number of bins to load is number to store plus dm delay
         nbin = int(ntime + sample_delay)
@@ -213,7 +213,7 @@ class Extractor(mp.Process):
             if first_loop:
                 # wait until data should be present on disk
                 self.logger.debug(f"{self.obs_name}Waiting until at least {twait.isot} for "
-                                  "filterbank data to be present on disk "
+                                  f"filterbank data to be present on disk "
                                   f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
                 util.sleepuntil_utc(twait, event=self.stop_event)
                 first_loop = False
