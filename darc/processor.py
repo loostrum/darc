@@ -350,7 +350,7 @@ class Processor(DARCBase):
 
         :param bool abort: Ignored, a stop of the service always equals abort
         """
-        self.logger.info("{self.obs_name}Processor received stop")
+        self.logger.info(f"{self.obs_name}Processor received stop")
 
         # abort running observation (this stops the processor too)
         self.stop_observation(abort=True)
@@ -422,7 +422,7 @@ class Processor(DARCBase):
         utc_start = Time(obs_config['startpacket'] / TIME_UNIT, format='unix')
         utc_end = utc_start + TimeDelta(obs_config['duration'], format='sec')
         if utc_end < Time.now():
-            self.logger.info("{self.obs_name}End time is in the past, reading AMBER triggers for reprocessing")
+            self.logger.info(f"{self.obs_name}End time is in the past, reading AMBER triggers for reprocessing")
             thread = threading.Thread(target=self._read_amber_triggers, name='read_amber_triggers')
             thread.daemon = True
             thread.start()
@@ -430,7 +430,7 @@ class Processor(DARCBase):
         else:
             self.reprocessing = False
 
-        self.logger.info("{self.obs_name}Observation started")
+        self.logger.info(f"{self.obs_name}Observation started")
 
     def stop_observation(self, abort=False):
         """
@@ -443,9 +443,9 @@ class Processor(DARCBase):
             return
 
         if abort:
-            self.logger.info("{self.obs_name}Aborting observation")
+            self.logger.info(f"{self.obs_name}Aborting observation")
         else:
-            self.logger.info("{self.obs_name}Finishing observation")
+            self.logger.info(f"{self.obs_name}Finishing observation")
             # wait for a short time in case some last AMBER triggers are still coming in
             sleep(self.stop_delay)
         # set running to false
@@ -611,7 +611,7 @@ class Processor(DARCBase):
 
                 # header should be present now
                 if not self.hdr_mapping:
-                    self.logger.error("{self.obs_name}reprocessing first clusters received but header not found")
+                    self.logger.error(f"{self.obs_name}reprocessing first clusters received but header not found")
                     continue
 
                 # remove headers from triggers (i.e. any trigger starting with #)
@@ -619,7 +619,7 @@ class Processor(DARCBase):
 
                 # triggers is empty if only header was received
                 if not triggers:
-                    self.logger.info("{self.obs_name}reprocessing only header received - Canceling processing")
+                    self.logger.info(f"{self.obs_name}reprocessing only header received - Canceling processing")
                     continue
 
                 # split strings and convert to numpy array
@@ -714,5 +714,5 @@ class Processor(DARCBase):
         # sleep for twice the processing interval to ensure triggers were picked up
         self.stop_event.wait(2 * self.interval)
         # reprocessing means no stop observation will be sent, do this manually
-        self.logger.info("{self.obs_name}sending manual stop_observation command for reprocessing")
+        self.logger.info(f"{self.obs_name}sending manual stop_observation command for reprocessing")
         self.source_queue.put({'command': 'stop_observation'})
