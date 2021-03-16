@@ -25,7 +25,7 @@ class Extractor(mp.Process):
     """
 
     def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncand_above_threshold,
-                 config_file=CONFIG_FILE):
+                 config_file=CONFIG_FILE, obs_name=''):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
@@ -34,6 +34,7 @@ class Extractor(mp.Process):
         :param Queue output_queue: Output queue for classifier
         :param mp.Value ncand_above_threshold: 0
         :param str config_file: Path to config file
+        :param str obs_name: Observation name to use in log messages
         """
         super(Extractor, self).__init__()
         module_name = type(self).__module__.split('.')[-1]
@@ -42,6 +43,7 @@ class Extractor(mp.Process):
         self.obs_config = obs_config
         self.input_queue = input_queue
         self.output_queue = output_queue
+        self.obs_name = obs_name
 
         # load config
         self.config_file = config_file
@@ -65,7 +67,7 @@ class Extractor(mp.Process):
         """
         Main loop
         """
-        self.logger.info("Starting extractor thread")
+        self.logger.info(f"{self.obs_name}Starting extractor thread")
 
         # initialize filterbank reader
         self.filterbank_reader = self.init_filterbank_reader()
@@ -77,7 +79,7 @@ class Extractor(mp.Process):
             self.rfi_mask = self.filterbank_reader.header.nchans - 1 - \
                 np.loadtxt(self.config.rfi_mask.replace('FREQ', str(freq))).astype(int)
         except OSError:
-            self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
+            self.logger.warning(f"{self.obs_name}No AMBER RFI mask found for {freq} MHz, not applying mask")
             self.rfi_mask = np.array([], dtype=int)
 
         do_stop = False
@@ -109,7 +111,7 @@ class Extractor(mp.Process):
                 else:
                     # do extraction
                     self._extract(*params)
-        self.logger.info("Stopping extractor thread")
+        self.logger.info(f"{self.obs_name}Stopping extractor thread")
 
     def stop(self):
         """
@@ -117,7 +119,7 @@ class Extractor(mp.Process):
         """
         # wait until the input queue is empty
         if not self.input_empty:
-            self.logger.debug("Extractor waiting to finish processing")
+            self.logger.debug(f"{self.obs_name}Extractor waiting to finish processing")
         while not self.input_empty:
             sleep(1)  # do not use event.wait here, as the whole point is to not stop until processing is done
         # then stop
@@ -176,7 +178,7 @@ class Extractor(mp.Process):
         # calculate remaining downsampling to do after dedispersion
         postdownsamp = max(1, downsamp // predownsamp)
         # total downsampling factor (can be slightly different from original downsampling)
-        self.logger.debug(f"Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp} "
+        self.logger.debug(f"{self.obs_name}Original dowsamp: {downsamp}, new downsamp: {predownsamp * postdownsamp} "
                           f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
         downsamp_effective = predownsamp * postdownsamp
         tsamp_effective = self.filterbank_reader.header.tsamp * downsamp_effective
@@ -191,7 +193,8 @@ class Extractor(mp.Process):
         start_bin = int(toa.to(u.s).value // self.filterbank_reader.header.tsamp - .5 * ntime)
         # ensure start bin is not before start of observation
         if start_bin < 0:
-            self.logger.warning(f"Start bin before start of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            self.logger.warning(f"{self.obs_name}Start bin before start of file, shifting for "
+                                "ToA={toa.value:.4f}, DM={dm.value:.2f}")
             start_bin = 0
         # number of bins to load is number to store plus dm delay
         nbin = int(ntime + sample_delay)
@@ -209,7 +212,8 @@ class Extractor(mp.Process):
         while end_bin >= self.filterbank_reader.header.nsamples:
             if first_loop:
                 # wait until data should be present on disk
-                self.logger.debug(f"Waiting until at least {twait.isot} for filterbank data to be present on disk "
+                self.logger.debug(f"{self.obs_name}Waiting until at least {twait.isot} for "
+                                  "filterbank data to be present on disk "
                                   f"for ToA={toa.value:.4f}, DM={dm.value:.2f}")
                 util.sleepuntil_utc(twait, event=self.stop_event)
                 first_loop = False
@@ -230,11 +234,12 @@ class Extractor(mp.Process):
             # if start time is also beyond the end of the file, we cannot process this candidate and give an error
             if start_bin >= self.filterbank_reader.header.nsamples:
                 timer_end = Time.now()
-                self.logger.error(f"Start bin beyond end of file, error in filterbank data? Skipping "
+                self.logger.error(f"{self.obs_name}Start bin beyond end of file, error in filterbank data? Skipping "
                                   f"ToA={toa.value:.4f}, DM={dm.value:.2f}. Processed in "
                                   f"{(timer_end - timer_start).to(u.s):.0f}")
                 return
-            self.logger.warning(f"End bin beyond end of file, shifting for ToA={toa.value:.4f}, DM={dm.value:.2f}")
+            self.logger.warning(f"{self.obs_name}End bin beyond end of file, shifting for "
+                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}")
             diff = end_bin - self.filterbank_reader.header.nsamples + 1
             start_bin -= diff
 
@@ -244,8 +249,8 @@ class Extractor(mp.Process):
             self.data = self.filterbank_reader.load_single_sb(sb, start_bin, nbin)
         except ValueError as e:
             timer_end = Time.now()
-            self.logger.error(f"Failed to load filterbank data for ToA={toa.value:.4f}, DM={dm.value:.2f}: {e}. "
-                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.error(f"{self.obs_name}Failed to load filterbank data for ToA={toa.value:.4f}, "
+                              f"DM={dm.value:.2f}: {e}. Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # apply AMBER RFI mask
@@ -273,7 +278,7 @@ class Extractor(mp.Process):
         widths = np.arange(max(1, postdownsamp // 2), min(250, postdownsamp * 2))
         if len(widths) == 0:
             timer_end = Time.now()
-            self.logger.error(f"Downsampling out of range; valid range: 1 to 250. "
+            self.logger.error(f"{self.obs_name}Downsampling out of range; valid range: 1 to 250. "
                               f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
                               f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
@@ -287,7 +292,7 @@ class Extractor(mp.Process):
         if snrmax < self.config.snr_min_local:
             # log time taken
             timer_end = Time.now()
-            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+            self.logger.debug(f"{self.obs_name}Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
                               f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
                               f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
@@ -297,8 +302,8 @@ class Extractor(mp.Process):
         if self.config.snr_dm0_filter and (snr_dm0 - snrmax >= self.config.snr_dm0_diff_threshold):
             # log time taken
             timer_end = Time.now()
-            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) lower than at DM=0 (S/N={snr_dm0:.2f}), "
-                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+            self.logger.debug(f"{self.obs_name}Skipping trigger with S/N ({snrmax:.2f}) lower than at "
+                              f"DM=0 (S/N={snr_dm0:.2f}), ToA={toa.value:.4f}, DM={dm.value:.2f}. "
                               f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
@@ -369,7 +374,7 @@ class Extractor(mp.Process):
 
         # log time taken
         timer_end = Time.now()
-        self.logger.info(f"Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
+        self.logger.info(f"{self.obs_name}Extracted ToA={toa.value:.4f}, DM={dm.value:.2f} in "
                          f"{(timer_end - timer_start).to(u.s):.0f}")
 
     def _rficlean(self):

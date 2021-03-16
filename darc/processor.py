@@ -404,7 +404,7 @@ class Processor(DARCBase):
         # start extractor(s)
         for i in range(self.num_extractor):
             thread = Extractor(obs_config, output_dir, self.log_queue, self.extractor_queue, self.classifier_queue,
-                               self.ncand_above_threshold, self.config_file)
+                               self.ncand_above_threshold, self.config_file, self.obs_name)
             thread.name = f'extractor_{i}'
             self.threads[f'extractor_{i}'] = thread
 
