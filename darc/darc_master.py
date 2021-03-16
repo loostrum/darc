@@ -229,6 +229,8 @@ class DARCMaster:
 
         service = message.get('service', None)
         payload = message.get('payload', None)
+        if service == "None":
+            service = None
         status, reply = self.process_message(service, command, payload)
 
         return status, reply
@@ -251,7 +253,7 @@ class DARCMaster:
                 status = 'Error'
                 reply = {'error': 'Payload missing'}
             else:
-                status, reply = self.start_observation(payload)
+                status, reply = self.start_observation(payload, service)
             return status, reply
         # Stop observation
         # only stop in real-time modes, as offline processing runs after the observation
@@ -262,7 +264,7 @@ class DARCMaster:
                     status = 'Error'
                     reply = {'error': 'Payload missing'}
                 else:
-                    status, reply = self.stop_observation(payload)
+                    status, reply = self.stop_observation(payload, service)
             else:
                 self.logger.info("Ignoring stop observation command in offline processing mode")
                 status = 'Success'
@@ -271,7 +273,11 @@ class DARCMaster:
         # Abort observation
         # always stop if aborted
         elif command == 'abort_observation':
-            status, reply = self.stop_observation(abort=True)
+            if not payload:
+                self.logger.error('Payload is required when aborting observation')
+                status = 'Error'
+                reply = {'error': 'Payload missing'}
+            status, reply = self.stop_observation(payload, service=service, abort=True)
             return status, reply
         # Stop master
         elif command == 'stop_master':
@@ -592,14 +598,14 @@ class DARCMaster:
         reply = "Stopping master"
         return status, reply
 
-    def start_observation(self, config_file):
+    def start_observation(self, config_file, service=None):
         """
         Start an observation
 
         :param str config_file: Path to observation config file
+        :param str service: Which service to send start_observation to (default: all)
         :return: status, reply
         """
-
         self.logger.info("Received start_observation command with config file {}".format(config_file))
         # check if config file exists
         if not os.path.isfile(config_file):
@@ -631,7 +637,10 @@ class DARCMaster:
 
         # initialize observation
         # ensure services are running
-        for service in self.services:
+        if service is None:
+            for s in self.services:
+                self.start_service(s)
+        else:
             self.start_service(service)
 
         # check host type
@@ -651,27 +660,45 @@ class DARCMaster:
         utc_end = utc_start + TimeDelta(config['duration'], format='sec')
         # if end time is in the past, only start offline processing and processor
         if utc_end < Time.now():
-            self.logger.warning("End time in past! Only starting offline processing and processor")
-            self.offline_queue.put(command)
-            self.processor_queue.put(command)
-            return "Warning", "Only offline processing and processor started"
+            self.logger.warning("End time in past! Only starting offline processing and/or processor")
+            if service is None:
+                self.offline_queue.put(command)
+                self.processor_queue.put(command)
+                return "Warning", "Only offline processing and processor started"
+            elif service == 'offline_processing':
+                self.offline_queue.put(command)
+                return "Warning", "Only offline processing started"
+            elif service == 'processor':
+                self.processor_queue.put(command)
+                return "Warning", "Only processor started"
+            else:
+                return "Error", "Can only start offline processing and processor when end time is in past"
+
         t_setup = utc_start - TimeDelta(self.setup_time, format='sec')
         self.logger.info("Starting observation at {}".format(t_setup.isot))
         util.sleepuntil_utc(t_setup)
 
-        # clear queues, then send command
-        for queue in self.all_queues:
-            util.clear_queue(queue)
-        for queue in self.all_queues:
+        if service is None:
+            # clear queues, then send command
+            for queue in self.all_queues:
+                util.clear_queue(queue)
+            for queue in self.all_queues:
+                queue.put(command)
+            return "Success", "Observation started"
+        else:
+            # only start specified service. As this is only used in case e.g. something fails during
+            # an observation, do not clear the queues first
+            queue = self.get_queue(service)
             queue.put(command)
-        return "Success", "Observation started"
+            return "Warning", "Only observation for {} started".format(service)
 
-    def stop_observation(self, config_file, abort=False):
+    def stop_observation(self, config_file, abort=False, service=None):
         """
         Stop an observation
 
         :param str config_file: path to observation config file
         :param bool abort: whether to abort the observation
+        :param str service: Which service to send start_observation to (default: all)
         :return: status, reply message
         """
         self.logger.info("Received stop_observation command with config file {}".format(config_file))
@@ -689,15 +716,22 @@ class DARCMaster:
             return "Error", "Failed: unknown config file type"
 
         # call stop_observation for all relevant services through their queues
-        for queue in self.all_queues:
-            # in mixed mode, skip stopping offline_processing, unless abort is True
-            if (self.mode == 'mixed') and (queue == self.offline_queue) and not abort:
-                self.logger.info("Skipping stopping offline processing in mixed mode")
-                continue
+        if service is None:
+            for queue in self.all_queues:
+                # in mixed mode, skip stopping offline_processing, unless abort is True
+                if (self.mode == 'mixed') and (queue == self.offline_queue) and not abort:
+                    self.logger.info("Skipping stopping offline processing in mixed mode")
+                    continue
+                queue.put({'command': 'stop_observation', 'obs_config': config})
+            status = 'Success'
+            reply = "Stopped observation"
+        else:
+            queue = self.get_queue(service)
+            self.logger.info("Only stopping observation for {}".format(service))
             queue.put({'command': 'stop_observation', 'obs_config': config})
+            status = 'Warning'
+            reply = "Only stopped observation for {}".format(service)
 
-        status = 'Success'
-        reply = "Stopped observation"
         self.logger.info("Stopped observation")
         return status, reply
 

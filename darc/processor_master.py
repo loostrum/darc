@@ -489,18 +489,19 @@ class ProcessorMaster(DARCBase):
                         <p>
                         Please check:
                         <ul>
-                          <li>Is DARC still online on {node}? See http://arts041.apertif/darc/status
+                          <li>Is DARC still online on {node}? See status website: http://arts041.apertif/~arts/darc/status
                           <li>Is DARC still processing on {node}?
                             <ul>
+                                <li>Check the processing website: http://arts041.apertif/~arts/darc/processing
                                 <li>Check the log file: <code>tail -n 50 /home/arts/darc/log/processor.{node}.log</code>
                                 <li>Check if there are files in <code>/data2/output/{date}/{datetimesource}/triggers</code>
                             </ul>
                         </ul>
                         </p>
                         <p>
-                        If DARC is offline, do the following:
+                        If DARC is not processing the observation, do the following:
                         <ul>
-                            <li>Restart DARC on {node}: <code>ssh arts@{node} '. darc/venv/bin/activate && darc_kill_all; darc_start_all_services'</code>
+                            <li>Restart DARC on {node} (only if it is offline on the status webpage or you have other reason to suspect DARC is stuck): <code>ssh arts@{node} '. darc/venv/bin/activate && darc_kill_all; darc_start_all_services'</code>
                             <li>Create an empty output file for this observation: <code>touch /home/arts/darc/results/{date}/{datetimesource}/CB{beam:02d}_summary.yaml</code>
                         </p>
                         </body>

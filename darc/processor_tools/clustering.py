@@ -100,7 +100,6 @@ class Clustering(mp.Process):
         if not self.input_empty:
             self.logger.debug("Clustering waiting to finish processing")
         while not self.input_empty:
-            print("NOT YET EMPTY")
             sleep(1)
         # then stop
         self.stop_event.set()

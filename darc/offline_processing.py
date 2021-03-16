@@ -650,10 +650,10 @@ class OfflineProcessing(mp.Process):
               " {model_option} {sb_option} " \
               " --pthresh {pthresh_freqtime} --save_ranked --plot_ranked --fnout={output_prefix} {input_file} " \
               " --pthresh_dm {pthresh_dmtime} --DMgal {dmgal} " \
-              " {model_dir}/20190416freq_time.hdf5".format(user=os.getlogin(),
-                                                           output_prefix=output_prefix, sb_option=sb_option,
-                                                           model_option=model_option, dmgal=dmgal,
-                                                           input_file=input_file, **obs_config)
+              " {model_dir}/{model_freqtime}".format(user=os.getlogin(),
+                                                     output_prefix=output_prefix, sb_option=sb_option,
+                                                     model_option=model_option, dmgal=dmgal,
+                                                     input_file=input_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
         # ToDo: count number of output figures

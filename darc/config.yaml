@@ -161,6 +161,8 @@ processor:
     output_subdir: "triggers_realtime"  # output dir for triggers on each node
     result_dir: "{home}/darc/results"  # central output dir for observation results
     stop_delay: 2  # keep receiving AMBER triggers for this long before stopping observation (seconds)
+    reprocessing_delay: 5  # delay before reading AMBER triggers for reprocessing
+    processing_time_limit: 10800  # processing time limit in seconds; set to -1 to disable
     # clustering settings
     clustering:
         output_file: "grouped_pulses.singlepulse"  # output file for clustered triggers
@@ -189,6 +191,8 @@ processor:
         rfi_n_iter_freq: 3
         rfi_bin_size: 32  # bin size for bandpass removal, should be a factor of the number of channels in the filterbank data
         snr_min_local: 5  # skip any triggers with a local S/N below this value
+        snr_dm0_filter: True  # remove triggers with a S/N at DM=0 higher than at candidate DM
+        snr_dm0_diff_threshold: 3  # remove trigger if S/N at DM=0 is at least this much higher than at candidate DM
     # ML classifier settings
     classifier:
         gpu: 0
@@ -198,12 +202,17 @@ processor:
         ntime: 64  # fixed by model shape
         nfreq: 32  # fixed by model shape
         model_dir: "{home}/keras_models"
-        model_freqtime: "20190501freq_time.hdf5"
+        model_freqtime: "20190416freq_time.hdf5"
         model_dmtime: "heimdall_dm_time.hdf5"
     # Visualization settings:
     visualizer:
+        nfreq: 32  # must be a factor of shape in extractor output
+        ntime: 64  # must be a factor of shape in extractor output
+        ndm: 64  # must be a factor of shape in extractor output
         nplot_per_side: 5
         figsize: 15
+        colour_extragal: "red"
+        colour_gal: "orange"
         cmap_freqtime: "viridis"  # any matplotlib colour map
         cmap_dmtime: "viridis"  # any matplotlib colour map
         colour_1dtime: "black"  # any matplotlib colour
@@ -240,7 +249,7 @@ offline_processing:
     model_dir: "{home}/keras_models"
     model_1dtime: "heimdall_b0329_mix_147411d_time.hdf5"
     model_dmtime: "heimdall_dm_time.hdf5"
-    model_freqtime: "20190501freq_time.hdf5"
+    model_freqtime: "20190416freq_time.hdf5"
     calibration_dir: "{home}/darc/calibration"
     emailer: "{home}/ARTS-obs/emailer.py"
     triggering: "{home}/ARTS-obs/external/arts-analysis/triggers.py"

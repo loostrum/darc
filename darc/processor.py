@@ -8,6 +8,7 @@ from textwrap import dedent
 import socket
 import threading
 import multiprocessing as mp
+from queue import Empty
 from time import sleep
 from astropy.time import Time, TimeDelta
 import numpy as np
@@ -289,6 +290,7 @@ class Processor(DARCBase):
         self.hdr_mapping = {}
         self.obs_config = None
         self.output_dir = None
+        self.reprocessing = False
 
         # create queues
         self.clustering_queue = mp.Queue()
@@ -414,6 +416,9 @@ class Processor(DARCBase):
             thread = threading.Thread(target=self._read_amber_triggers, name='read_amber_triggers')
             thread.daemon = True
             thread.start()
+            self.reprocessing = True
+        else:
+            self.reprocessing = False
 
         self.logger.info("Observation started")
 
@@ -465,6 +470,9 @@ class Processor(DARCBase):
         # signal clustering to stop
         self.clustering_queue.put('stop')
         self.threads['clustering'].join()
+        # reorder any remaining candidates so that highest S/N are processed first
+        self._reorder_clusters()
+
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
             # only put stop message if extractor is still running (might have crashed)
@@ -472,7 +480,28 @@ class Processor(DARCBase):
                 self.logger.warning(f"extractor_{i} is already stopped, not sending stop message")
             else:
                 self.extractor_queue.put(f'stop_extractor_{i}')
-            self.threads[f'extractor_{i}'].join()
+            # set time limit if processing time limit is enabled
+            if self.processing_time_limit > 0:
+                # get time when processing should be finished
+                if self.reprocessing:
+                    # reprocessing: count time limit from now
+                    timeout = self.processing_time_limit
+                else:
+                    # normal observation: count time limit from observation end
+                    time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+                        TimeDelta(self.obs_config['duration'], format='sec') + \
+                        TimeDelta(self.processing_time_limit, format='sec')
+                    # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
+                    timeout = max((time_limit - Time.now()).sec, 0)
+            else:
+                # no time limit
+                timeout = None
+            self.threads[f'extractor_{i}'].join(timeout)
+            sleep(.1)
+            if self.threads[f'extractor_{i}'].is_alive():
+                # still alive after join, so timeout was reached. Abort remaining processing
+                self.logger.info(f"Processing time limit reached, terminating data extractor {i}")
+                self.threads[f'extractor_{i}'].terminate()
         # signal classifier to stop
         self.classifier_queue.put('stop')
         # read the output of the classifier
@@ -570,6 +599,27 @@ class Processor(DARCBase):
                 # put triggers on clustering queue
                 self.clustering_queue.put(triggers_for_clustering)
             self.stop_event.wait(self.interval)
+
+    def _reorder_clusters(self):
+        """
+        Reorder clusters ready for data extraction to highest-S/N first. This is used such that bright candidates
+        are prioritized when there is a processing time limit
+        """
+        # get all clusters from the extractor queue
+        clusters = []
+        try:
+            while True:
+                clusters.append(self.extractor_queue.get_nowait())
+        except Empty:
+            pass
+        # sort by S/N
+        # parameters in each cluster are dm, snr, toa, downsamp, sb
+        snrs = [cluster[1] for cluster in clusters]
+        order = np.argsort(snrs)[::-1]
+        # put each cluster back on the queue, highest S/N first
+        for ind in order:
+            cluster = clusters[ind]
+            self.extractor_queue.put(cluster)
 
     def _store_obs_stats(self):
         """

@@ -74,7 +74,7 @@ class Extractor(mp.Process):
         freq = self.obs_config['freq']
         try:
             # note that filterbank stores highest-freq first, but AMBER masks use lowest-freq first
-            self.rfi_mask = self.filterbank_reader.header.nchans - \
+            self.rfi_mask = self.filterbank_reader.header.nchans - 1 - \
                 np.loadtxt(self.config.rfi_mask.replace('FREQ', str(freq))).astype(int)
         except OSError:
             self.logger.warning(f"No AMBER RFI mask found for {freq} MHz, not applying mask")
@@ -261,7 +261,9 @@ class Extractor(mp.Process):
         # subtract median
         self.data.data -= np.median(self.data.data, axis=1, keepdims=True)
 
-        # get S/N and width at AMBER DM
+        # get S/N and width at DM=0 and at AMBER DM
+        # timeseries at DM=0
+        timeseries_dm0 = self.data.data.sum(axis=0)[:ntime]
         self.data.dedisperse(dm.to(u.pc / u.cm ** 3).value)
         # create timeseries
         timeseries = self.data.data.sum(axis=0)[:ntime]
@@ -275,17 +277,29 @@ class Extractor(mp.Process):
                               f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
                               f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
+        snr_dm0, width_dm0 = util.calc_snr_matched_filter(timeseries_dm0, widths=widths)
         snrmax, width_best = util.calc_snr_matched_filter(timeseries, widths=widths)
         # correct for already applied downsampling
         width_best *= predownsamp
+        width_dm0 *= predownsamp
 
         # if max S/N is below local threshold, skip this trigger
         if snrmax < self.config.snr_min_local:
             # log time taken
             timer_end = Time.now()
-            self.logger.warning(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
-                                f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
-                                f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) below local threshold, "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
+            return
+
+        # if S/N at DM=0 is higher than at candidate DM by some amount, skip this trigger
+        # (only if this filter is enabled)
+        if self.config.snr_dm0_filter and (snr_dm0 - snrmax >= self.config.snr_dm0_diff_threshold):
+            # log time taken
+            timer_end = Time.now()
+            self.logger.debug(f"Skipping trigger with S/N ({snrmax:.2f}) lower than at DM=0 (S/N={snr_dm0:.2f}), "
+                              f"ToA={toa.value:.4f}, DM={dm.value:.2f}. "
+                              f"Processed in {(timer_end - timer_start).to(u.s):.0f}")
             return
 
         # calculate DM range to try
