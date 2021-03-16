@@ -363,8 +363,8 @@ class AMBERClustering(DARCBase):
                     # source known, CB valid: set thresholds
                     snr_min_lofar = self.thresh_lofar_override['snr_min']
                     width_max_lofar = self.thresh_lofar_override['width_max']
-                    self.logger.warning("Setting LOFAR trigger thresholds: S/N > {}, downsamp <= {}".format(snr_min_lofar,
-                                                                                                            width_max_lofar))
+                    self.logger.warning("Setting LOFAR trigger thresholds: S/N > {}, "
+                                        "downsamp <= {}".format(snr_min_lofar, width_max_lofar))
         else:
             # new source, apply all LOFAR thresholds
             snr_min_lofar = self.thresh_lofar['snr_min']
@@ -636,7 +636,8 @@ class AMBERClustering(DARCBase):
                 parset = util.parse_parset(raw_parset)
             except Exception as e:
                 self.logger.warning(
-                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
+                    "Failed to load parset from master config file {}, "
+                    "setting parset to None: {}".format(master_config_file, e))
                 parset = None
 
         return parset

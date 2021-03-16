@@ -68,7 +68,7 @@ def get_multibeam_triggers(times, beamno, t_window=0.5):
 def dedisperse(data, dm, dt=8.192e-5, freq=(1550, 1250), freq_ref=None):
     data = data.copy()
 
-    nfreq, ntime = data.shape[0], data.shape[1]
+    nfreq = data.shape[0]
 
     freqs = np.linspace(freq[0], freq[-1], nfreq)
 
@@ -76,9 +76,6 @@ def dedisperse(data, dm, dt=8.192e-5, freq=(1550, 1250), freq_ref=None):
         freq_ref = freqs.max()
 
     tdelay = 4.148e3 * dm * (freqs**-2 - freq_ref**-2)
-    ntime = len(data[0])
-
-    maxind_arr = []
 
     for ii, f in enumerate(freqs):
         data[ii] = np.roll(data[ii], -np.int(tdelay[ii] / dt))
@@ -101,7 +98,6 @@ def cleandata(data, threshold=3.0):
     -------
     cleaned filterbank object
     """
-    logging.info("Cleaning RFI")
 
     assert len(data.shape) == 2, "Expected (nfreq, ntime) array"
 
@@ -657,7 +653,6 @@ class SNR_Tools:
         sig = np.std(data)
         dmax = (data.copy()).max()
         dmed = np.median(data)
-        N = len(data)
 
         # remove outliers 4 times until there
         # are no events above threshold*sigma
@@ -666,7 +661,6 @@ class SNR_Tools:
             sig = np.std(data[ind])
             dmed = np.median(data[ind])
             data = data[ind]
-            N = len(data)
 
         snr_ = (dmax - dmed) / (1.048 * sig)
 
@@ -693,7 +687,6 @@ class SNR_Tools:
         """
         assert len(data.shape) == 1
 
-        ntime = len(data)
         snr_max = 0
         width_max = 0
 #        data = scipy.signal.detrend(data, type='linear')
@@ -796,12 +789,6 @@ class SNR_Tools:
                                                          max_rows=max_rows, t_max=t_max, tab=tab)
 
         snr_2_reorder = []
-        dm_2_reorder = []
-        t_2_reorder = []
-        w_2_reorder = []
-
-        ntrig_1 = len(snr_1)
-        ntrig_2 = len(snr_2)
 
         par_1 = np.concatenate([snr_1, dm_1, t_1, w_1, ind_full_1]).reshape(5, -1)
         par_2 = np.concatenate([snr_2, dm_2, t_2, w_2, ind_full_2]).reshape(5, -1)
@@ -864,10 +851,8 @@ class SNR_Tools:
     def plot_comparison(self, par_1, par_2, par_match_arr, ind_missed, figname='./test.pdf'):
         fig = plt.figure(figsize=(14, 14))
 
-        frac_recovered = len(ind_missed)
-
-        snr_1, snr_2 = par_1[0], par_2[0]
-        dm_1, dm_2 = par_1[1], par_2[1]
+        snr_1 = par_1[0]
+        dm_1, = par_1[1]
         width_1, width_2 = par_1[3], par_2[3]
 
         snr_1_match = par_match_arr[0, :, 0]
@@ -877,7 +862,6 @@ class SNR_Tools:
         dm_2_match = par_match_arr[1, :, 1]
 
         width_1_match = par_match_arr[3, :, 0]
-        width_2_match = par_match_arr[3, :, 1]
 
         fig.add_subplot(311)
         plt.plot(snr_1_match, snr_2_match, '.')
@@ -920,9 +904,6 @@ class SNR_Tools:
 
 
 if __name__ == '__main__':
-
-    import sys
-
     SNRTools = SNR_Tools()
 
     parser = optparse.OptionParser(prog="tools.py",

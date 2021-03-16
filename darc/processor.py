@@ -343,7 +343,7 @@ class Processor(DARCBase):
             self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: "
                              f"{self.obs_config['datetimesource']} received stop")
         else:
-            self.logger.info(f"Processor received stop")
+            self.logger.info("Processor received stop")
 
         # abort running observation (this stops the processor too)
         self.stop_observation(abort=True)

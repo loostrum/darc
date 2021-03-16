@@ -133,7 +133,7 @@ class OfflineProcessing(mp.Process):
             # get taskid
             try:
                 taskid = obs_config['parset']['task.taskID']
-            except Exception as e:
+            except Exception:
                 self.logger.warning("Cannot find task ID in parset - using random number thread")
                 # taskid length is 8
                 taskid = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
@@ -215,7 +215,7 @@ class OfflineProcessing(mp.Process):
         self._get_overview(obs_config)
 
         # create coordinates file
-        coord_cb00 = self._get_coordinates(obs_config)
+        self._get_coordinates(obs_config)
 
         # wait until end time + delay
         start_processing_time = Time(obs_config['parset']['task.stopTime']) + TimeDelta(self.delay, format='sec')
@@ -388,12 +388,14 @@ class OfflineProcessing(mp.Process):
                 # max numtread tabs per run; so ntabs / numthread chunks
                 n_chunk = int(np.ceil(obs_config['ntabs'] / float(self.numthread)))
                 chunks = np.array_split(range(obs_config['ntabs']), n_chunk)
-                self.logger.info("Starting trigger clustering with {} chunks of {} threads".format(n_chunk, self.numthread))
+                self.logger.info("Starting trigger clustering with {} chunks ""of {} threads".format(n_chunk,
+                                                                                                     self.numthread))
                 # start the threads
                 for tab_set in chunks:
                     threads = []
                     for tab in tab_set:
-                        filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab, **obs_config)
+                        filterbank_file = "{output_dir}/filterbank/CB{beam:02d}_{tab:02d}.fil".format(tab=tab,
+                                                                                                      **obs_config)
                         thread = threading.Thread(target=self._cluster, args=[obs_config, filterbank_file],
                                                   kwargs={'out': numcand_all, 'tab': tab})
                         thread.daemon = True
@@ -448,7 +450,8 @@ class OfflineProcessing(mp.Process):
         :param dict obs_config: Observation config
         """
         prefix = "{amber_dir}/CB{beam:02d}".format(**obs_config)
-        cmd = "awk '(FNR==1 && NR!=1) || !/./{{next;}}{{print}}' {prefix}_step*.trigger > {prefix}.trigger".format(prefix=prefix)
+        cmd = "awk '(FNR==1 && NR!=1) || !/./{{next;}}{{print}}' {prefix}_step*.trigger > " \
+            "{prefix}.trigger".format(prefix=prefix)
         # awk command from Thijs:
         # (FNR==1 && NR!=1) means "if it's the first line of the current file we're processing,
         # but not the first line read overall then skip this line {"next"}. This matches the first
@@ -666,7 +669,8 @@ class OfflineProcessing(mp.Process):
         :param dict obs_config: Observation config
         """
         output_file = "{output_dir}/triggers/candidates_summary.pdf".format(**obs_config)
-        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} {output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
+        cmd = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={output_file} "\
+            "{output_dir}/triggers/*pdf".format(output_file=output_file, **obs_config)
         self.logger.info("Running {}".format(cmd))
         os.system(cmd)
 
@@ -696,12 +700,14 @@ class OfflineProcessing(mp.Process):
                 try:
                     ncand_skipped = int(f['ntriggers_skipped'][0])
                 except ValueError as e:
-                    self.logger.warning("Could not read ntriggers_skipped from {}: {}".format(kwargs.get('data_file'), e))
+                    self.logger.warning("Could not read ntriggers_skipped from {}: {}".format(kwargs.get('data_file'),
+                                                                                              e))
                     ncand_skipped = -1
                 try:
                     beam_data = f[beam.lower()][:]
                 except Exception as e:
-                    self.logger.warning("Could not read {} column from {}: {}".format(beam, kwargs.get('data_file'), e))
+                    self.logger.warning("Could not read {} column from {}: {}".format(beam, kwargs.get('data_file'),
+                                                                                      e))
                     beam_data = None
         except IOError as e:
             # success = False
@@ -720,7 +726,6 @@ class OfflineProcessing(mp.Process):
                 # read dataset
                 with h5py.File(fname_classifier, 'r') as f:
                     frb_index = f['frb_index'][:]
-                    data_frb_candidate = f['data_frb_candidate'][:]
                     probability = f['probability'][:][frb_index]
                     params = f['params'][:][frb_index]  # snr, DM, downsampling, arrival time, dt
                     if self.process_sb:
@@ -952,7 +957,8 @@ class OfflineProcessing(mp.Process):
                 parset = util.parse_parset(raw_parset)
             except Exception as e:
                 self.logger.warning(
-                    "Failed to load parset from master config file {}, setting parset to None: {}".format(master_config_file, e))
+                    "Failed to load parset from master config file {}, "
+                    "setting parset to None: {}".format(master_config_file, e))
                 parset = None
 
         return parset

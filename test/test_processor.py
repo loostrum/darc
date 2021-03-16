@@ -17,7 +17,7 @@ from astropy.time import Time, TimeDelta
 import h5py
 
 from darc import Processor, ProcessorManager, AMBERListener
-from darc.processor import Clustering, Extractor, Classifier, Visualizer
+from darc.processor import Extractor, Classifier, Visualizer
 from darc import util
 from darc.definitions import TIME_UNIT
 

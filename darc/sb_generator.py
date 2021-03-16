@@ -177,5 +177,6 @@ class SBGenerator:
             # get correct subband of correct tab and add it to raw SB
             # after vsplit, shape is (nsub, nfreq/nsub, ntime) -> simply [subband] gets correct subband
             # assign to subband of sb
-            beam[subband * nchan_per_subband:(subband + 1) * nchan_per_subband] = np.vsplit(data[tab], self.nsub)[subband]
+            beam[subband * nchan_per_subband:(subband + 1) * nchan_per_subband] = \
+                np.vsplit(data[tab], self.nsub)[subband]
         return beam

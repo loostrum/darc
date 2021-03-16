@@ -9,7 +9,6 @@ import ast
 
 from darc import DARCBase
 from darc import util
-from darc.definitions import CONFIG_FILE
 
 
 class AMBERListenerException(Exception):
