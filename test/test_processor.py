@@ -339,6 +339,8 @@ class TestClustering(unittest.TestCase):
         self.output_queue = mp.Queue()
         self.clustering = Clustering(obs_config, self.output_dir.name, log_queue, self.input_queue,
                                      self.output_queue, self.ncluster)
+        # set S/N threshold to match value used to get truth ncluster
+        self.clustering.config.snr_min = 10
 
     def get_triggers(self):
         # read some AMBER triggers
