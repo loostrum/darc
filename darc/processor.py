@@ -461,48 +461,76 @@ class Processor(DARCBase):
         thread.daemon = True
         thread.start()
 
+    def _get_timeout(self):
+        """
+        Get procesing time limit
+
+        :return: time limit in seconds (float) or None if no limit
+        """
+        # set time limit if processing time limit is enabled
+        if self.processing_time_limit > 0:
+            # get time when processing should be finished
+            if self.reprocessing:
+                # reprocessing: count time limit from now
+                timeout = self.processing_time_limit
+            else:
+                # normal observation: count time limit from observation end
+                time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+                    TimeDelta(self.obs_config['duration'], format='sec') + \
+                    TimeDelta(self.processing_time_limit, format='sec')
+                # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
+                timeout = max((time_limit - Time.now()).sec, 0)
+        else:
+            # no time limit
+            timeout = None
+        return timeout
+
+    def _join_with_timeout(self, name, timeout):
+        """
+        Signal a process to stop. Terminate if timeout is reached
+
+        :param str name: name of Process in self.threads dict to join
+        :param float timeout: timeout in seconds (None for no time limit)
+        """
+        # get process to stop
+        proc = self.threads[name]
+        # join with timeout
+        proc.join(timeout=timeout)
+        sleep(.1)
+        # if still alive, timeout has passed, so terminate
+        if proc.is_alive():
+            self.logger.warning(f"Procesing time limit reached, terminating {name}")
+            proc.terminate()
+
     def _finish_processing(self):
         """
         Wait for real-time processing to finish and visualize results
         """
         # clear processing thread
         self.threads['processing'].join()
+        # get processing time limit
+        t_proc_start = Time.now()
+        timeout = self._get_timeout()
         # signal clustering to stop
         self.clustering_queue.put('stop')
-        self.threads['clustering'].join()
+        self._join_with_timeout('clustering', timeout)
         # reorder any remaining candidates so that highest S/N are processed first
         self._reorder_clusters()
 
         # signal extractor(s) to stop
         for i in range(self.num_extractor):
-            # only put stop message if extractor is still running (might have crashed)
+            # only put stop message if extractor is still running, to avoid commands going back and forth
+            # to other extractors
             if not self.threads[f'extractor_{i}'].is_alive():
                 self.logger.warning(f"extractor_{i} is already stopped, not sending stop message")
             else:
                 self.extractor_queue.put(f'stop_extractor_{i}')
-            # set time limit if processing time limit is enabled
-            if self.processing_time_limit > 0:
-                # get time when processing should be finished
-                if self.reprocessing:
-                    # reprocessing: count time limit from now
-                    timeout = self.processing_time_limit
-                else:
-                    # normal observation: count time limit from observation end
-                    time_limit = Time(self.obs_config['startpacket'] / TIME_UNIT, format='unix') + \
-                        TimeDelta(self.obs_config['duration'], format='sec') + \
-                        TimeDelta(self.processing_time_limit, format='sec')
-                    # get timeout from now, in seconds. Set to zero if negative (i.e. limit already passed)
-                    timeout = max((time_limit - Time.now()).sec, 0)
-            else:
-                # no time limit
-                timeout = None
-            self.threads[f'extractor_{i}'].join(timeout)
-            sleep(.1)
-            if self.threads[f'extractor_{i}'].is_alive():
-                # still alive after join, so timeout was reached. Abort remaining processing
-                self.logger.info(f"Processing time limit reached, terminating data extractor {i}")
-                self.threads[f'extractor_{i}'].terminate()
-        # signal classifier to stop
+            # update timeout to account for already passed time in earlier join_with_timeout commands
+            timeout -= (Time.now() - t_proc_start).sec
+            timeout = max(timeout, 0)
+            self._join_with_timeout(f'extractor_{i}', timeout)
+
+        # signal classifier to stop. This should run even if timeout is reached, so do normal join
         self.classifier_queue.put('stop')
         # read the output of the classifier
         self.candidates_to_visualize = self.classifier_parent_conn.recv()
