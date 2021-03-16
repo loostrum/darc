@@ -22,18 +22,20 @@ class Classifier(mp.Process):
     Classify candidates from HDF5 files produced by Extractor
     """
 
-    def __init__(self, log_queue, input_queue, conn, config_file=CONFIG_FILE):
+    def __init__(self, log_queue, input_queue, conn, config_file=CONFIG_FILE, obs_name=''):
         """
         :param Queue log_queue: Queue to use for logging
         :param Queue input_queue: Input queue for triggers
         :param Connection conn: Pipe connection to send output to
         :param str config_file: Path to config file
+        :param str obs_name: Observation name to use in log messages
         """
         super(Classifier, self).__init__()
         module_name = type(self).__module__.split('.')[-1]
         self.logger = get_queue_logger(module_name, log_queue)
         self.input_queue = input_queue
         self.conn = conn
+        self.obs_name = obs_name
 
         # load config
         self.config_file = config_file
@@ -83,7 +85,7 @@ class Classifier(mp.Process):
         """
         Main loop
         """
-        self.logger.info("Starting classifier thread")
+        self.logger.info(f"{self.obs_name}Starting classifier thread")
 
         # initalize tensorflow and models
         self._load_tensorflow()
@@ -98,7 +100,7 @@ class Classifier(mp.Process):
                 self.input_empty = True
                 if do_stop:
                     # run stop in a thread, so processing can continue
-                    self.logger.debug("Running stop")
+                    self.logger.debug(f"{self.obs_name}Running stop")
                     thread = threading.Thread(target=self.stop)
                     thread.daemon = True
                     thread.start()
@@ -112,7 +114,7 @@ class Classifier(mp.Process):
                 else:
                     # do classification
                     self._classify(fname)
-        self.logger.info("Stopping classifier thread")
+        self.logger.info(f"{self.obs_name}Stopping classifier thread")
         # send list of candidates to visualize to parent process
         self.conn.send(self.candidates_to_visualize)
         self.conn.close()
@@ -123,7 +125,7 @@ class Classifier(mp.Process):
         """
         # wait until the input queue is empty
         if not self.input_empty:
-            self.logger.debug("Classifier waiting to finish processing")
+            self.logger.debug(f"{self.obs_name}Classifier waiting to finish processing")
         while not self.input_empty:
             sleep(1)
         # then stop
@@ -185,7 +187,7 @@ class Classifier(mp.Process):
         # classify
         prob_freqtime = self.model_freqtime.predict(self.data_freq_time)[0, 1]
         prob_dmtime = self.model_dmtime.predict(self.data_dm_time)[0, 1]
-        self.logger.debug(f"Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}, "
+        self.logger.debug(f"{self.obs_name}Probabilities: freqtime={prob_freqtime:.2f}, dmtime={prob_dmtime:.2f}, "
                           f"fname={os.path.basename(fname)}")
 
         # append the probabilities to the file
@@ -208,30 +210,33 @@ class Classifier(mp.Process):
         if self.nfreq_data != self.config.nfreq:
             modulo, remainder = divmod(self.nfreq_data, self.config.nfreq)
             if remainder != 0:
-                self.logger.error(f"Data nfreq {self.nfreq_data} must be multiple of model nfreq {self.config.nfreq}")
+                self.logger.error(f"{self.obs_name}Data nfreq {self.nfreq_data} must be multiple of "
+                                  f"model nfreq {self.config.nfreq}")
                 return False
             # reshape the frequency axis
-            self.logger.debug(f"Reshaping freq from {self.nfreq_data} to {self.config.nfreq}")
+            self.logger.debug(f"{self.obs_name}Reshaping freq from {self.nfreq_data} to {self.config.nfreq}")
             self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq, modulo, -1).mean(axis=1)
 
         # dm axis
         if self.ndm_data != self.config.ndm:
             modulo, remainder = divmod(self.ndm_data, self.config.ndm)
             if remainder != 0:
-                self.logger.error(f"Data ndm {self.ndm_data} must be multiple of model ndm {self.config.ndm}")
+                self.logger.error(f"{self.obs_name}Data ndm {self.ndm_data} must be multiple of "
+                                  f"model ndm {self.config.ndm}")
                 return False
             # reshape the dm axis
-            self.logger.debug(f"Reshaping dm from {self.ndm_data} to {self.config.ndm}")
+            self.logger.debug(f"{self.obs_name}Reshaping dm from {self.ndm_data} to {self.config.ndm}")
             self.data_dm_time = self.data_dm_time.reshape(self.config.dm, modulo, -1).mean(axis=1)
 
         # time axis
         if self.ntime_data != self.config.ntime:
             modulo, remainder = divmod(self.ntime_data, self.config.ntime)
             if remainder != 0:
-                self.logger.error(f"Data ntime {self.ntime_data} must be multiple of model ntime {self.config.ntime}")
+                self.logger.error(f"{self.obs_name}Data ntime {self.ntime_data} must be multiple of "
+                                  f"model ntime {self.config.ntime}")
                 return False
             # reshape the time axis of both data_freq_time and data_dm_time
-            self.logger.debug(f"Reshaping time from {self.ntime_data} to {self.config.ntime}")
+            self.logger.debug(f"{self.obs_name}Reshaping time from {self.ntime_data} to {self.config.ntime}")
             self.data_freq_time = self.data_freq_time.reshape(self.config.nfreq,
                                                               self.config.ntime, modulo).mean(axis=2)
             self.data_dm_time = self.data_dm_time.reshape(self.config.ndm,

@@ -248,7 +248,8 @@ class ProcessorManager(DARCBase):
             # convert to dict and store
             parset = util.parse_parset(raw_parset)
         except KeyError:
-            self.logger.info("Observation parset not found in input config, looking for master parset")
+            self.logger.info(f"{obs_config['datetimesource']}: Observation parset not found in input config, "
+                             f"looking for master parset")
             # Load the parset from the master parset file
             master_config_file = os.path.join(obs_config['master_dir'], 'parset', 'darc_master.parset')
             try:
@@ -322,6 +323,8 @@ class Processor(DARCBase):
         self.candidates_to_visualize = []
         self.classifier_parent_conn, self.classifier_child_conn = mp.Pipe()
 
+        self.obs_name = ''
+
         self.logger.info("{} initialized".format(self.log_name))
 
     def process_command(self, command):
@@ -347,11 +350,7 @@ class Processor(DARCBase):
 
         :param bool abort: Ignored, a stop of the service always equals abort
         """
-        if hasattr(self, 'obs_config'):
-            self.logger.info(f"Processor for {self.obs_config['parset']['task.taskID']}: "
-                             f"{self.obs_config['datetimesource']} received stop")
-        else:
-            self.logger.info("Processor received stop")
+        self.logger.info(f"{self.obs_name}Processor received stop")
 
         # abort running observation (this stops the processor too)
         self.stop_observation(abort=True)
@@ -366,6 +365,9 @@ class Processor(DARCBase):
         # reload config
         if reload:
             self.load_config()
+
+        # store obs name for logging
+        self.obs_name = f"{obs_config['parset']['task.taskID']} - {obs_config['datetimesource']}: "
 
         # clean any old triggers
         self.amber_triggers = []
@@ -382,7 +384,7 @@ class Processor(DARCBase):
             try:
                 util.makedirs(path)
             except Exception as e:
-                self.logger.error(f"Failed to create directory {path}: {e}")
+                self.logger.error(f"{self.obs_name}Failed to create directory {path}: {e}")
                 raise ProcessorException(f"Failed to create directory {path}: {e}")
 
         self.output_dir = output_dir
@@ -395,19 +397,20 @@ class Processor(DARCBase):
 
         # start clustering
         thread = Clustering(obs_config, output_dir, self.log_queue, self.clustering_queue, self.extractor_queue,
-                            self.ncluster, self.config_file)
+                            self.ncluster, self.config_file, self.obs_name)
         thread.name = 'clustering'
         self.threads['clustering'] = thread
 
         # start extractor(s)
         for i in range(self.num_extractor):
             thread = Extractor(obs_config, output_dir, self.log_queue, self.extractor_queue, self.classifier_queue,
-                               self.ncand_above_threshold, self.config_file)
+                               self.ncand_above_threshold, self.config_file, self.obs_name)
             thread.name = f'extractor_{i}'
             self.threads[f'extractor_{i}'] = thread
 
         # start classifier
-        thread = Classifier(self.log_queue, self.classifier_queue, self.classifier_child_conn, self.config_file)
+        thread = Classifier(self.log_queue, self.classifier_queue, self.classifier_child_conn, self.config_file,
+                            self.obs_name)
         thread.name = 'classifier'
         self.threads['classifier'] = thread
 
@@ -420,7 +423,7 @@ class Processor(DARCBase):
         utc_start = Time(obs_config['startpacket'] / TIME_UNIT, format='unix')
         utc_end = utc_start + TimeDelta(obs_config['duration'], format='sec')
         if utc_end < Time.now():
-            self.logger.info("End time is in the past, reading AMBER triggers for reprocessing")
+            self.logger.info(f"{self.obs_name}End time is in the past, reading AMBER triggers for reprocessing")
             thread = threading.Thread(target=self._read_amber_triggers, name='read_amber_triggers')
             thread.daemon = True
             thread.start()
@@ -428,7 +431,7 @@ class Processor(DARCBase):
         else:
             self.reprocessing = False
 
-        self.logger.info("Observation started")
+        self.logger.info(f"{self.obs_name}Observation started")
 
     def stop_observation(self, abort=False):
         """
@@ -441,9 +444,9 @@ class Processor(DARCBase):
             return
 
         if abort:
-            self.logger.info("Aborting observation")
+            self.logger.info(f"{self.obs_name}Aborting observation")
         else:
-            self.logger.info("Finishing observation")
+            self.logger.info(f"{self.obs_name}Finishing observation")
             # wait for a short time in case some last AMBER triggers are still coming in
             sleep(self.stop_delay)
         # set running to false
@@ -458,8 +461,7 @@ class Processor(DARCBase):
             for i in range(self.num_extractor):
                 self.threads[f'extractor_{i}'].terminate()
             self.threads['classifier'].terminate()
-            self.logger.info(f"Processor aborted for observation {self.obs_config['parset']['task.taskID']}: "
-                             f"{self.obs_config['datetimesource']}")
+            self.logger.info(f"{self.obs_name}Processor aborted")
             # A stop observation should also stop this processor, as there is only one per observation
             self.stop_event.set()
             return
@@ -507,7 +509,7 @@ class Processor(DARCBase):
         sleep(.1)
         # if still alive, timeout has passed, so terminate
         if proc.is_alive():
-            self.logger.warning(f"Procesing time limit reached, terminating {name}")
+            self.logger.warning(f"{self.obs_name}Procesing time limit reached, terminating {name} process")
             proc.terminate()
 
     def _finish_processing(self):
@@ -530,7 +532,7 @@ class Processor(DARCBase):
             # only put stop message if extractor is still running, to avoid commands going back and forth
             # to other extractors
             if not self.threads[f'extractor_{i}'].is_alive():
-                self.logger.warning(f"extractor_{i} is already stopped, not sending stop message")
+                self.logger.warning(f"{self.obs_name}extractor_{i} is already stopped, not sending stop message")
             else:
                 self.extractor_queue.put(f'stop_extractor_{i}')
             # update timeout to account for already passed time in earlier join_with_timeout commands
@@ -562,16 +564,14 @@ class Processor(DARCBase):
         # Store the statistics and start the visualization
         if len(self.candidates_to_visualize) > 0:
             Visualizer(self.output_dir, self.central_result_dir, self.log_queue, self.obs_config,
-                       self.candidates_to_visualize, self.config_file)
+                       self.candidates_to_visualize, self.config_file, self.obs_name)
         else:
-            self.logger.info(f"No post-classifier candidates found, skipping visualization for taskid "
-                             f"{self.obs_config['parset']['task.taskID']}")
+            self.logger.info(f"{self.obs_name}No post-classifier candidates found, skipping visualization")
 
         # Store statistics after visualization, as master will start combining results once all stats are present
         self._store_obs_stats()
 
-        self.logger.info(f"Observation finished: {self.obs_config['parset']['task.taskID']}: "
-                         f"{self.obs_config['datetimesource']}")
+        self.logger.info(f"{self.obs_name} Observation finished")
 
         # stop this processor
         self.stop_event.set()
@@ -599,20 +599,20 @@ class Processor(DARCBase):
                                 self.obs_stats['ncand_raw'] -= 1
                             # read header, remove comment symbol
                             header = trigger.split()[1:]
-                            self.logger.info("Received header: {}".format(header))
                             # Check if all required params are present and create mapping to col index
                             keys = ['beam_id', 'integration_step', 'time', 'DM', 'SNR']
                             for key in keys:
                                 try:
                                     self.hdr_mapping[key] = header.index(key)
                                 except ValueError:
-                                    self.logger.error("Key missing from clusters header: {}".format(key))
+                                    self.logger.error(f"{self.obs_name}reprocessing failed: key missing "
+                                                      f"from clusters header: {key}")
                                     self.hdr_mapping = {}
                                     return
 
                 # header should be present now
                 if not self.hdr_mapping:
-                    self.logger.error("First clusters received but header not found")
+                    self.logger.error(f"{self.obs_name}reprocessing first clusters received but header not found")
                     continue
 
                 # remove headers from triggers (i.e. any trigger starting with #)
@@ -620,14 +620,14 @@ class Processor(DARCBase):
 
                 # triggers is empty if only header was received
                 if not triggers:
-                    self.logger.info("Only header received - Canceling processing")
+                    self.logger.info(f"{self.obs_name}reprocessing only header received - Canceling processing")
                     continue
 
                 # split strings and convert to numpy array
                 try:
                     triggers = np.array(list(map(lambda val: val.split(), triggers)), dtype=float)
                 except Exception as e:
-                    self.logger.error("Failed to process triggers: {}".format(e))
+                    self.logger.error(f"{self.obs_name}reprocessing failed to process triggers: {e}")
                     continue
 
                 # pick columns to feed to clustering algorithm
@@ -667,13 +667,13 @@ class Processor(DARCBase):
 
         # overview statistics
         info_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}_summary.yaml')
-        self.logger.debug(f"Storing observation statistics to {info_file}")
+        self.logger.debug(f"{self.obs_name}Storing observation statistics to {info_file}")
         with open(info_file, 'w') as f:
             yaml.dump(self.obs_stats, f, default_flow_style=False)
 
         # list of triggers
         trigger_file = os.path.join(self.central_result_dir, f'CB{self.obs_config["beam"]:02d}_triggers.txt')
-        self.logger.debug(f"Storing trigger metadata to {trigger_file}")
+        self.logger.debug(f"{self.obs_name}Storing trigger metadata to {trigger_file}")
         with open(trigger_file, 'w') as f:
             f.write('#cb snr dm time downsamp sb p\n')
             for fname in self.candidates_to_visualize:
@@ -699,12 +699,12 @@ class Processor(DARCBase):
         beam = self.obs_config['beam']
         num_amber = len(ast.literal_eval(amber_conf['opencl_device']))
 
-        self.logger.info(f"Reading {num_amber} AMBER files")
+        self.logger.info(f"{self.obs_name}reprocessing reading {num_amber} AMBER files")
         for step in range(1, num_amber + 1):
             trigger_file = os.path.join(amber_dir, "CB{:02d}_step{}.trigger".format(beam, step))
             # check if the file exists
             if not os.path.isfile(trigger_file):
-                self.logger.error(f"AMBER file does not exist: {trigger_file}")
+                self.logger.error(f"{self.obs_name}reprocessing AMBER file does not exist: {trigger_file}")
                 continue
             # read the file and put each line on the processor input queue
             with open(trigger_file, 'r') as f:
@@ -715,5 +715,5 @@ class Processor(DARCBase):
         # sleep for twice the processing interval to ensure triggers were picked up
         self.stop_event.wait(2 * self.interval)
         # reprocessing means no stop observation will be sent, do this manually
-        self.logger.info("Sending manual stop_observation command for reprocessing")
+        self.logger.info(f"{self.obs_name}sending manual stop_observation command for reprocessing")
         self.source_queue.put({'command': 'stop_observation'})

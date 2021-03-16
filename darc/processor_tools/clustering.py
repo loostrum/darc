@@ -21,7 +21,8 @@ class Clustering(mp.Process):
     Clustering and thresholding of AMBER triggers
     """
 
-    def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncluster, config_file=CONFIG_FILE):
+    def __init__(self, obs_config, output_dir, log_queue, input_queue, output_queue, ncluster, config_file=CONFIG_FILE,
+                 obs_name=''):
         """
         :param dict obs_config: Observation settings
         :param str output_dir: Output directory for data products
@@ -30,6 +31,7 @@ class Clustering(mp.Process):
         :param Queue output_queue: Output queue for clusters
         :param mp.Value ncluster: 0
         :param str config_file: Path to config file
+        :param str obs_name: Observation name to use in log messages
         """
         super(Clustering, self).__init__()
         module_name = type(self).__module__.split('.')[-1]
@@ -38,6 +40,7 @@ class Clustering(mp.Process):
         self.obs_config = obs_config
         self.input_queue = input_queue
         self.output_queue = output_queue
+        self.obs_name = obs_name
 
         # set system parameters
         dt = TSAMP.to(u.second).value
@@ -60,7 +63,7 @@ class Clustering(mp.Process):
         """
         Main loop
         """
-        self.logger.info("Starting clustering thread")
+        self.logger.info(f"{self.obs_name}Starting clustering thread")
         # open the output file (line-buffered)
         self.output_file_handle = open(os.path.join(self.output_dir, self.config.output_file), 'w', buffering=1)
         # write header
@@ -90,7 +93,7 @@ class Clustering(mp.Process):
                     self._cluster(triggers)
         # close the output file
         self.output_file_handle.close()
-        self.logger.info("Stopping clustering thread")
+        self.logger.info(f"{self.obs_name}Stopping clustering thread")
 
     def stop(self):
         """
@@ -98,7 +101,7 @@ class Clustering(mp.Process):
         """
         # wait until the input queue is empty
         if not self.input_empty:
-            self.logger.debug("Clustering waiting to finish processing")
+            self.logger.debug(f"{self.obs_name}Clustering waiting to finish processing")
         while not self.input_empty:
             sleep(1)
         # then stop
@@ -149,7 +152,7 @@ class Clustering(mp.Process):
         cluster_sb = np.array(cluster_sb)[mask].astype(int)
         ncluster = len(cluster_snr)
 
-        self.logger.info(f"Clustered {len(triggers)} triggers into {ncluster} clusters")
+        self.logger.info(f"{self.obs_name}Clustered {len(triggers)} triggers into {ncluster} clusters")
         with self.ncluster.get_lock():
             self.ncluster.value += ncluster
 
