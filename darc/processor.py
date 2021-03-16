@@ -188,8 +188,16 @@ class ProcessorManager(DARCBase):
         queue.put({'command': 'start_observation', 'obs_config': obs_config, 'reload': reload})
         self.observations[taskid] = proc
         self.observation_queues[taskid] = queue
-        self.observation_end_times[taskid] = Time(obs_config['startpacket'] / TIME_UNIT, format='unix') + \
+        # observation end time is used for showing elapsed processing time on web page
+        # if end time is in the past, we are reprocessing and show elapsed time since start of reprocessing
+        # instead
+        obs_end_time = Time(obs_config['startpacket'] / TIME_UNIT, format='unix') + \
             TimeDelta(obs_config['duration'], format='sec')
+        now = Time.now()
+        # if now is later than obs end time, use now as fake obs end time to show correct elapsed processing
+        # time
+        obs_end_time = max(obs_end_time, now)
+        self.observation_end_times[taskid] = obs_end_time
         self.current_observation_queue = queue
         return
 
