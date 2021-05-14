@@ -284,7 +284,7 @@ class Visualizer:
                 # silence the potential runtime warning due to divide-by-zero
                 with np.errstate(invalid='ignore'):
                     data /= np.std(data, axis=1, keepdims=True)
-                data[~np.isfinite(data)] = np.nan
+                data[~np.isfinite(data)] = 0.
             elif data_type == 'dm_time':
                 data = f['data_dm_time'][:]
                 # reshape if needed
@@ -303,6 +303,7 @@ class Visualizer:
                 else:
                     data = data.reshape(self.config.ndm, self.config.ntime, modulo).mean(axis=2)
                 data -= np.median(data, axis=1, keepdims=True)
+                data[~np.isfinite(data)] = 0.
             elif data_type == '1d_time':
                 data = f['data_freq_time'][:].sum(axis=0)
                 # reshape if needed
@@ -314,6 +315,7 @@ class Visualizer:
                     data = data.reshape(self.config.ntime, modulo).mean(axis=1)
                 data -= np.median(data)
                 data /= np.amax(data)
+                data[~np.isfinite(data)] = 0.
             else:
                 self.logger.error(f"{self.obs_name}Unknown data type: {data_type}")
                 raise ProcessorException(f"{self.obs_name}Visualizer failed with unknown data type: {data_type}")
