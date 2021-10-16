@@ -1,74 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Real-time triggering &mdash; DARC 3.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Real-time data processing" href="processor.html" />
     <link rel="prev" title="Welcome to DARC’s documentation" href="../index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> DARC
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Real-time triggering</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -107,75 +57,34 @@
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">DARC</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Real-time triggering</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/_modules/triggers.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="real-time-triggering">
-<h1>Real-time triggering<a class="headerlink" href="#real-time-triggering" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="real-time-triggering">
+<h1>Real-time triggering<a class="headerlink" href="#real-time-triggering" title="Permalink to this headline"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
 <p>The ARTS GPU cluster receives both a Stokes I and Stokes IQUV data stream from the
 beamformer, and searches the Stokes I data for transients in real-time using a GPU pipeline,
 <a class="reference external" href="https://www.github.com/TRASAL/AMBER">AMBER</a>. The real-time triggering part of DARC takes
@@ -186,9 +95,9 @@ points in a different direction of the sky, so the nodes can operate mostly inde
 The notable exception to this is external triggers: LOFAR and VOEvents. While the worker nodes identify potential
 external triggers, actually sending the triggers is taken care of by the master node. On this page, each step of the
 real-time triggering system is explained in more detail.</p>
-</div>
-<div class="section" id="reading-amber-candidates">
-<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="reading-amber-candidates">
+<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this headline"></a></h2>
 <p>Each worker node runs three instances of AMBER, each searching a different part of parameter space.
 The candidate metadata is written to a text file, one file per AMBER instance. These files are read by
 the <a class="reference internal" href="services.html#darc.amber_listener.AMBERListener" title="darc.amber_listener.AMBERListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERListener</span></code></a> module, in a
@@ -196,9 +105,9 @@ way similar to the <strong class="command">tail -f</strong> command in bash. Eac
 is fed to the next modules as-is, i.e. as one string. As the triggers with different DMs and the same arrival time
 are detected by AMBER at different times, the candidates as output by
 <a class="reference internal" href="services.html#darc.amber_listener.AMBERListener" title="darc.amber_listener.AMBERListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERListener</span></code></a> are not necessarily in order of arrival time.</p>
-</div>
-<div class="section" id="clustering-and-thresholding">
-<h2>Clustering and thresholding<a class="headerlink" href="#clustering-and-thresholding" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="clustering-and-thresholding">
+<h2>Clustering and thresholding<a class="headerlink" href="#clustering-and-thresholding" title="Permalink to this headline"></a></h2>
 <p><a class="reference internal" href="services.html#darc.amber_clustering.AMBERClustering" title="darc.amber_clustering.AMBERClustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">AMBERClustering</span></code></a> takes the AMBER candidates and decides whether to
 send triggers to different parts of the system. It first parses the triggers based on the header (which is also
 sent by the <a class="reference internal" href="#reading-amber-candidates"><span class="std std-ref">AMBER listener module</span></a>). At a configurable interval,
@@ -222,9 +131,9 @@ For the specific sources, the system can also be set to only trigger on the cent
 positive rate. Triggers passing the LOFAR thresholds are sent to both the
 <a class="reference internal" href="#lofar-triggering"><span class="std std-ref">LOFAR trigger system</span></a> and
 the <a class="reference internal" href="#sending-voevents"><span class="std std-ref">VOEvent system</span></a>.</p>
-</div>
-<div class="section" id="iquv-triggering">
-<h2>IQUV triggering<a class="headerlink" href="#iquv-triggering" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="iquv-triggering">
+<h2>IQUV triggering<a class="headerlink" href="#iquv-triggering" title="Permalink to this headline"></a></h2>
 <p>The IQUV data are buffered using a <a class="reference external" href="https://psrdada.sourceforge.net/">PSRDADA</a> ringbuffer. PSRDADA’s <cite>dada_dbevent</cite>
 listens on a network port for a trigger. A trigger contains the UTC start/end time of the data that should be stored,
 and several burst parameters. If the ringbuffer still contains the requested data, these are copied to a second ringbuffer
@@ -251,8 +160,8 @@ of the real-time data processing section).</p>
 <p>Sending a Stokes I trigger but not reading the triggered data from the ringbuffer can cause the entire observation to
 stall.</p>
 </div>
-<div class="section" id="polarization-calibration">
-<h3>Polarization calibration<a class="headerlink" href="#polarization-calibration" title="Permalink to this headline">¶</a></h3>
+<section id="polarization-calibration">
+<h3>Polarization calibration<a class="headerlink" href="#polarization-calibration" title="Permalink to this headline"></a></h3>
 <p>In order to calibrate IQUV data, typically one or more calibrator sources are observed. Some IQUV data should be stored
 during these observations, even if there are no AMBER triggers.
 In order to facilitate this, <a class="reference internal" href="services.html#darc.dada_trigger.DADATrigger" title="darc.dada_trigger.DADATrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">DADATrigger</span></code></a> has a polarization calibration mode.
@@ -269,10 +178,10 @@ at regular intervals. The length of each trigger and interval can be configured.
 <p>IQUV triggers should be no longer than 30 s in duration, and have at least an interval equal to the trigger duration.
 As the data rate is higher than the writing speed of the disks, this ensures the disks can keep up.</p>
 </div>
-</div>
-</div>
-<div class="section" id="lofar-triggering">
-<h2>LOFAR triggering<a class="headerlink" href="#lofar-triggering" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="lofar-triggering">
+<h2>LOFAR triggering<a class="headerlink" href="#lofar-triggering" title="Permalink to this headline"></a></h2>
 <p>The master node takes care of LOFAR triggers using <a class="reference internal" href="services.html#darc.lofar_trigger.LOFARTrigger" title="darc.lofar_trigger.LOFARTrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">LOFARTrigger</span></code></a>. This module
 runs a server, that all other nodes can send their potential LOFAR triggers to.
 When <a class="reference internal" href="services.html#darc.lofar_trigger.LOFARTrigger" title="darc.lofar_trigger.LOFARTrigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">LOFARTrigger</span></code></a> receives a trigger through this server, it waits
@@ -289,9 +198,9 @@ whether the message is a test or a real observation.</p>
 <p>To check whether the LOFAR trigger module is enabled/disabled, or check its status, DARC supports the
 <cite>lofar_enable</cite>, <cite>lofar_disable</cite>, and <cite>lofar_status</cite> commands. These commands must be sent to the master node.</p>
 </div>
-</div>
-<div class="section" id="sending-voevents">
-<h2>Sending VOEvents<a class="headerlink" href="#sending-voevents" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="sending-voevents">
+<h2>Sending VOEvents<a class="headerlink" href="#sending-voevents" title="Permalink to this headline"></a></h2>
 <p>The VOEvent system is very similar to the <a class="reference internal" href="#lofar-triggering"><span class="std std-ref">LOFAR trigger system</span></a>.
 If it receives multiple triggers, it selects the trigger with the highest S/N. Unlike the LOFAR trigger system, it does
 not give preference to known sources. For the selected trigger, an XML-format VOEvent is generated following the
@@ -302,55 +211,38 @@ ASTRON using <a class="reference external" href="https://comet.transientskp.org/
 <p>To check whether the VOEvent module is enabled/disabled, or check its status, DARC supports the
 <cite>voevent_enable</cite>, <cite>voevent_disable</cite>, and <cite>voevent_status</cite> commands. These commands must be sent to the master node.</p>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="processor.html" class="btn btn-neutral float-right" title="Real-time data processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to DARC’s documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="processor.html" class="btn btn-neutral float-right" title="Real-time data processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Leon Oostrum.
-
-    </p>
+    <p>&#169; Copyright 2021, Leon Oostrum.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

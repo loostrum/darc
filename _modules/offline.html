@@ -1,74 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Offline data processing &mdash; DARC 3.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Monitoring &amp; control" href="mac.html" />
     <link rel="prev" title="Real-time data processing" href="processor.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> DARC
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="triggers.html">Real-time triggering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processor.html">Real-time data processing</a></li>
@@ -102,75 +52,34 @@
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">DARC</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Offline data processing</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/_modules/offline.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="offline-data-processing">
-<h1>Offline data processing<a class="headerlink" href="#offline-data-processing" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="offline-data-processing">
+<h1>Offline data processing<a class="headerlink" href="#offline-data-processing" title="Permalink to this headline"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
 <p>The offline processing pipeline takes care of analyses that can only run after the data recording of an observation
 finishes. This is handled by the <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> module.</p>
 <div class="admonition note">
@@ -180,17 +89,17 @@ superseded by the <a class="reference internal" href="processor.html#real-time-d
 The complete candidate analysis is still available in the current offline processing module, but disabled and
 undocumented.</p>
 </div>
-</div>
-<div class="section" id="pulsar-folding">
-<h2>Pulsar folding<a class="headerlink" href="#pulsar-folding" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="pulsar-folding">
+<h2>Pulsar folding<a class="headerlink" href="#pulsar-folding" title="Permalink to this headline"></a></h2>
 <p>If a known test pulsar (as defined in the source list file) is being observed, and it is explicitly located in
 the compound beam that is processed by the current worker node, the filterbank data of tied-array beam zero
 are folded at the pulsar ephemeris with PRESTO’s <code class="docutils literal notranslate"><span class="pre">prepfold</span></code>. The resulting postscript plot is converted to PDF.
 An external tool picks up these figures, as well as any output figures from the real-tie pipeline,
 and copies them to the Apertif surveys wordpress website, so they can be easily inspected without logging in to the system.</p>
-</div>
-<div class="section" id="drift-scan-calibration">
-<h2>Drift scan calibration<a class="headerlink" href="#drift-scan-calibration" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="drift-scan-calibration">
+<h2>Drift scan calibration<a class="headerlink" href="#drift-scan-calibration" title="Permalink to this headline"></a></h2>
 <p>An external tool to measure the sensitivity of the system based on drift scans of known calibrator sources is available,
 and called automatically when <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> detects that</p>
 <ul class="simple">
@@ -203,60 +112,43 @@ a drift scan through the top row of compound beams.</p>
 <p>The output of the drift scan calibration consists of a numpy file for each TAB of each CB, containing downsampled
 filterbank data, and a figure showing a spectrum and different sensitivity metrics. These plots are stored in a folder
 named <code class="docutils literal notranslate"><span class="pre">&lt;date&gt;_&lt;source&gt;</span></code> within the calibration directory specified in the config file.</p>
-</div>
-<div class="section" id="deep-search-for-known-frb-sources">
-<h2>Deep search for known FRB sources<a class="headerlink" href="#deep-search-for-known-frb-sources" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="deep-search-for-known-frb-sources">
+<h2>Deep search for known FRB sources<a class="headerlink" href="#deep-search-for-known-frb-sources" title="Permalink to this headline"></a></h2>
 <p>An external tool that visualizes any of the post-clustering candidates if their DM is close to that of a known source
 and that known source is in the field, is available and automatically called after every observation.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="mac.html" class="btn btn-neutral float-right" title="Monitoring &amp; control" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="processor.html" class="btn btn-neutral float-left" title="Real-time data processing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mac.html" class="btn btn-neutral float-right" title="Monitoring &amp; control" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Leon Oostrum.
-
-    </p>
+    <p>&#169; Copyright 2021, Leon Oostrum.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
