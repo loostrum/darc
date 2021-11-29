@@ -495,7 +495,7 @@ class ProcessorMaster(DARCBase):
                             <ul>
                                 <li>Check the processing website: http://arts041.apertif/~arts/darc/processing
                                 <li>Check the log file: <code>tail -n 50 /home/arts/darc/log/processor.{node}.log</code>
-                                <li>Check if there are files in <code>/data2/output/{date}/{datetimesource}/triggers</code>
+                                <li>Check if there are files in <code>/data2/output/{date}/{datetimesource}/triggers_realtime</code>
                             </ul>
                         </ul>
                         </p>
