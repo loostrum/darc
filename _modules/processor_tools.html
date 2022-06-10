@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -84,13 +85,13 @@
            <div itemprop="articleBody">
              
   <section id="processor-tools">
-<h1>Processor tools<a class="headerlink" href="#processor-tools" title="Permalink to this headline"></a></h1>
+<h1>Processor tools<a class="headerlink" href="#processor-tools" title="Permalink to this heading"></a></h1>
 <section id="module-darc.processor_tools.clustering">
-<span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.processor_tools.clustering" title="Permalink to this headline"></a></h2>
+<span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.processor_tools.clustering" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_tools.clustering.Clustering">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_tools.clustering.</span></span><span class="sig-name descname"><span class="pre">Clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncluster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.clustering.Clustering" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Clustering and thresholding of AMBER triggers</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -140,7 +141,7 @@ integration_step, sb</p>
 
 </section>
 <section id="module-darc.processor_tools.filterbank_reader">
-<span id="filterbank-reader"></span><h2>Filterbank reader<a class="headerlink" href="#module-darc.processor_tools.filterbank_reader" title="Permalink to this headline"></a></h2>
+<span id="filterbank-reader"></span><h2>Filterbank reader<a class="headerlink" href="#module-darc.processor_tools.filterbank_reader" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_tools.filterbank_reader.ARTSFilterbankReader">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_tools.filterbank_reader.</span></span><span class="sig-name descname"><span class="pre">ARTSFilterbankReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.filterbank_reader.ARTSFilterbankReader" title="Permalink to this definition"></a></dt>
@@ -494,11 +495,11 @@ frequency of the pulsar in MHz.</p>
 
 </section>
 <section id="module-darc.processor_tools.extractor">
-<span id="data-extraction"></span><h2>Data extraction<a class="headerlink" href="#module-darc.processor_tools.extractor" title="Permalink to this headline"></a></h2>
+<span id="data-extraction"></span><h2>Data extraction<a class="headerlink" href="#module-darc.processor_tools.extractor" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_tools.extractor.Extractor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_tools.extractor.</span></span><span class="sig-name descname"><span class="pre">Extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncand_above_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.extractor.Extractor" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Extract data from filterbank files</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -583,11 +584,11 @@ frequency of the pulsar in MHz.</p>
 
 </section>
 <section id="module-darc.processor_tools.classifier">
-<span id="neural-network-classification-of-candidates"></span><h2>Neural network classification of candidates<a class="headerlink" href="#module-darc.processor_tools.classifier" title="Permalink to this headline"></a></h2>
+<span id="neural-network-classification-of-candidates"></span><h2>Neural network classification of candidates<a class="headerlink" href="#module-darc.processor_tools.classifier" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_tools.classifier.Classifier">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_tools.classifier.</span></span><span class="sig-name descname"><span class="pre">Classifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_tools.classifier.Classifier" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Classify candidates from HDF5 files produced by Extractor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -656,7 +657,7 @@ frequency of the pulsar in MHz.</p>
 
 </section>
 <section id="module-darc.processor_tools.visualizer">
-<span id="candidate-visualization"></span><h2>Candidate visualization<a class="headerlink" href="#module-darc.processor_tools.visualizer" title="Permalink to this headline"></a></h2>
+<span id="candidate-visualization"></span><h2>Candidate visualization<a class="headerlink" href="#module-darc.processor_tools.visualizer" title="Permalink to this heading"></a></h2>
 <dl class="py exception">
 <dt class="sig sig-object py" id="darc.processor_tools.visualizer.ProcessorException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_tools.visualizer.</span></span><span class="sig-name descname"><span class="pre">ProcessorException</span></span><a class="headerlink" href="#darc.processor_tools.visualizer.ProcessorException" title="Permalink to this definition"></a></dt>

@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -89,9 +90,9 @@
            <div itemprop="articleBody">
              
   <section id="darc-services">
-<h1>DARC services<a class="headerlink" href="#darc-services" title="Permalink to this headline"></a></h1>
+<h1>DARC services<a class="headerlink" href="#darc-services" title="Permalink to this heading"></a></h1>
 <section id="module-darc.darc_master">
-<span id="master-service"></span><h2>Master service<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this headline"></a></h2>
+<span id="master-service"></span><h2>Master service<a class="headerlink" href="#module-darc.darc_master" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.darc_master.DARCMaster">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.darc_master.</span></span><span class="sig-name descname"><span class="pre">DARCMaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.darc_master.DARCMaster" title="Permalink to this definition"></a></dt>
@@ -347,11 +348,11 @@
 
 </section>
 <section id="module-darc.amber_listener">
-<span id="reading-amber-candidates"></span><h2>Reading AMBER candidates<a class="headerlink" href="#module-darc.amber_listener" title="Permalink to this headline"></a></h2>
+<span id="reading-amber-candidates"></span><h2>Reading AMBER candidates<a class="headerlink" href="#module-darc.amber_listener" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.amber_listener.AMBERListener">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.amber_listener.</span></span><span class="sig-name descname"><span class="pre">AMBERListener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_listener.AMBERListener" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Continuously read AMBER candidate files from disk and put
 candidates on output queue.</p>
 <dl class="py method">
@@ -398,11 +399,11 @@ candidates on output queue.</p>
 
 </section>
 <section id="module-darc.amber_clustering">
-<span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.amber_clustering" title="Permalink to this headline"></a></h2>
+<span id="clustering-of-amber-candidates"></span><h2>Clustering of AMBER candidates<a class="headerlink" href="#module-darc.amber_clustering" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.amber_clustering.AMBERClustering">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.amber_clustering.</span></span><span class="sig-name descname"><span class="pre">AMBERClustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_vo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_lofar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.amber_clustering.AMBERClustering" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Trigger IQUV / LOFAR / VOEvent system based on AMBER candidates</p>
 <ol class="arabic simple">
 <li><p>Cluster incoming triggers</p></li>
@@ -551,11 +552,11 @@ candidates on output queue.</p>
 
 </section>
 <section id="module-darc.dada_trigger">
-<span id="iquv-triggering"></span><h2>IQUV triggering<a class="headerlink" href="#module-darc.dada_trigger" title="Permalink to this headline"></a></h2>
+<span id="iquv-triggering"></span><h2>IQUV triggering<a class="headerlink" href="#module-darc.dada_trigger" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.dada_trigger.DADATrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.dada_trigger.</span></span><span class="sig-name descname"><span class="pre">DADATrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.dada_trigger.DADATrigger" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Generate and send dada_dbevent triggers</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.dada_trigger.DADATrigger._load_parset">
@@ -652,11 +653,11 @@ Else ensure normal FRB candidate I/IQUV dumps are enabled</p>
 
 </section>
 <section id="module-darc.lofar_trigger">
-<span id="lofar-triggering"></span><h2>LOFAR triggering<a class="headerlink" href="#module-darc.lofar_trigger" title="Permalink to this headline"></a></h2>
+<span id="lofar-triggering"></span><h2>LOFAR triggering<a class="headerlink" href="#module-darc.lofar_trigger" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.lofar_trigger.LOFARTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.lofar_trigger.</span></span><span class="sig-name descname"><span class="pre">LOFARTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTrigger" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Select brightest trigger from incoming trigger and send to LOFAR for TBB triggering</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -764,17 +765,17 @@ interrupts</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.lofar_trigger.LOFARTriggerQueueServer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.lofar_trigger.</span></span><span class="sig-name descname"><span class="pre">LOFARTriggerQueueServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serializer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pickle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.lofar_trigger.LOFARTriggerQueueServer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseManager</span></code></p>
 <p>Server for LOFAR Trigger input queue</p>
 </dd></dl>
 
 </section>
 <section id="module-darc.voevent_generator">
-<span id="sending-voevents"></span><h2>Sending VOEvents<a class="headerlink" href="#module-darc.voevent_generator" title="Permalink to this headline"></a></h2>
+<span id="sending-voevents"></span><h2>Sending VOEvents<a class="headerlink" href="#module-darc.voevent_generator" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.voevent_generator.VOEventGenerator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.voevent_generator.</span></span><span class="sig-name descname"><span class="pre">VOEventGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventGenerator" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Convert incoming triggers to VOEvent and send to
 the VOEvent broker</p>
 <dl class="field-list simple">
@@ -886,17 +887,17 @@ the VOEvent broker</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.voevent_generator.VOEventQueueServer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.voevent_generator.</span></span><span class="sig-name descname"><span class="pre">VOEventQueueServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serializer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pickle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.voevent_generator.VOEventQueueServer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.managers.BaseManager</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseManager</span></code></p>
 <p>Server for VOEvent input queue</p>
 </dd></dl>
 
 </section>
 <section id="module-darc.offline_processing">
-<span id="offline-data-processing"></span><h2>Offline data processing<a class="headerlink" href="#module-darc.offline_processing" title="Permalink to this headline"></a></h2>
+<span id="offline-data-processing"></span><h2>Offline data processing<a class="headerlink" href="#module-darc.offline_processing" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.offline_processing.OfflineProcessing">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.offline_processing.</span></span><span class="sig-name descname"><span class="pre">OfflineProcessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.offline_processing.OfflineProcessing" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Full offline processing pipeline:</p>
 <ol class="arabic simple">
 <li><p>Candidate clustering</p></li>
@@ -1165,11 +1166,11 @@ Executed commands depend on whether this is a worker node or the master node.</p
 
 </section>
 <section id="module-darc.processor">
-<span id="real-time-data-processing-worker-node"></span><h2>Real-time data processing (worker node)<a class="headerlink" href="#module-darc.processor" title="Permalink to this headline"></a></h2>
+<span id="real-time-data-processing-worker-node"></span><h2>Real-time data processing (worker node)<a class="headerlink" href="#module-darc.processor" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor.Processor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor.</span></span><span class="sig-name descname"><span class="pre">Processor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.Processor" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Real-time processing of candidates</p>
 <ol class="arabic simple">
 <li><p>Clustering + thresholding</p></li>
@@ -1298,7 +1299,7 @@ are prioritized when there is a processing time limit</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor.ProcessorManager">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor.</span></span><span class="sig-name descname"><span class="pre">ProcessorManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor.ProcessorManager" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Control logic for running several Processor instances, one per observation</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.processor.ProcessorManager._load_parset">
@@ -1370,11 +1371,11 @@ are prioritized when there is a processing time limit</p>
 
 </section>
 <section id="module-darc.processor_master">
-<span id="real-time-data-processing-master-node"></span><h2>Real-time data processing (master node)<a class="headerlink" href="#module-darc.processor_master" title="Permalink to this headline"></a></h2>
+<span id="real-time-data-processing-master-node"></span><h2>Real-time data processing (master node)<a class="headerlink" href="#module-darc.processor_master" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_master.ProcessorMaster">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_master.</span></span><span class="sig-name descname"><span class="pre">ProcessorMaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMaster" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Combine results from worker node processors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1513,7 +1514,7 @@ are prioritized when there is a processing time limit</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.processor_master.ProcessorMasterManager">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.processor_master.</span></span><span class="sig-name descname"><span class="pre">ProcessorMasterManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.processor_master.ProcessorMasterManager" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">darc.base.DARCBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="misc.html#darc.base.DARCBase" title="darc.base.DARCBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DARCBase</span></code></a></p>
 <p>Control logic for running several ProcessorMaster instances, one per observation</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.processor_master.ProcessorMasterManager._load_parset">
@@ -1579,11 +1580,11 @@ are prioritized when there is a processing time limit</p>
 
 </section>
 <section id="module-darc.status_website">
-<span id="monitoring"></span><h2>Monitoring<a class="headerlink" href="#module-darc.status_website" title="Permalink to this headline"></a></h2>
+<span id="monitoring"></span><h2>Monitoring<a class="headerlink" href="#module-darc.status_website" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.status_website.StatusWebsite">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.status_website.</span></span><span class="sig-name descname"><span class="pre">StatusWebsite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.status_website.StatusWebsite" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>Generate a HTML page with the status of each service
 across the ARTS cluster at regular intervals</p>
 <dl class="field-list simple">

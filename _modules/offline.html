@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -77,9 +78,9 @@
            <div itemprop="articleBody">
              
   <section id="offline-data-processing">
-<h1>Offline data processing<a class="headerlink" href="#offline-data-processing" title="Permalink to this headline"></a></h1>
+<h1>Offline data processing<a class="headerlink" href="#offline-data-processing" title="Permalink to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
 <p>The offline processing pipeline takes care of analyses that can only run after the data recording of an observation
 finishes. This is handled by the <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> module.</p>
 <div class="admonition note">
@@ -91,7 +92,7 @@ undocumented.</p>
 </div>
 </section>
 <section id="pulsar-folding">
-<h2>Pulsar folding<a class="headerlink" href="#pulsar-folding" title="Permalink to this headline"></a></h2>
+<h2>Pulsar folding<a class="headerlink" href="#pulsar-folding" title="Permalink to this heading"></a></h2>
 <p>If a known test pulsar (as defined in the source list file) is being observed, and it is explicitly located in
 the compound beam that is processed by the current worker node, the filterbank data of tied-array beam zero
 are folded at the pulsar ephemeris with PRESTO’s <code class="docutils literal notranslate"><span class="pre">prepfold</span></code>. The resulting postscript plot is converted to PDF.
@@ -99,7 +100,7 @@ An external tool picks up these figures, as well as any output figures from the 
 and copies them to the Apertif surveys wordpress website, so they can be easily inspected without logging in to the system.</p>
 </section>
 <section id="drift-scan-calibration">
-<h2>Drift scan calibration<a class="headerlink" href="#drift-scan-calibration" title="Permalink to this headline"></a></h2>
+<h2>Drift scan calibration<a class="headerlink" href="#drift-scan-calibration" title="Permalink to this heading"></a></h2>
 <p>An external tool to measure the sensitivity of the system based on drift scans of known calibrator sources is available,
 and called automatically when <a class="reference internal" href="services.html#darc.offline_processing.OfflineProcessing" title="darc.offline_processing.OfflineProcessing"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineProcessing</span></code></a> detects that</p>
 <ul class="simple">
@@ -114,7 +115,7 @@ filterbank data, and a figure showing a spectrum and different sensitivity metri
 named <code class="docutils literal notranslate"><span class="pre">&lt;date&gt;_&lt;source&gt;</span></code> within the calibration directory specified in the config file.</p>
 </section>
 <section id="deep-search-for-known-frb-sources">
-<h2>Deep search for known FRB sources<a class="headerlink" href="#deep-search-for-known-frb-sources" title="Permalink to this headline"></a></h2>
+<h2>Deep search for known FRB sources<a class="headerlink" href="#deep-search-for-known-frb-sources" title="Permalink to this heading"></a></h2>
 <p>An external tool that visualizes any of the post-clustering candidates if their DM is close to that of a known source
 and that known source is in the field, is available and automatically called after every observation.</p>
 </section>

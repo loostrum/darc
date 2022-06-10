@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -81,9 +82,9 @@
            <div itemprop="articleBody">
              
   <section id="real-time-data-processing">
-<h1>Real-time data processing<a class="headerlink" href="#real-time-data-processing" title="Permalink to this headline"></a></h1>
+<h1>Real-time data processing<a class="headerlink" href="#real-time-data-processing" title="Permalink to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
 <p>The ARTS transient search pipeline, <a class="reference external" href="https://www.github.com/TRASAL/AMBER">AMBER</a>, produces a file with
 metadata of each candidate. The goal of the real-time processing part of DARC is to extract the data of these candidates,
 determine whether or not there are likely to be real, visualize the good candidates, and send an overview of each observation
@@ -93,7 +94,7 @@ can operate mostly independently. The master node takes care of gathering the fi
 and sends the results to the astronomers. On this page, each step of the real-time data processing system is explained in more detail.</p>
 </section>
 <section id="observation-management">
-<h2>Observation management<a class="headerlink" href="#observation-management" title="Permalink to this headline"></a></h2>
+<h2>Observation management<a class="headerlink" href="#observation-management" title="Permalink to this heading"></a></h2>
 <p>Each observation is managed by one instance of <a class="reference internal" href="services.html#darc.processor.Processor" title="darc.processor.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a> on the worker nodes,
 and <a class="reference internal" href="services.html#darc.processor_master.ProcessorMaster" title="darc.processor_master.ProcessorMaster"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessorMaster</span></code></a> on the master node.</p>
 <p>It is possible that a new observation is started before the previous observation has finished processing. Therefore,
@@ -106,12 +107,12 @@ thread scavenger. Each observation is uniquely identified by a task ID, as speci
 central Apertif control system.</p>
 </section>
 <section id="reading-amber-candidates">
-<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this headline"></a></h2>
+<h2>Reading AMBER candidates<a class="headerlink" href="#reading-amber-candidates" title="Permalink to this heading"></a></h2>
 <p>The AMBER candidate reader described on the <a class="reference internal" href="triggers.html#reading-amber-candidates"><span class="std std-ref">real-time triggering page</span></a>
 also sends its output to the real-time data processing system.</p>
 </section>
 <section id="clustering-of-amber-candidates">
-<h2>Clustering of AMBER candidates<a class="headerlink" href="#clustering-of-amber-candidates" title="Permalink to this headline"></a></h2>
+<h2>Clustering of AMBER candidates<a class="headerlink" href="#clustering-of-amber-candidates" title="Permalink to this heading"></a></h2>
 <p>The main processor instance takes care of parsing the AMBER candidates. The actual clustering is then run by
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code>. The clustering algorithm is identical
 to that used by the <a class="reference internal" href="triggers.html#clustering-and-thresholding"><span class="std std-ref">real-time triggering system</span></a>. As in that system,
@@ -119,7 +120,7 @@ the user can set a S/N threshold, minimum DM, and maximum DM. There is no split 
 The clustered triggers are written to an output file, and sent to the next step of the pipeline.</p>
 </section>
 <section id="data-extraction">
-<h2>Data extraction<a class="headerlink" href="#data-extraction" title="Permalink to this headline"></a></h2>
+<h2>Data extraction<a class="headerlink" href="#data-extraction" title="Permalink to this heading"></a></h2>
 <p>For each post-clustering trigger, the data have to be extracted from the filterbank file. This is done by
 <a class="reference internal" href="processor_tools.html#darc.processor_tools.extractor.Extractor" title="darc.processor_tools.extractor.Extractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Extractor</span></code></a>. The data extraction consists of several steps:</p>
 <ol class="arabic simple">
@@ -141,7 +142,7 @@ This module reads in the tied-array beam data from disk and converts these to th
 <p>For each candidate that passes the local S/N threshold, the path to the HDF5 file is sent to the next step of the pipeline.</p>
 </section>
 <section id="neural-network-classification-of-candidates">
-<h2>Neural network classification of candidates<a class="headerlink" href="#neural-network-classification-of-candidates" title="Permalink to this headline"></a></h2>
+<h2>Neural network classification of candidates<a class="headerlink" href="#neural-network-classification-of-candidates" title="Permalink to this heading"></a></h2>
 <p>Each candidate is processed by a convolutional neural network, developed by Liam Connor
 (see also the corresponding <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2018AJ....156..256C/abstract">paper</a>).
 The <a class="reference internal" href="processor_tools.html#darc.processor_tools.classifier.Classifier" title="darc.processor_tools.classifier.Classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Classifier</span></code></a> module runs this classification. When an observation starts,
@@ -152,7 +153,7 @@ If the probabilities are above the user-defined thresholds, the path to the HDF5
 picked up by the visualization stage.</p>
 </section>
 <section id="candidate-visualization">
-<h2>Candidate visualization<a class="headerlink" href="#candidate-visualization" title="Permalink to this headline"></a></h2>
+<h2>Candidate visualization<a class="headerlink" href="#candidate-visualization" title="Permalink to this heading"></a></h2>
 <p>After an observation finishes and all candidates have been processed, the
 <a class="reference internal" href="#neural-network-classification-of-candidates"><span class="std std-ref">classifier</span></a> holds a list of HDF5 files,
 each containing the data and metadata of a candidate that needs to be visualized. These are then visualized
@@ -163,7 +164,7 @@ model gets a red border around the plot. The candidate metadata are shown in the
 parameters. Each page of plots is stored as a separate PDF file, and merged into one PDF after the plotting finishes.</p>
 </section>
 <section id="observation-summary">
-<h2>Observation summary<a class="headerlink" href="#observation-summary" title="Permalink to this headline"></a></h2>
+<h2>Observation summary<a class="headerlink" href="#observation-summary" title="Permalink to this heading"></a></h2>
 <p>After the processing finishes, the PDF with candidates is copied to a central directory. Additionally,
 a file with the metadata of all post-classifier triggers is created, as well as a summary file listing the number
 of triggers at different steps in the pipeline.</p>
