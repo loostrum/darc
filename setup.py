@@ -21,7 +21,7 @@ setup(name='darc',
       install_requires=['numpy',
                         'astropy',
                         'pyyaml',
-                        'h5py<3',  # bug in 3.0 causes error on keras model load
+                        'h5py!=3.0.0',  # bug in 3.0 causes error on keras model load
                         'pytz',
                         'voevent-parse',
                         'scipy',
