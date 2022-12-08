@@ -12,7 +12,7 @@ with open(os.path.join('darc', '__version__.py')) as version_file:
 setup(name='darc',
       version=project_version,
       description='Data Analysis of Real-time Candidates from ARTS',
-      url='http://github.com/loostrum/darc',
+      url='https://github.com/loostrum/darc',
       author='Leon Oostrum',
       author_email='l.oostrum@esciencecenter.nl',
       license='Apache2.0',
