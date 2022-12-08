@@ -17,6 +17,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -47,12 +48,63 @@
 <li class="toctree-l2"><a class="reference internal" href="services.html">DARC services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="processor_tools.html">Processor tools</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Miscellaneous</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.base">Base class</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.control">Control</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.definitions">Definitions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.logger">Logger</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.sb_generator">Synthesized Beam Generator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-darc.util">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.base">Base class</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.base.DARCBase"><code class="docutils literal notranslate"><span class="pre">DARCBase</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.control">Control</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.control.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.control.send_command"><code class="docutils literal notranslate"><span class="pre">send_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.definitions">Definitions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.AP_EFF"><code class="docutils literal notranslate"><span class="pre">AP_EFF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.ARRAY_ITRF"><code class="docutils literal notranslate"><span class="pre">ARRAY_ITRF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.BANDWIDTH"><code class="docutils literal notranslate"><span class="pre">BANDWIDTH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.CONFIG_FILE"><code class="docutils literal notranslate"><span class="pre">CONFIG_FILE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.DISH_DIAM"><code class="docutils literal notranslate"><span class="pre">DISH_DIAM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.MASTER"><code class="docutils literal notranslate"><span class="pre">MASTER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.NCHAN"><code class="docutils literal notranslate"><span class="pre">NCHAN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.NDISH"><code class="docutils literal notranslate"><span class="pre">NDISH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.NTAB"><code class="docutils literal notranslate"><span class="pre">NTAB</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.NUMCB"><code class="docutils literal notranslate"><span class="pre">NUMCB</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.TIME_UNIT"><code class="docutils literal notranslate"><span class="pre">TIME_UNIT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.TSAMP"><code class="docutils literal notranslate"><span class="pre">TSAMP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.TSYS"><code class="docutils literal notranslate"><span class="pre">TSYS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.definitions.WORKERS"><code class="docutils literal notranslate"><span class="pre">WORKERS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.logger">Logger</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.logger.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.logger.get_queue_logger"><code class="docutils literal notranslate"><span class="pre">get_queue_logger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.logger.get_queue_logger_listener"><code class="docutils literal notranslate"><span class="pre">get_queue_logger_listener()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.sb_generator">Synthesized Beam Generator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.sb_generator.SBGenerator"><code class="docutils literal notranslate"><span class="pre">SBGenerator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.sb_generator.SBGeneratorException"><code class="docutils literal notranslate"><span class="pre">SBGeneratorException</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-darc.util">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.calc_snr_amber"><code class="docutils literal notranslate"><span class="pre">calc_snr_amber()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.calc_snr_matched_filter"><code class="docutils literal notranslate"><span class="pre">calc_snr_matched_filter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.clear_queue"><code class="docutils literal notranslate"><span class="pre">clear_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.decode_parset"><code class="docutils literal notranslate"><span class="pre">decode_parset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.dm_to_delay"><code class="docutils literal notranslate"><span class="pre">dm_to_delay()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.dm_to_smearing"><code class="docutils literal notranslate"><span class="pre">dm_to_smearing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.encode_parset"><code class="docutils literal notranslate"><span class="pre">encode_parset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.get_flux"><code class="docutils literal notranslate"><span class="pre">get_flux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.get_ymw16"><code class="docutils literal notranslate"><span class="pre">get_ymw16()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.hadec_to_radec"><code class="docutils literal notranslate"><span class="pre">hadec_to_radec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.hadec_to_rot"><code class="docutils literal notranslate"><span class="pre">hadec_to_rot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.makedirs"><code class="docutils literal notranslate"><span class="pre">makedirs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.parse_parset"><code class="docutils literal notranslate"><span class="pre">parse_parset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.radec_to_hadec"><code class="docutils literal notranslate"><span class="pre">radec_to_hadec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.send_email"><code class="docutils literal notranslate"><span class="pre">send_email()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.sleepuntil_utc"><code class="docutils literal notranslate"><span class="pre">sleepuntil_utc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#darc.util.tail"><code class="docutils literal notranslate"><span class="pre">tail()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -72,9 +124,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="api.html">API reference</a> &raquo;</li>
-      <li>Miscellaneous</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="api.html">API reference</a></li>
+      <li class="breadcrumb-item active">Miscellaneous</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/_modules/misc.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -90,7 +142,7 @@
 <span id="base-class"></span><h2>Base class<a class="headerlink" href="#module-darc.base" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.base.DARCBase">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.base.</span></span><span class="sig-name descname"><span class="pre">DARCBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.base.</span></span><span class="sig-name descname"><span class="pre">DARCBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>DARC Base class</p>
 <p>Provides common methods to services</p>
@@ -256,7 +308,7 @@ observation stop</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.CONFIG_FILE">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">CONFIG_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">CONFIG_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition"></a></dt>
 <dd><p>Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package</p>
 </dd></dl>
 
@@ -365,7 +417,7 @@ observation stop</p>
 <span id="synthesized-beam-generator"></span><h2>Synthesized Beam Generator<a class="headerlink" href="#module-darc.sb_generator" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">science_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">science_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Synthesized beam generator</p>
 <p>__init__ should be called by cls.from_science_case or cls.from_table</p>
@@ -386,7 +438,7 @@ observation stop</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.from_science_case">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_science_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">science_case</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_science_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">science_case</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition"></a></dt>
 <dd><p>Initalize default table for given science case</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -403,7 +455,7 @@ observation stop</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.from_table">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.8.12/x64/lib/python3.8/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition"></a></dt>
 <dd><p>Initalize with provided SB table</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
