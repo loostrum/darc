@@ -452,7 +452,7 @@ def get_triggers(fn, sig_thresh=5.0, dm_min=0, dm_max=np.inf,
     ind_full = np.array(ind_full)
     dm_cut = np.array(dm_cut)
     # now remove the low DM candidates
-    tt_cut = np.array(tt_cut).astype(np.float)
+    tt_cut = np.array(tt_cut).astype(float)
     ind = np.where((dm_cut >= dm_min) & (dm_cut <= dm_max) & (tt_cut < t_max))[0]
 
     dm_cut = dm_cut[ind]
@@ -682,7 +682,7 @@ class SNR_Tools:
 
         Returns
         -------
-        snr : np.float
+        snr : float
             S/N of pulse
         """
         assert len(data.shape) == 1
@@ -716,7 +716,7 @@ class SNR_Tools:
 
         Returns
         -------
-        snr : np.float
+        snr : float
             S/N of pulse
         """
         assert len(data.shape) == 1
