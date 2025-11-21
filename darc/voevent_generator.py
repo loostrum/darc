@@ -16,9 +16,13 @@ import astropy.units as u
 import astropy.constants as const
 from astropy.time import Time
 import pytz
-import voeventparse as vp
 import datetime
 from xml.dom import minidom
+try:
+    import voeventparse as vp
+except ImportError:
+    # voeventparse not available
+    vp = None
 
 from darc.definitions import TSAMP, BANDWIDTH, NCHAN, TSYS, AP_EFF, DISH_DIAM, NDISH, CONFIG_FILE
 from darc import util
@@ -141,7 +145,10 @@ class VOEventGenerator(mp.Process):
                 if additional_triggers:
                     trigger = [trigger] + additional_triggers
 
-            self.create_and_send(trigger)
+            if vp is None:
+                self.logger.warning("VOEvent trigger received but voevent-parse is not available")
+            else:
+                self.create_and_send(trigger)
 
         # stop the queue server
         self.voevent_server.shutdown()

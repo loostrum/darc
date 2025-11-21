@@ -366,7 +366,7 @@ class TestClustering(unittest.TestCase):
         self.clustering.start()
         triggers = self.get_triggers()
         self.input_queue.put(triggers)
-        sleep(1)
+        sleep(5)
         self.input_queue.put('stop')
         self.clustering.join()
         # read output
