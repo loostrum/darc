@@ -31,7 +31,7 @@ jobs:
           pip install git+https://github.com/FRBs/sigpyproc3@v0.5.0
           pip install .
       - name: Style check
-        run: flake8
+        run: flake8 --exclude __init__.py,build
       - name: Tests
         run: pytest -v
     
