@@ -23,7 +23,6 @@ The following packages are automatically installed when installing DARC through 
 * pytz
 * pyyaml
 * scipy
-* voevent-parse
 
 To install a DARC release, for example v3.0:
 `pip install git+https://github.com/loostrum/darc/archive/v3.0.tar.gz`  

@@ -4,12 +4,17 @@ import os
 import unittest
 from time import sleep
 import multiprocessing as mp
+try:
+    import voeventparse as vp
+except ImportError:
+    vp = None
 
 from darc import VOEventGenerator, VOEventQueueServer
 
 
 class TestVOEventGenerator(unittest.TestCase):
 
+    @unittest.skipIf(vp is None, "voevent-parse not installed")
     def test_generate_VOEvent(self):
         """
         Test that the VOEvent generator converts a trigger into a VOEvent
