@@ -2,6 +2,8 @@ name: CI
 
 # run on all pushes, pull requests to master, and allow manual runs
 on:
+  push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
