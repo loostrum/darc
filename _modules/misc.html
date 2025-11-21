@@ -1,23 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Miscellaneous &mdash; DARC 3.1 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=b941d5e4" />
+
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=b576230a"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -29,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> DARC
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            DARC
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -124,7 +127,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="api.html">API reference</a></li>
       <li class="breadcrumb-item active">Miscellaneous</li>
       <li class="wy-breadcrumbs-aside">
@@ -137,17 +140,17 @@
            <div itemprop="articleBody">
              
   <section id="miscellaneous">
-<h1>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this heading"></a></h1>
+<h1>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Link to this heading"></a></h1>
 <section id="module-darc.base">
-<span id="base-class"></span><h2>Base class<a class="headerlink" href="#module-darc.base" title="Permalink to this heading"></a></h2>
+<span id="base-class"></span><h2>Base class<a class="headerlink" href="#module-darc.base" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.base.DARCBase">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.base.</span></span><span class="sig-name descname"><span class="pre">DARCBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.base.</span></span><span class="sig-name descname"><span class="pre">DARCBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_target_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/darc/config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>DARC Base class</p>
 <p>Provides common methods to services</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>source_queue</strong> (<em>Queue</em>) – Input queue</p></li>
 <li><p><strong>target_queue</strong> (<em>Queue</em>) – Output queue</p></li>
@@ -160,10 +163,10 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.cleanup">
-<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.cleanup" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.cleanup" title="Link to this definition"></a></dt>
 <dd><p>Stub for commands to run upon service stop, defaults to self.stop_observation</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Whether to abort running observation</p>
 </dd>
 </dl>
@@ -171,10 +174,10 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.get_attribute">
-<span class="sig-name descname"><span class="pre">get_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.get_attribute" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.get_attribute" title="Link to this definition"></a></dt>
 <dd><p>Get attribute as given in input command</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>command</strong> (<em>dict</em>) – Command received over queue</p>
 </dd>
 </dl>
@@ -182,17 +185,17 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.load_config">
-<span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.load_config" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.load_config" title="Link to this definition"></a></dt>
 <dd><p>Load config file</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.process_command">
-<span class="sig-name descname"><span class="pre">process_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.process_command" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.process_command" title="Link to this definition"></a></dt>
 <dd><p>Process command from queue, other than start_observation and stop_observation.
 By default only provides get_attribute command</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>command</strong> (<em>dict</em>) – Input command</p></li>
 <li><p><strong>args</strong> (<em>list</em>) – process command arguments</p></li>
@@ -204,7 +207,7 @@ By default only provides get_attribute command</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.run" title="Link to this definition"></a></dt>
 <dd><p>Main loop</p>
 <p>Receive commands on input queue, calls self.start_observation, self.stop_observation,
 else self.process_command</p>
@@ -212,10 +215,10 @@ else self.process_command</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.start_observation">
-<span class="sig-name descname"><span class="pre">start_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">start_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.start_observation" title="Link to this definition"></a></dt>
 <dd><p>Start observation. By default only (re)loads config file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>args</strong> (<em>list</em>) – start_observation arguments</p></li>
 <li><p><strong>reload</strong> (<em>bool</em>) – reload service settings (default: True)</p></li>
@@ -227,10 +230,10 @@ else self.process_command</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.stop">
-<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop" title="Link to this definition"></a></dt>
 <dd><p>Stop this service</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>abort</strong> (<em>bool</em>) – Whether to abort running observation</p>
 </dd>
 </dl>
@@ -238,11 +241,11 @@ else self.process_command</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.base.DARCBase.stop_observation">
-<span class="sig-name descname"><span class="pre">stop_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop_observation" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">stop_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.base.DARCBase.stop_observation" title="Link to this definition"></a></dt>
 <dd><p>Stop observation stub, should be overridden by subclass if commands need to be executed at
 observation stop</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>args</strong> (<em>list</em>) – stop_observation arguments</p></li>
 <li><p><strong>kwargs</strong> (<em>dict</em>) – stop_observation keyword arguments</p></li>
@@ -255,10 +258,10 @@ observation stop</p>
 
 </section>
 <section id="module-darc.control">
-<span id="control"></span><h2>Control<a class="headerlink" href="#module-darc.control" title="Permalink to this heading"></a></h2>
+<span id="control"></span><h2>Control<a class="headerlink" href="#module-darc.control" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.control.main">
-<span class="sig-prename descclassname"><span class="pre">darc.control.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.main" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.control.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.main" title="Link to this definition"></a></dt>
 <dd><p>DARC command line interface</p>
 <p>This function is called by the darc executable</p>
 <p>Run darc –help for usage</p>
@@ -266,10 +269,10 @@ observation stop</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.control.send_command">
-<span class="sig-prename descclassname"><span class="pre">darc.control.</span></span><span class="sig-name descname"><span class="pre">send_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.send_command" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.control.</span></span><span class="sig-name descname"><span class="pre">send_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.control.send_command" title="Link to this definition"></a></dt>
 <dd><p>Send a command to the DARC master service</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>timeout</strong> (<em>float</em>) – Timeout for reply in seconds</p></li>
 <li><p><strong>service</strong> (<em>str</em>) – Service to send command to</p></li>
@@ -279,7 +282,7 @@ observation stop</p>
 <li><p><strong>port</strong> (<em>int</em>) – Port to connect to (default: get from DARC config file)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>reply from DARC master</p>
 </dd>
 </dl>
@@ -287,107 +290,107 @@ observation stop</p>
 
 </section>
 <section id="module-darc.definitions">
-<span id="definitions"></span><h2>Definitions<a class="headerlink" href="#module-darc.definitions" title="Permalink to this heading"></a></h2>
+<span id="definitions"></span><h2>Definitions<a class="headerlink" href="#module-darc.definitions" title="Link to this heading"></a></h2>
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.AP_EFF">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">AP_EFF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.6</span></em><a class="headerlink" href="#darc.definitions.AP_EFF" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">AP_EFF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.6</span></em><a class="headerlink" href="#darc.definitions.AP_EFF" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS aperture efficiency</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.ARRAY_ITRF">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">ARRAY_ITRF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">[3828630.63486201,</span>&#160; <span class="pre">443593.39226634,</span> <span class="pre">5064922.99755</span>&#160;&#160; <span class="pre">]</span> <span class="pre">m&gt;</span></em><a class="headerlink" href="#darc.definitions.ARRAY_ITRF" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">ARRAY_ITRF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">[3828630.63486201,</span>&#160; <span class="pre">443593.39226634,</span> <span class="pre">5064922.99755</span>&#160;&#160; <span class="pre">]</span> <span class="pre">m&gt;</span></em><a class="headerlink" href="#darc.definitions.ARRAY_ITRF" title="Link to this definition"></a></dt>
 <dd><p>ITRF WSRT reference position</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.BANDWIDTH">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">BANDWIDTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">300.</span> <span class="pre">MHz&gt;</span></em><a class="headerlink" href="#darc.definitions.BANDWIDTH" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">BANDWIDTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">300.</span> <span class="pre">MHz&gt;</span></em><a class="headerlink" href="#darc.definitions.BANDWIDTH" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS bandwidth</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.CONFIG_FILE">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">CONFIG_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">CONFIG_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/darc/config.yaml'</span></em><a class="headerlink" href="#darc.definitions.CONFIG_FILE" title="Link to this definition"></a></dt>
 <dd><p>Full path to config file: $HOME/darc/config.yaml if present, else default shipped with package</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.DISH_DIAM">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">DISH_DIAM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">25.</span> <span class="pre">m&gt;</span></em><a class="headerlink" href="#darc.definitions.DISH_DIAM" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">DISH_DIAM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">25.</span> <span class="pre">m&gt;</span></em><a class="headerlink" href="#darc.definitions.DISH_DIAM" title="Link to this definition"></a></dt>
 <dd><p>WSRT dish diameter</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.MASTER">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">MASTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'arts041'</span></em><a class="headerlink" href="#darc.definitions.MASTER" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">MASTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'arts041'</span></em><a class="headerlink" href="#darc.definitions.MASTER" title="Link to this definition"></a></dt>
 <dd><p>ARTS master name</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.NCHAN">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NCHAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1536</span></em><a class="headerlink" href="#darc.definitions.NCHAN" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NCHAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1536</span></em><a class="headerlink" href="#darc.definitions.NCHAN" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS number of channels</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.NDISH">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NDISH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#darc.definitions.NDISH" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NDISH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#darc.definitions.NDISH" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS number of dishes in use</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.NTAB">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NTAB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></em><a class="headerlink" href="#darc.definitions.NTAB" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NTAB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></em><a class="headerlink" href="#darc.definitions.NTAB" title="Link to this definition"></a></dt>
 <dd><p>Number of tied-array beams</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.NUMCB">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NUMCB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">40</span></em><a class="headerlink" href="#darc.definitions.NUMCB" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">NUMCB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">40</span></em><a class="headerlink" href="#darc.definitions.NUMCB" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS number of compound beams</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.TIME_UNIT">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TIME_UNIT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">781250</span></em><a class="headerlink" href="#darc.definitions.TIME_UNIT" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TIME_UNIT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">781250</span></em><a class="headerlink" href="#darc.definitions.TIME_UNIT" title="Link to this definition"></a></dt>
 <dd><p>Beamformer time constant: number of samples per second</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.TSAMP">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TSAMP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">8.192e-05</span> <span class="pre">s&gt;</span></em><a class="headerlink" href="#darc.definitions.TSAMP" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TSAMP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">8.192e-05</span> <span class="pre">s&gt;</span></em><a class="headerlink" href="#darc.definitions.TSAMP" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS sampling time</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.TSYS">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TSYS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">85.</span> <span class="pre">K&gt;</span></em><a class="headerlink" href="#darc.definitions.TSYS" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">TSYS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Quantity</span> <span class="pre">85.</span> <span class="pre">K&gt;</span></em><a class="headerlink" href="#darc.definitions.TSYS" title="Link to this definition"></a></dt>
 <dd><p>Apertif/ARTS system temperature</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="darc.definitions.WORKERS">
-<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">WORKERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['arts001',</span> <span class="pre">'arts002',</span> <span class="pre">'arts003',</span> <span class="pre">'arts004',</span> <span class="pre">'arts005',</span> <span class="pre">'arts006',</span> <span class="pre">'arts007',</span> <span class="pre">'arts008',</span> <span class="pre">'arts009',</span> <span class="pre">'arts010',</span> <span class="pre">'arts011',</span> <span class="pre">'arts012',</span> <span class="pre">'arts013',</span> <span class="pre">'arts014',</span> <span class="pre">'arts015',</span> <span class="pre">'arts016',</span> <span class="pre">'arts017',</span> <span class="pre">'arts018',</span> <span class="pre">'arts019',</span> <span class="pre">'arts020',</span> <span class="pre">'arts021',</span> <span class="pre">'arts022',</span> <span class="pre">'arts023',</span> <span class="pre">'arts024',</span> <span class="pre">'arts025',</span> <span class="pre">'arts026',</span> <span class="pre">'arts027',</span> <span class="pre">'arts028',</span> <span class="pre">'arts029',</span> <span class="pre">'arts030',</span> <span class="pre">'arts031',</span> <span class="pre">'arts032',</span> <span class="pre">'arts033',</span> <span class="pre">'arts034',</span> <span class="pre">'arts035',</span> <span class="pre">'arts036',</span> <span class="pre">'arts037',</span> <span class="pre">'arts038',</span> <span class="pre">'arts039',</span> <span class="pre">'arts040']</span></em><a class="headerlink" href="#darc.definitions.WORKERS" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.definitions.</span></span><span class="sig-name descname"><span class="pre">WORKERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['arts001',</span> <span class="pre">'arts002',</span> <span class="pre">'arts003',</span> <span class="pre">'arts004',</span> <span class="pre">'arts005',</span> <span class="pre">'arts006',</span> <span class="pre">'arts007',</span> <span class="pre">'arts008',</span> <span class="pre">'arts009',</span> <span class="pre">'arts010',</span> <span class="pre">'arts011',</span> <span class="pre">'arts012',</span> <span class="pre">'arts013',</span> <span class="pre">'arts014',</span> <span class="pre">'arts015',</span> <span class="pre">'arts016',</span> <span class="pre">'arts017',</span> <span class="pre">'arts018',</span> <span class="pre">'arts019',</span> <span class="pre">'arts020',</span> <span class="pre">'arts021',</span> <span class="pre">'arts022',</span> <span class="pre">'arts023',</span> <span class="pre">'arts024',</span> <span class="pre">'arts025',</span> <span class="pre">'arts026',</span> <span class="pre">'arts027',</span> <span class="pre">'arts028',</span> <span class="pre">'arts029',</span> <span class="pre">'arts030',</span> <span class="pre">'arts031',</span> <span class="pre">'arts032',</span> <span class="pre">'arts033',</span> <span class="pre">'arts034',</span> <span class="pre">'arts035',</span> <span class="pre">'arts036',</span> <span class="pre">'arts037',</span> <span class="pre">'arts038',</span> <span class="pre">'arts039',</span> <span class="pre">'arts040']</span></em><a class="headerlink" href="#darc.definitions.WORKERS" title="Link to this definition"></a></dt>
 <dd><p>ARTS worker names</p>
 </dd></dl>
 
 </section>
 <section id="module-darc.logger">
-<span id="logger"></span><h2>Logger<a class="headerlink" href="#module-darc.logger" title="Permalink to this heading"></a></h2>
+<span id="logger"></span><h2>Logger<a class="headerlink" href="#module-darc.logger" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.logger.get_logger">
-<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_logger" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_logger" title="Link to this definition"></a></dt>
 <dd><p>Create logger</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – name to use in log prints</p></li>
 <li><p><strong>log_file</strong> (<em>str</em>) – Path to log file</p></li>
 <li><p><strong>level</strong> (<em>int</em>) – log level (default: logging.INFO)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>logger</p>
 </dd>
 </dl>
@@ -395,7 +398,7 @@ observation stop</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.logger.get_queue_logger">
-<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_queue_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_queue_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger" title="Link to this definition"></a></dt>
 <dd><p>Create logger that puts messages on a queue to be handled by a separate listener
 :param str name: name to use in log prints
 :param Queue queue: Log queue
@@ -405,7 +408,7 @@ observation stop</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.logger.get_queue_logger_listener">
-<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_queue_logger_listener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger_listener" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.logger.</span></span><span class="sig-name descname"><span class="pre">get_queue_logger_listener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.logger.get_queue_logger_listener" title="Link to this definition"></a></dt>
 <dd><p>Create thread that logs message from a queue
 :param Queue queue: Log queue
 :param str log_file: Path to log file
@@ -414,15 +417,15 @@ observation stop</p>
 
 </section>
 <section id="module-darc.sb_generator">
-<span id="synthesized-beam-generator"></span><h2>Synthesized Beam Generator<a class="headerlink" href="#module-darc.sb_generator" title="Permalink to this heading"></a></h2>
+<span id="synthesized-beam-generator"></span><h2>Synthesized Beam Generator<a class="headerlink" href="#module-darc.sb_generator" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">science_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">science_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Synthesized beam generator</p>
 <p>__init__ should be called by cls.from_science_case or cls.from_table</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fname</strong> – path to synthesized beam table</p></li>
 <li><p><strong>science_case</strong> – ARTS science case (3 or 4)</p></li>
@@ -432,22 +435,22 @@ observation stop</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator._load_table">
-<span class="sig-name descname"><span class="pre">_load_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator._load_table" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_load_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator._load_table" title="Link to this definition"></a></dt>
 <dd><p>Load SB table</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.from_science_case">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_science_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">science_case</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_science_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">science_case</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_science_case" title="Link to this definition"></a></dt>
 <dd><p>Initalize default table for given science case</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>science_case</strong> (<em>int</em>) – science case (3 or 4)</p></li>
 <li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>SBGenerator object</p>
 </dd>
 </dl>
@@ -455,16 +458,16 @@ observation stop</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.from_table">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.10.8/x64/lib/python3.10/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages/darc/config.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.from_table" title="Link to this definition"></a></dt>
 <dd><p>Initalize with provided SB table</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fname</strong> (<em>str</em>) – Path to SB table</p></li>
 <li><p><strong>config_file</strong> (<em>str</em>) – Path to config file</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>SBGenerator object</p>
 </dd>
 </dl>
@@ -472,13 +475,13 @@ observation stop</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.get_map">
-<span class="sig-name descname"><span class="pre">get_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.get_map" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.get_map" title="Link to this definition"></a></dt>
 <dd><p>Return mapping of requested SB</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sb</strong> (<em>int</em>) – beam to return mapping for</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>SB mapping for requested beam</p>
 </dd>
 </dl>
@@ -486,10 +489,10 @@ observation stop</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.reversed">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reversed</span></span><a class="headerlink" href="#darc.sb_generator.SBGenerator.reversed" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reversed</span></span><a class="headerlink" href="#darc.sb_generator.SBGenerator.reversed" title="Link to this definition"></a></dt>
 <dd><p>Whether or not the SB table is reversed for use on filterbank data</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>reversed (bool)</p>
 </dd>
 </dl>
@@ -497,16 +500,16 @@ observation stop</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGenerator.synthesize_beam">
-<span class="sig-name descname"><span class="pre">synthesize_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.synthesize_beam" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">synthesize_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.sb_generator.SBGenerator.synthesize_beam" title="Link to this definition"></a></dt>
 <dd><p>Synthesize beam</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>np.ndarray</em>) – TAB data with shape [TAB, freq, time]</p></li>
 <li><p><strong>sb</strong> (<em>int</em>) – SB index</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>SB data with shape [freq, time]</p>
 </dd>
 </dl>
@@ -516,27 +519,27 @@ observation stop</p>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="darc.sb_generator.SBGeneratorException">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGeneratorException</span></span><a class="headerlink" href="#darc.sb_generator.SBGeneratorException" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">darc.sb_generator.</span></span><span class="sig-name descname"><span class="pre">SBGeneratorException</span></span><a class="headerlink" href="#darc.sb_generator.SBGeneratorException" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 </section>
 <section id="module-darc.util">
-<span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-darc.util" title="Permalink to this heading"></a></h2>
+<span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-darc.util" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.calc_snr_amber">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">calc_snr_amber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.calc_snr_amber" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">calc_snr_amber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.calc_snr_amber" title="Link to this definition"></a></dt>
 <dd><p>Calculate peak S/N using the same method as AMBER:
 Outliers are removed four times before calculating the S/N as peak - median / sigma
 The result is scaled by 1.048 to account for the removed values</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>array</em>) – timeseries data</p></li>
 <li><p><strong>thresh</strong> (<em>float</em>) – sigma threshold for outliers (Default: 3)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>peak S/N</p>
 </dd>
 </dl>
@@ -544,17 +547,17 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.calc_snr_matched_filter">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">calc_snr_matched_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.calc_snr_matched_filter" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">calc_snr_matched_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.calc_snr_matched_filter" title="Link to this definition"></a></dt>
 <dd><p>Calculate S/N using several matched filter widths, then pick the highest S/N</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>np.ndarray</em>) – timeseries data</p></li>
 <li><p><strong>widths</strong> (<em>np.ndarray</em>) – matched filters widths to try
 (Default: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500])</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>highest S/N, corresponding matched filter width</p>
 </dd>
 </dl>
@@ -562,10 +565,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.clear_queue">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">clear_queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.clear_queue" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">clear_queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.clear_queue" title="Link to this definition"></a></dt>
 <dd><p>Read all remaining items in a queue and discard them</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>queue</strong> (<em>queue.Queue</em>) – queue to clear</p>
 </dd>
 </dl>
@@ -573,13 +576,13 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.decode_parset">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">decode_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.decode_parset" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">decode_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.decode_parset" title="Link to this definition"></a></dt>
 <dd><p>Decode parset into string</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>parset_bytes</strong> (<em>bytes</em>) – raw parset bytes</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>parset as string</p>
 </dd>
 </dl>
@@ -587,17 +590,17 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.dm_to_delay">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">dm_to_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fhi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.dm_to_delay" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">dm_to_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fhi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.dm_to_delay" title="Link to this definition"></a></dt>
 <dd><p>Convert DM to time delay</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dm</strong> (<em>astropy.units.quantity.Quantity</em>) – dispersion measure</p></li>
 <li><p><strong>flo</strong> (<em>astropy.units.quantity.Quantity</em>) – lowest frequency</p></li>
 <li><p><strong>fhi</strong> (<em>astropy.units.quantity.Quantity</em>) – highest frequency</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>time delay (astropy quantity)</p>
 </dd>
 </dl>
@@ -605,10 +608,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.dm_to_smearing">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">dm_to_smearing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.dm_to_smearing" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">dm_to_smearing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.dm_to_smearing" title="Link to this definition"></a></dt>
 <dd><p>Calculate intra-channel smearing time</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dm</strong> (<em>astropy.units.quantity.Quantity</em>) – dispersion measure</p></li>
 <li><p><strong>f</strong> (<em>astropy.units.quantity.Quantity</em>) – frequency</p></li>
@@ -620,13 +623,13 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.encode_parset">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">encode_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.encode_parset" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">encode_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.encode_parset" title="Link to this definition"></a></dt>
 <dd><p>Encode parset string into bytes</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>parset_str</strong> (<em>str</em>) – parset as one string</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>encoded parset as bytes</p>
 </dd>
 </dl>
@@ -634,10 +637,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.get_flux">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">get_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coherent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_flux" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">get_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coherent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_flux" title="Link to this definition"></a></dt>
 <dd><p>Compute single pulse flux density using radiometer equation</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>snr</strong> (<em>float</em>) – S/N</p></li>
 <li><p><strong>width</strong> (<em>astropy.units.quantity.Quantity</em>) – Width</p></li>
@@ -646,7 +649,7 @@ The result is scaled by 1.048 to account for the removed values</p>
 <li><p><strong>coherent</strong> (<em>bool</em>) – Using coherent beamforming (default: True)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Peak flux density (astropy.units.quantity.Quantity)</p>
 </dd>
 </dl>
@@ -654,17 +657,17 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.get_ymw16">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">get_ymw16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_ymw16" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">get_ymw16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.get_ymw16" title="Link to this definition"></a></dt>
 <dd><p>Get YMW16 DM</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>parset</strong> (<em>dict</em>) – Observation parset</p></li>
 <li><p><strong>beam</strong> (<em>int</em>) – CB for which to get YMW16 DM</p></li>
 <li><p><strong>logger</strong> (<em>Logger</em>) – Logger object (optional)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>YMW16 DM (float)</p>
 </dd>
 </dl>
@@ -672,17 +675,17 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.hadec_to_radec">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">hadec_to_radec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.hadec_to_radec" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">hadec_to_radec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.hadec_to_radec" title="Link to this definition"></a></dt>
 <dd><p>Convert apparent HA, Dec to J2000 RA, Dec</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ha</strong> – hour angle with unit</p></li>
 <li><p><strong>dec</strong> – declination with unit</p></li>
 <li><p><strong>t</strong> (<em>Time/str</em>) – Observing time</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>SkyCoord object of J2000 coordinates</p>
 </dd>
 </dl>
@@ -690,10 +693,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.hadec_to_rot">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">hadec_to_rot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.hadec_to_rot" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">hadec_to_rot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.hadec_to_rot" title="Link to this definition"></a></dt>
 <dd><p>Convert WSRT HA, Dec to TAB rotation angle</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ha</strong> (<em>astropy.units.quantity.Quantity</em>) – hour angle with unit</p></li>
 <li><p><strong>dec</strong> (<em>astropy.units.quantity.Quantity</em>) – declination with unit</p></li>
@@ -704,10 +707,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.makedirs">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">makedirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.makedirs" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">makedirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.makedirs" title="Link to this definition"></a></dt>
 <dd><p>Mimic os.makedirs, but do not error when directory already exists</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to recursively create</p>
 </dd>
 </dl>
@@ -715,13 +718,13 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.parse_parset">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">parse_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.parse_parset" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">parse_parset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parset_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.parse_parset" title="Link to this definition"></a></dt>
 <dd><p>Parse parset into dict with proper types</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>parset_str</strong> (<em>str</em>) – raw parset as string</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>parset as dict</p>
 </dd>
 </dl>
@@ -729,17 +732,17 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.radec_to_hadec">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">radec_to_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.radec_to_hadec" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">radec_to_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.radec_to_hadec" title="Link to this definition"></a></dt>
 <dd><p>Convert RA, Dec to apparent WSRT HA, Dec</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ra</strong> (<em>Quantity</em>) – Right ascension</p></li>
 <li><p><strong>dec</strong> (<em>Quantity</em>) – Declination</p></li>
 <li><p><strong>t</strong> (<em>Time/str</em>) – Observing time</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>HA (Quantity), Dec (Quantity)</p>
 </dd>
 </dl>
@@ -747,10 +750,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.send_email">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">send_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attachments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.send_email" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">send_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attachments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.send_email" title="Link to this definition"></a></dt>
 <dd><p>Send email, only possible to ASTRON addresses</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>frm</strong> (<em>str</em>) – From address</p></li>
 <li><p><strong>to</strong> (<em>str/list</em>) – To addresses, either single or list of addresses</p></li>
@@ -764,10 +767,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.sleepuntil_utc">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">sleepuntil_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.sleepuntil_utc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">sleepuntil_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.sleepuntil_utc" title="Link to this definition"></a></dt>
 <dd><p>Sleep until specified time</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>end_time</strong> (<em>datetime.datetime/astropy.time.Time/str</em>) – sleep until this time</p></li>
 <li><p><strong>event</strong> (<em>threading.Event</em>) – if specified, uses event.wait instead of time.sleep</p></li>
@@ -778,10 +781,10 @@ The result is scaled by 1.048 to account for the removed values</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="darc.util.tail">
-<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">tail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.tail" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">darc.util.</span></span><span class="sig-name descname"><span class="pre">tail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#darc.util.tail" title="Link to this definition"></a></dt>
 <dd><p>Read all lines of a file, then tail until stop event is set</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f</strong> (<em>filehandle</em>) – handle to file to tail</p></li>
 <li><p><strong>event</strong> (<em>threading.Event</em>) – stop event</p></li>
@@ -804,7 +807,7 @@ The result is scaled by 1.048 to account for the removed values</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Leon Oostrum.</p>
+    <p>&#169; Copyright 2025, Leon Oostrum.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
